@@ -50,5 +50,5 @@ $ python3 manage.py test
 
 ## Sources
 The packages used by this application are specified in `requirements.txt`
-```
+
 We used the following website as a reference: [*https://self-service.kcl.ac.uk*](*https://self-service.kcl.ac.uk*).
