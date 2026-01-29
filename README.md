@@ -3,7 +3,7 @@
 ## Team members
 The members of the team are:
 - *Patrick Dunham*
-- *Darren ...*
+- *Darren Guan*
 - *Aliaa ...*
 - *Gor ...*
 - *Bingyan ...*
