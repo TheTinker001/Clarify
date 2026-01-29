@@ -19,6 +19,13 @@ class UserModelTestCase(TestCase):
     def test_valid_user(self):
         self._assert_user_is_valid()
 
+    def test_user_type_defaults_to_student(self):
+        self.assertEqual(self.user.user_type, User.USER_TYPE_STUDENT)
+
+    def test_user_type_must_be_valid_choice(self):
+        self.user.user_type = 'invalid'
+        self._assert_user_is_invalid()
+
     def test_username_cannot_be_blank(self):
         self.user.username = ''
         self._assert_user_is_invalid()

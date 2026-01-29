@@ -4,9 +4,16 @@
   <div class="row">
     <div class="col-sm-12 col-md-6 offset-md-3">
       <h1>Log in</h1>
+      <div class="mb-3">
+        <a class="btn btn-outline-primary me-2" href="{% url 'log_in' %}?user_type=student">Student login</a>
+        <a class="btn btn-outline-secondary" href="{% url 'log_in' %}?user_type=staff">Staff login</a>
+      </div>
       <form action="{% url 'log_in' %}" method="post">
         {% csrf_token %}
         <input type="hidden" name="next" value="{{ next }}">
+        {% if user_type %}
+          <p class="text-muted">Selected: {{ user_type|title }}</p>
+        {% endif %}
         {% include 'partials/bootstrap_form.html' with form=form %}
         <input type="submit" value="Log in" class="btn btn-primary">
       </form>

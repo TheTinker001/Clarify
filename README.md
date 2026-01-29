@@ -5,7 +5,7 @@ The members of the team are:
 - *Patrick Dunham*
 - *Darren Guan*
 - *Aliaa ...*
-- *Gor ...*
+- *Gor Vardanyan*
 - *Bingyan Yang*
 - *Chen-Han ...*
 
