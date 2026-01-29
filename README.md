@@ -6,7 +6,7 @@ The members of the team are:
 - *Darren ...*
 - *Aliaa ...*
 - *Gor ...*
-- *Bingyan ...*
+- *Bingyan Yang*
 - *Chen-Han ...*
 
 ## Project structure
