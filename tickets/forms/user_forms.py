@@ -168,7 +168,12 @@ class SignUpForm(NewPasswordMixin, forms.ModelForm):
         """Form options."""
 
         model = User
-        fields = ['first_name', 'last_name', 'username', 'email']
+        fields = ['first_name', 'last_name', 'username', 'email', 'user_type']
+
+    user_type = forms.ChoiceField(
+        choices=User.USER_TYPE_CHOICES,
+        initial=User.USER_TYPE_STUDENT,
+    )
 
     def save(self):
         """
@@ -189,5 +194,6 @@ class SignUpForm(NewPasswordMixin, forms.ModelForm):
             last_name=self.cleaned_data.get('last_name'),
             email=self.cleaned_data.get('email'),
             password=self.cleaned_data.get('new_password'),
+            user_type=self.cleaned_data.get('user_type'),
         )
         return user
