@@ -25,9 +25,9 @@ class TicketModelTestCase(TestCase):
         )
         self.ticket = Ticket.objects.create(
             student=self.student,
-            faculty="nmes",
-            study_level="undergraduate",
-            category="assessment",
+            faculty=Ticket.Faculty.NMES,
+            study_level=Ticket.StudyLevel.UNDERGRADUATE,
+            category=Ticket.Category.ASSESSMENT,
             subject="Assessment Marking Criteria",
             body="I'm unsure about the marking criteria. Can someone explain?",
         )
@@ -73,21 +73,21 @@ class TicketModelTestCase(TestCase):
         self._assert_ticket_is_invalid()
 
     def test_clean_when_closed_requires_closed_reason(self):
-        self.ticket.status = "closed"
+        self.ticket.status = Ticket.Status.CLOSED
         self.ticket.closed_reason = None
         self._assert_ticket_is_invalid()
 
     def test_clean_closed_sets_closed_at_when_missing(self):
-        self.ticket.status = "closed"
-        self.ticket.closed_reason = "answered"
+        self.ticket.status = Ticket.Status.CLOSED
+        self.ticket.closed_reason = Ticket.ClosedReason.ANSWERED
         self.ticket.closed_at = None
         self.ticket.full_clean()
 
         self.assertNotEqual(self.ticket.closed_at, None)
 
     def test_clean_closed_does_not_override_closed_at_when_present(self):
-        self.ticket.status = "closed"
-        self.ticket.closed_reason = "answered"
+        self.ticket.status = Ticket.Status.CLOSED
+        self.ticket.closed_reason = Ticket.ClosedReason.ANSWERED
         current_time = timezone.now()
         self.ticket.closed_at = current_time
         self.ticket.full_clean()
@@ -95,8 +95,8 @@ class TicketModelTestCase(TestCase):
         self.assertEqual(self.ticket.closed_at, current_time)
 
     def test_clean_when_not_closed_clears_closed_fields(self):
-        self.ticket.status = "awaiting_staff"
-        self.ticket.closed_reason = "answered"
+        self.ticket.status = Ticket.Status.AWAITING_STAFF
+        self.ticket.closed_reason = Ticket.ClosedReason.ANSWERED
         self.ticket.closed_at = timezone.now()
         self.ticket.full_clean()
 
@@ -110,8 +110,8 @@ class TicketModelTestCase(TestCase):
             self.ticket.save()
 
     def test_save_closed_ticket_sets_closed_at_and_saves(self):
-        self.ticket.status = "closed"
-        self.ticket.closed_reason = "answered"
+        self.ticket.status = Ticket.Status.CLOSED
+        self.ticket.closed_reason = Ticket.ClosedReason.ANSWERED
         self.ticket.closed_at = None
 
         self.ticket.save()
