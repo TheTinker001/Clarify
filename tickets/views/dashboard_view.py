@@ -1,5 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
+from tickets.models import Ticket
 
 
 @login_required
@@ -14,4 +15,7 @@ def dashboard(request):
     """
 
     current_user = request.user
-    return render(request, 'dashboard.html', {'user': current_user})
+    user_tickets = Ticket.objects.filter(student=current_user)
+    return render(
+        request, "dashboard.html", {"user": current_user, "tickets": user_tickets}
+    )
