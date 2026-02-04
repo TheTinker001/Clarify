@@ -1,10 +1,28 @@
 {% extends 'base_content.html' %}
 {% block content %}
-<div class="container">
-  <div class="row">
-    <div class="col-12">
-      <h1>Welcome to your dashboard {{ user.username }}</h1>
+  <div class="container">
+    <div class="row">
+      <div class="col-12">
+        <h1>Welcome to your dashboard {{ user.username }}</h1>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-12">
+        {% if user.user_type == 'student' %}
+          <p>Student dashboard content</p>
+        {% elif user.user_type == 'staff' %}
+          <p>Staff dashboard content</p>
+        {% endif %}
+        {% for ticket in tickets %}
+          <div class="ticket">
+            <h3>{{ ticket.subject }}</h3>
+            <p>{{ ticket.faculty }}</p>
+            <p>{{ ticket.study_level }}</p>
+            <p>{{ ticket.category }}</p>
+            <p>Status: {{ ticket.status }}</p>
+          </div>
+        {% endfor %}
+      </div>
     </div>
   </div>
-</div>
 {% endblock %}

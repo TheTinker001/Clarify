@@ -7,18 +7,34 @@ are left untouched—if a create fails (e.g., due to duplicates), the error
 is swallowed and generation continues.
 """
 
-
-
 from faker import Faker
 from random import randint, random
 from django.core.management.base import BaseCommand, CommandError
 from tickets.models import User
 
+from tickets.models import Ticket
+from django.utils import timezone
+
 
 user_fixtures = [
-    {'username': '@johndoe', 'email': 'john.doe@example.org', 'first_name': 'John', 'last_name': 'Doe'},
-    {'username': '@janedoe', 'email': 'jane.doe@example.org', 'first_name': 'Jane', 'last_name': 'Doe'},
-    {'username': '@charlie', 'email': 'charlie.johnson@example.org', 'first_name': 'Charlie', 'last_name': 'Johnson'},
+    {
+        "username": "@johndoe",
+        "email": "john.doe@example.org",
+        "first_name": "John",
+        "last_name": "Doe",
+    },
+    {
+        "username": "@janedoe",
+        "email": "jane.doe@example.org",
+        "first_name": "Jane",
+        "last_name": "Doe",
+    },
+    {
+        "username": "@charlie",
+        "email": "charlie.johnson@example.org",
+        "first_name": "Charlie",
+        "last_name": "Johnson",
+    },
 ]
 
 
@@ -38,13 +54,13 @@ class Command(BaseCommand):
     """
 
     USER_COUNT = 200
-    DEFAULT_PASSWORD = 'Password123'
-    help = 'Seeds the database with sample data'
+    DEFAULT_PASSWORD = "Password123"
+    help = "Seeds the database with sample data"
 
     def __init__(self, *args, **kwargs):
         """Initialize the command with a locale-specific Faker instance."""
         super().__init__(*args, **kwargs)
-        self.faker = Faker('en_GB')
+        self.faker = Faker("en_GB")
 
     def handle(self, *args, **options):
         """
@@ -54,6 +70,7 @@ class Command(BaseCommand):
         post-processing or debugging (not required for operation).
         """
         self.create_users()
+        self.create_tickets_for_fixture_users()
         self.users = User.objects.all()
 
     def create_users(self):
@@ -78,8 +95,8 @@ class Command(BaseCommand):
         Prints a simple progress indicator to stdout during generation.
         """
         user_count = User.objects.count()
-        while  user_count < self.USER_COUNT:
-            print(f"Seeding user {user_count}/{self.USER_COUNT}", end='\r')
+        while user_count < self.USER_COUNT:
+            print(f"Seeding user {user_count}/{self.USER_COUNT}", end="\r")
             self.generate_user()
             user_count = User.objects.count()
         print("User seeding complete.      ")
@@ -94,8 +111,15 @@ class Command(BaseCommand):
         last_name = self.faker.last_name()
         email = create_email(first_name, last_name)
         username = create_username(first_name, last_name)
-        self.try_create_user({'username': username, 'email': email, 'first_name': first_name, 'last_name': last_name})
-       
+        self.try_create_user(
+            {
+                "username": username,
+                "email": email,
+                "first_name": first_name,
+                "last_name": last_name,
+            }
+        )
+
     def try_create_user(self, data):
         """
         Attempt to create a user and ignore any errors.
@@ -118,12 +142,36 @@ class Command(BaseCommand):
                 ``first_name``, and ``last_name``.
         """
         User.objects.create_user(
-            username=data['username'],
-            email=data['email'],
+            username=data["username"],
+            email=data["email"],
             password=Command.DEFAULT_PASSWORD,
-            first_name=data['first_name'],
-            last_name=data['last_name'],
+            first_name=data["first_name"],
+            last_name=data["last_name"],
         )
+
+    def create_tickets_for_fixture_users(self):
+        for data in user_fixtures:
+            try:
+                user = User.objects.get(username=data["username"])
+            except User.DoesNotExist:
+                continue
+
+            # Optional: don’t duplicate tickets if you run seed twice
+            existing = Ticket.objects.filter(student=user).count()
+            if existing >= 2:
+                continue
+
+            for i in range(2 - existing):
+                Ticket.objects.create(
+                    student=user,
+                    faculty=Ticket.Faculty.NMES,
+                    study_level=Ticket.StudyLevel.UNDERGRADUATE,
+                    category=Ticket.Category.ASSESSMENT,
+                    subject=f"Seeded ticket {i+1} for {user.username}",
+                    body=self.faker.paragraph(nb_sentences=4),
+                    status=Ticket.Status.AWAITING_STAFF,
+                )
+
 
 def create_username(first_name, last_name):
     """
@@ -136,7 +184,8 @@ def create_username(first_name, last_name):
     Returns:
         str: A username in the form ``@{firstname}{lastname}`` (lowercased).
     """
-    return '@' + first_name.lower() + last_name.lower()
+    return "@" + first_name.lower() + last_name.lower()
+
 
 def create_email(first_name, last_name):
     """
@@ -149,4 +198,4 @@ def create_email(first_name, last_name):
     Returns:
         str: An email in the form ``{firstname}.{lastname}@example.org``.
     """
-    return first_name + '.' + last_name + '@example.org'
+    return first_name + "." + last_name + "@example.org"
