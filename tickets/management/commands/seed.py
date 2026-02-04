@@ -7,6 +7,7 @@ are left untouched—if a create fails (e.g., due to duplicates), the error
 is swallowed and generation continues.
 """
 
+from datetime import timedelta
 from faker import Faker
 import random
 from django.core.management.base import BaseCommand, CommandError
@@ -150,25 +151,60 @@ class Command(BaseCommand):
         )
 
     def create_tickets_for_fixture_users(self):
+
+        FACULTIES = [choice for choice, _ in Ticket.Faculty.choices]
+        STUDY_LEVELS = [choice for choice, _ in Ticket.StudyLevel.choices]
+        CATEGORIES = [choice for choice, _ in Ticket.Category.choices]
+
+        staff_user = User.objects.create_user(
+            first_name="Staff",
+            last_name="User",
+            username="@staffuser",
+            email="staffuser@example.org",
+            user_type=User.USER_TYPE_STAFF,
+            password="Password123",
+        )
+        overdue_cutoff = timezone.now() - timedelta(days=5)
+
         for data in user_fixtures:
             try:
                 user = User.objects.get(username=data["username"])
             except User.DoesNotExist:
                 continue
 
+            # Only seed students
+            if user.user_type != User.USER_TYPE_STUDENT:
+                continue
+
             existing = Ticket.objects.filter(student=user).count()
             if existing >= 2:
                 continue
 
-            FACULTIES = [choice for choice, _ in Ticket.Faculty.choices]
-            STUDY_LEVELS = [choice for choice, _ in Ticket.StudyLevel.choices]
-            CATEGORIES = [choice for choice, _ in Ticket.Category.choices]
-            STATUSES = [
-                Ticket.Status.AWAITING_STAFF,
-                Ticket.Status.AWAITING_STUDENT,
-            ]
+            remaining = 10 - existing
+            if remaining <= 0:
+                continue
 
-            for i in range(10 - existing):
+            # ---- define mix (adjust numbers if you want) ----
+            open_count = min(3, remaining)
+            remaining -= open_count
+
+            in_progress_count = min(2, remaining) if staff_user else 0
+            remaining -= in_progress_count
+
+            need_response_count = min(2, remaining)
+            remaining -= need_response_count
+
+            overdue_count = min(1, remaining)
+            remaining -= overdue_count
+
+            closed_count = min(2, remaining)
+            remaining -= closed_count
+
+            # Anything left → open tickets
+            open_count += remaining
+
+            # ---- OPEN tickets ----
+            for _ in range(open_count):
                 Ticket.objects.create(
                     student=user,
                     faculty=random.choice(FACULTIES),
@@ -176,7 +212,64 @@ class Command(BaseCommand):
                     category=random.choice(CATEGORIES),
                     subject=self.faker.sentence(nb_words=6),
                     body=self.faker.paragraph(nb_sentences=random.randint(3, 8)),
-                    status=random.choice(STATUSES),
+                    status=Ticket.Status.AWAITING_STAFF,
+                    assigned_to=None,
+                )
+
+            # ---- IN PROGRESS tickets ----
+            for _ in range(in_progress_count):
+                Ticket.objects.create(
+                    student=user,
+                    faculty=random.choice(FACULTIES),
+                    study_level=random.choice(STUDY_LEVELS),
+                    category=random.choice(CATEGORIES),
+                    subject=self.faker.sentence(nb_words=6),
+                    body=self.faker.paragraph(nb_sentences=random.randint(3, 8)),
+                    status=Ticket.Status.AWAITING_STAFF,
+                    assigned_to=staff_user,
+                )
+
+            # ---- NEED RESPONSE tickets ----
+            for _ in range(need_response_count):
+                Ticket.objects.create(
+                    student=user,
+                    faculty=random.choice(FACULTIES),
+                    study_level=random.choice(STUDY_LEVELS),
+                    category=random.choice(CATEGORIES),
+                    subject=self.faker.sentence(nb_words=6),
+                    body=self.faker.paragraph(nb_sentences=random.randint(3, 8)),
+                    status=Ticket.Status.AWAITING_STUDENT,
+                    assigned_to=None,
+                )
+
+            # ---- OVERDUE tickets ----
+            for _ in range(overdue_count):
+                t = Ticket.objects.create(
+                    student=user,
+                    faculty=random.choice(FACULTIES),
+                    study_level=random.choice(STUDY_LEVELS),
+                    category=random.choice(CATEGORIES),
+                    subject=self.faker.sentence(nb_words=6),
+                    body=self.faker.paragraph(nb_sentences=random.randint(3, 8)),
+                    status=Ticket.Status.AWAITING_STAFF,
+                    assigned_to=None,
+                )
+                Ticket.objects.filter(pk=t.pk).update(
+                    created_at=overdue_cutoff - timedelta(days=1)
+                )
+
+            # ---- CLOSED tickets ----
+            for _ in range(closed_count):
+                Ticket.objects.create(
+                    student=user,
+                    faculty=random.choice(FACULTIES),
+                    study_level=random.choice(STUDY_LEVELS),
+                    category=random.choice(CATEGORIES),
+                    subject=self.faker.sentence(nb_words=6),
+                    body=self.faker.paragraph(nb_sentences=random.randint(3, 8)),
+                    status=Ticket.Status.CLOSED,
+                    closed_reason=Ticket.ClosedReason.ANSWERED,
+                    closed_at=timezone.now(),
                 )
 
 
