@@ -165,3 +165,6 @@ if ENVIRONMENT == "production":
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_HSTS_PRELOAD = True
+
+# Pagination settings
+ITEMS_PER_PAGE = 20

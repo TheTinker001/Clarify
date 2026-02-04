@@ -4,6 +4,8 @@ from tickets.models import Ticket
 from tickets.models import User
 from django.utils import timezone
 from datetime import timedelta
+from django.conf import settings
+from django.core.paginator import Paginator
 
 
 @login_required
@@ -18,6 +20,14 @@ def dashboard(request):
     """
     current_user = request.user
     tab = request.GET.get("tab", "open_tickets")
+    TAB_LABELS = {
+        "open_tickets": "Open",
+        "in_progress_tickets": "In progress",
+        "need_response_tickets": "Need response",
+        "assigned_tickets": "Assigned",
+        "overdue_tickets": "Overdue",
+        "closed_tickets": "Closed",
+    }
 
     if current_user.user_type == User.USER_TYPE_STAFF:
         tickets = Ticket.objects.all().order_by("-created_at")
@@ -52,4 +62,23 @@ def dashboard(request):
             "closed_tickets": tickets.filter(status=Ticket.Status.CLOSED),
         }
 
-    return render(request, "dashboard.html", {"tickets": groups[tab]})
+    if tab not in groups:
+        tab = "open_tickets"
+
+    qs = groups[tab]
+    paginator = Paginator(qs, settings.ITEMS_PER_PAGE)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    return render(
+        request,
+        "dashboard.html",
+        {
+            "tickets": page_obj,
+            "category": TAB_LABELS.get(tab, "N/A"),
+            "page_obj": page_obj,
+            "paginator": paginator,
+            "tab": tab,
+            "total": qs.count(),
+        },
+    )

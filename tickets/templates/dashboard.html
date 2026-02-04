@@ -8,6 +8,7 @@
     </div>
     <!-- buttons -->
     <div class="row">
+      <h2>Categories:</h2>
       <div class="col-12">
         {% if user.user_type == "student" %}
           <div class="btn-group mb-3" role="group" aria-label="Student ticket tabs">
@@ -36,6 +37,13 @@
     </div>
     <!-- tickets -->
     <div class="row">
+      <h2>{{ category }} Tickets ({{ total }})</h2>
+      {% if page_obj.paginator.count > 0 %}
+        <p class="text-muted">
+          Showing {{ page_obj.start_index }}–{{ page_obj.end_index }}
+          of {{ page_obj.paginator.count }} tickets
+        </p>
+      {% endif %}
       <div class="col-12">
         {% for ticket in tickets %}
           <div class="card mb-3">
@@ -52,5 +60,27 @@
         {% endfor %}
       </div>
     </div>
+    <!-- pagination -->
+    {% if page_obj.has_other_pages %}
+      <nav aria-label="Ticket pagination" class="mt-3">
+        <ul class="pagination">
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link"
+                 href="?tab={{ tab }}&amp;page={{ page_obj.previous_page_number }}">Previous</a>
+            </li>
+          {% endif %}
+          <li class="page-item disabled">
+            <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+          </li>
+          {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link"
+                 href="?tab={{ tab }}&amp;page={{ page_obj.next_page_number }}">Next</a>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+    {% endif %}
   </div>
 {% endblock %}

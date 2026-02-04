@@ -161,7 +161,7 @@ class Command(BaseCommand):
             if existing >= 2:
                 continue
 
-            for i in range(2 - existing):
+            for i in range(10 - existing):
                 Ticket.objects.create(
                     student=user,
                     faculty=Ticket.Faculty.NMES,
