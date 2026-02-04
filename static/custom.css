@@ -101,6 +101,26 @@ h3.profile-title {
   font-style: italic;
 }
 
+.profile-initials {
+    width: 150px;
+    height: 150px;
+    font-size: 60px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background-color: #0066ff; 
+    color: #fff;
+    margin: 0 auto;
+    /* Bootstrap primary */
+}
+
+.default-profile-picture {
+    border-radius: 50%;
+    object-fit: cover;
+}
+
 
 /*
  * Hyperlinks
