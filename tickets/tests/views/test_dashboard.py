@@ -1,10 +1,14 @@
 """Tests of dashboard view."""
 
+from datetime import timedelta
 from django.contrib.auth.hashers import check_password
 from django.test import TestCase
 from django.urls import reverse
+from clarify import settings
 from tickets.models import User
+from tickets.models.ticket import Ticket
 from tickets.tests.helpers import LogInTester
+from django.utils import timezone
 
 
 class DashboardViewTestCase(TestCase, LogInTester):
@@ -14,13 +18,234 @@ class DashboardViewTestCase(TestCase, LogInTester):
 
     def setUp(self):
         self.url = reverse("dashboard")
-        self.form_input = {
-            "first_name": "Jane",
-            "last_name": "Doe",
-            "username": "@janedoe",
-            "email": "janedoe@example.org",
-            "user_type": User.USER_TYPE_STUDENT,
-            "new_password": "Password123",
-            "password_confirmation": "Password123",
-        }
-        self.student_user = User.objects.get(username="@johndoe")
+        self.student_user = User.objects.create_user(
+            first_name="Student",
+            last_name="User",
+            username="@studentuser",
+            email="studentuser@example.org",
+            user_type=User.USER_TYPE_STUDENT,
+            password="Password123",
+        )
+        self.staff_user = User.objects.create_user(
+            first_name="Staff",
+            last_name="User",
+            username="@staffuser",
+            email="staffuser@example.org",
+            user_type=User.USER_TYPE_STAFF,
+            password="Password123",
+        )
+
+    def test_home_url(self):
+        self.assertEqual(self.url, "/dashboard/")
+
+    def test_get_dashboard_when_logged_in(self):
+        self.client.login(username=self.student_user.username, password="Password123")
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "dashboard.html")
+
+    def test_get_dashboard_redirects_when_not_logged_in(self):
+        response = self.client.get(self.url, follow=True)
+        redirect_url = reverse("log_in") + "?next=" + self.url
+        self.assertRedirects(
+            response, redirect_url, status_code=302, target_status_code=200
+        )
+        self.assertTemplateUsed(response, "log_in.html")
+
+    def test_pagination_on_dashboard(self):
+        self.client.login(username=self.student_user.username, password="Password123")
+        for i in range(30):
+            Ticket.objects.create(
+                student=self.student_user,
+                faculty=Ticket.Faculty.choices[0][0],
+                study_level=Ticket.StudyLevel.choices[0][0],
+                category=Ticket.Category.choices[0][0],
+                subject=f"Test ticket {i+1}",
+                body="This is a test ticket body.",
+                status=Ticket.Status.choices[0][0],
+            )
+
+        response = self.client.get(self.url, {"tab": "open_tickets", "page": 1})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("page_obj", response.context)
+
+        page_obj = response.context["page_obj"]
+        self.assertEqual(page_obj.paginator.per_page, settings.ITEMS_PER_PAGE)
+        self.assertEqual(page_obj.start_index(), 1)
+        self.assertEqual(page_obj.end_index(), min(settings.ITEMS_PER_PAGE, 30))
+        self.assertEqual(len(page_obj.object_list), min(settings.ITEMS_PER_PAGE, 30))
+
+        response2 = self.client.get(self.url, {"tab": "open_tickets", "page": 2})
+        self.assertEqual(response2.status_code, 200)
+        page_obj2 = response2.context["page_obj"]
+        self.assertEqual(len(page_obj2.object_list), 10)
+
+    def test_context_when_user_is_staff(self):
+        staff_user = self.staff_user
+        self.client.login(username=staff_user.username, password="Password123")
+        # create 6 open tickets
+        for i in range(6):
+            Ticket.objects.create(
+                student=self.student_user,
+                faculty=Ticket.Faculty.choices[0][0],
+                study_level=Ticket.StudyLevel.choices[0][0],
+                category=Ticket.Category.choices[0][0],
+                subject=f"Test ticket {i+1}",
+                body="This is a test ticket body.",
+                status=Ticket.Status.choices[0][0],
+            )
+        # create 3 assigned tickets
+        for i in range(3):
+            Ticket.objects.create(
+                student=self.student_user,
+                faculty=Ticket.Faculty.choices[0][0],
+                study_level=Ticket.StudyLevel.choices[0][0],
+                category=Ticket.Category.choices[0][0],
+                subject=f"Test ticket {i+1}",
+                body="This is a test ticket body.",
+                status=Ticket.Status.choices[0][0],
+                assigned_to=staff_user,
+            )
+        # create 4 overdue tickets
+        for i in range(4):
+            ticket = Ticket.objects.create(
+                student=self.student_user,
+                faculty=Ticket.Faculty.choices[0][0],
+                study_level=Ticket.StudyLevel.choices[0][0],
+                category=Ticket.Category.choices[0][0],
+                subject=f"Test ticket {i+1}",
+                body="This is a test ticket body.",
+                status=Ticket.Status.AWAITING_STAFF,
+            )
+
+            Ticket.objects.filter(pk=ticket.pk).update(
+                created_at=timezone.now() - timedelta(days=10)
+            )
+        # create 5 closed tickets
+        for i in range(5):
+            Ticket.objects.create(
+                student=self.student_user,
+                faculty=Ticket.Faculty.choices[0][0],
+                study_level=Ticket.StudyLevel.choices[0][0],
+                category=Ticket.Category.choices[0][0],
+                subject=f"Closed ticket {i+1}",
+                body="This is a test ticket body.",
+                status=Ticket.Status.CLOSED,
+                closed_reason=Ticket.ClosedReason.ANSWERED,
+                closed_at=timezone.now(),
+            )
+
+        staff_user = self.staff_user
+        self.client.login(username=staff_user.username, password="Password123")
+
+        resp = self.client.get(self.url, {"tab": "open_tickets", "page": 1})
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(resp.context["page_obj"].object_list), 6)
+
+        resp = self.client.get(self.url, {"tab": "assigned_tickets", "page": 1})
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(resp.context["page_obj"].object_list), 3)
+
+        resp = self.client.get(self.url, {"tab": "overdue_tickets", "page": 1})
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(resp.context["page_obj"].object_list), 4)
+
+        resp = self.client.get(self.url, {"tab": "closed_tickets", "page": 1})
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(resp.context["page_obj"].object_list), 5)
+
+    def test_context_when_user_is_student(self):
+        student_user = self.student_user
+        self.client.login(username=student_user.username, password="Password123")
+
+        # 4 open
+        for i in range(4):
+            Ticket.objects.create(
+                student=student_user,
+                faculty=Ticket.Faculty.choices[0][0],
+                study_level=Ticket.StudyLevel.choices[0][0],
+                category=Ticket.Category.choices[0][0],
+                subject=f"Open ticket {i+1}",
+                body="Body",
+                status=Ticket.Status.AWAITING_STAFF,
+                assigned_to=None,
+            )
+        # 3 in progress
+        for i in range(3):
+            Ticket.objects.create(
+                student=student_user,
+                faculty=Ticket.Faculty.choices[0][0],
+                study_level=Ticket.StudyLevel.choices[0][0],
+                category=Ticket.Category.choices[0][0],
+                subject=f"In progress ticket {i+1}",
+                body="Body",
+                status=Ticket.Status.AWAITING_STAFF,
+                assigned_to=self.staff_user,
+            )
+        # 2 need response
+        for i in range(2):
+            Ticket.objects.create(
+                student=student_user,
+                faculty=Ticket.Faculty.choices[0][0],
+                study_level=Ticket.StudyLevel.choices[0][0],
+                category=Ticket.Category.choices[0][0],
+                subject=f"Need response ticket {i+1}",
+                body="Body",
+                status=Ticket.Status.AWAITING_STUDENT,
+            )
+        # 5 closed
+        for i in range(5):
+            Ticket.objects.create(
+                student=student_user,
+                faculty=Ticket.Faculty.choices[0][0],
+                study_level=Ticket.StudyLevel.choices[0][0],
+                category=Ticket.Category.choices[0][0],
+                subject=f"Closed ticket {i+1}",
+                body="Body",
+                status=Ticket.Status.CLOSED,
+                closed_reason=Ticket.ClosedReason.ANSWERED,
+                closed_at=timezone.now(),
+            )
+
+        self.client.login(username=student_user.username, password="Password123")
+
+        resp = self.client.get(self.url, {"tab": "open_tickets", "page": 1})
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(resp.context["page_obj"].object_list), 4)
+
+        resp = self.client.get(self.url, {"tab": "in_progress_tickets", "page": 1})
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(resp.context["page_obj"].object_list), 3)
+
+        resp = self.client.get(self.url, {"tab": "need_response_tickets", "page": 1})
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(resp.context["page_obj"].object_list), 2)
+
+        resp = self.client.get(self.url, {"tab": "closed_tickets", "page": 1})
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(resp.context["page_obj"].object_list), 5)
+
+    def test_dashboard_invalid_tab_defaults_to_open(self):
+        self.client.login(username=self.student_user.username, password="Password123")
+        response = self.client.get(self.url, {"tab": "not_a_real_tab"})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["tab"], "open_tickets")
+        self.assertEqual(response.context["category"], "Open")
+
+    def test_dashboard_unknown_user_type_does_not_crash(self):
+        weird_user = User.objects.create_user(
+            first_name="Weird",
+            last_name="User",
+            username="@weirduser",
+            email="weirduser@example.org",
+            user_type=User.USER_TYPE_STUDENT,  # create valid first
+            password="Password123",
+        )
+        # Force an invalid user_type value
+        User.objects.filter(pk=weird_user.pk).update(user_type="UNKNOWN")
+
+        self.client.login(username=weird_user.username, password="Password123")
+        resp = self.client.get(self.url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context["tab"], "open_tickets")
+        self.assertEqual(len(resp.context["page_obj"].object_list), 0)

@@ -33,6 +33,7 @@ def dashboard(request):
         tickets = Ticket.objects.all().order_by("-created_at")
         overdue_cutoff = timezone.now() - timedelta(days=5)
 
+        # staff cant see tickets assigned to others
         groups = {
             "open_tickets": tickets.filter(
                 assigned_to__isnull=True,
@@ -40,27 +41,45 @@ def dashboard(request):
                     Ticket.Status.AWAITING_STAFF,
                     Ticket.Status.AWAITING_STUDENT,
                 ],
+                created_at__gte=overdue_cutoff,
             ),
-            "assigned_tickets": tickets.filter(assigned_to=current_user),
-            "overdue_tickets": tickets.filter(created_at__lt=overdue_cutoff).exclude(
-                status=Ticket.Status.CLOSED
+            "assigned_tickets": tickets.filter(
+                assigned_to=current_user,
+                status__in=[
+                    Ticket.Status.AWAITING_STAFF,
+                    Ticket.Status.AWAITING_STUDENT,
+                ],
             ),
-            "closed_tickets": tickets.filter(status=Ticket.Status.CLOSED),
+            "overdue_tickets": tickets.filter(
+                assigned_to__isnull=True,
+                status=Ticket.Status.AWAITING_STAFF,
+                created_at__lt=overdue_cutoff,
+            ),
+            "closed_tickets": tickets.filter(
+                status=Ticket.Status.CLOSED,
+            ),
         }
     elif current_user.user_type == User.USER_TYPE_STUDENT:
         tickets = Ticket.objects.filter(student=current_user).order_by("-created_at")
         groups = {
             "open_tickets": tickets.filter(
+                status=Ticket.Status.AWAITING_STAFF,
                 assigned_to__isnull=True,
             ),
             "in_progress_tickets": tickets.filter(
+                status=Ticket.Status.AWAITING_STAFF,
                 assigned_to__isnull=False,
             ),
             "need_response_tickets": tickets.filter(
-                status=Ticket.Status.AWAITING_STUDENT
+                status=Ticket.Status.AWAITING_STUDENT,
             ),
-            "closed_tickets": tickets.filter(status=Ticket.Status.CLOSED),
+            "closed_tickets": tickets.filter(
+                status=Ticket.Status.CLOSED,
+            ),
         }
+    else:  # should never happen
+        tickets = Ticket.objects.none()
+        groups = {"open_tickets": tickets}
 
     if tab not in groups:
         tab = "open_tickets"
