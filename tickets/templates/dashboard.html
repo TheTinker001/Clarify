@@ -3,166 +3,53 @@
   <div class="container">
     <div class="row">
       <div class="col-12">
-        <h1>Welcome to your dashboard {{ user.username }}</h1>
+        <h1 class="mb-3">Welcome to your dashboard {{ user.username }}</h1>
       </div>
     </div>
+    <!-- buttons -->
     <div class="row">
       <div class="col-12">
-        {% if user.user_type == 'student' %}
-          <p>Student dashboard content</p>
-          <div>
-            <h2>Open tickets</h2>
-            {% if open_tickets %}
-              {% for ticket in open_tickets %}
-                <div class="ticket">
-                  <h3>{{ ticket.subject }}</h3>
-                  <p>{{ ticket.student }}</p>
-                  <p>{{ ticket.faculty }}</p>
-                  <p>{{ ticket.study_level }}</p>
-                  <p>{{ ticket.category }}</p>
-                  <p>{{ ticket.status }}</p>
-                  <p>{{ ticket.created_at }}</p>
-                  <p>{{ ticket.updated_at }}</p>
-                </div>
-              {% endfor %}
-            {% else %}
-              <p>No open tickets.</p>
-            {% endif %}
+        {% if user.user_type == "student" %}
+          <div class="btn-group mb-3" role="group" aria-label="Student ticket tabs">
+            <a href="?tab=open_tickets"
+               class="btn btn-outline-primary {% if tab == 'open_tickets' %}active{% endif %}">Open</a>
+            <a href="?tab=in_progress_tickets"
+               class="btn btn-outline-primary {% if tab == 'in_progress_tickets' %}active{% endif %}">In progress</a>
+            <a href="?tab=need_response_tickets"
+               class="btn btn-outline-primary {% if tab == 'need_response_tickets' %}active{% endif %}">Need response</a>
+            <a href="?tab=closed_tickets"
+               class="btn btn-outline-primary {% if tab == 'closed_tickets' %}active{% endif %}">Closed</a>
           </div>
-          <div>
-            <h2>In progress tickets</h2>
-            {% if in_progress_tickets %}
-              {% for ticket in in_progress_tickets %}
-                <div class="ticket">
-                  <h3>{{ ticket.subject }}</h3>
-                  <p>{{ ticket.student }}</p>
-                  <p>{{ ticket.faculty }}</p>
-                  <p>{{ ticket.study_level }}</p>
-                  <p>{{ ticket.category }}</p>
-                  <p>{{ ticket.status }}</p>
-                  <p>{{ ticket.created_at }}</p>
-                  <p>{{ ticket.assigned_to }}</p>
-                </div>
-              {% endfor %}
-            {% else %}
-              <p>No tickets in progress.</p>
-            {% endif %}
-          </div>
-          <div>
-            <h2>Need response tickets</h2>
-            {% if need_response_tickets %}
-              {% for ticket in need_response_tickets %}
-                <div class="ticket">
-                  <h3>{{ ticket.subject }}</h3>
-                  <p>{{ ticket.student }}</p>
-                  <p>{{ ticket.faculty }}</p>
-                  <p>{{ ticket.study_level }}</p>
-                  <p>{{ ticket.category }}</p>
-                  <p>{{ ticket.status }}</p>
-                  <p>{{ ticket.created_at }}</p>
-                </div>
-              {% endfor %}
-            {% else %}
-              <p>No tickets that need responses.</p>
-            {% endif %}
-          </div>
-          <div>
-            <h2>Closed tickets</h2>
-            {% if closed_tickets %}
-              {% for ticket in closed_tickets %}
-                <div class="ticket">
-                  <h3>{{ ticket.subject }}</h3>
-                  <p>{{ ticket.student }}</p>
-                  <p>{{ ticket.faculty }}</p>
-                  <p>{{ ticket.study_level }}</p>
-                  <p>{{ ticket.category }}</p>
-                  <p>{{ ticket.status }}</p>
-                  <p>{{ ticket.created_at }}</p>
-                  <p>{{ ticket.closed_at }}</p>
-                  <p>{{ ticket.closed_reason }}</p>
-                </div>
-              {% endfor %}
-            {% else %}
-              <p>No closed tickets.</p>
-            {% endif %}
-          </div>
-        {% elif user.user_type == 'staff' %}
-          <p>Staff dashboard content</p>
-          <div>
-            <h2>Open tickets</h2>
-            {% if open_tickets %}
-              {% for ticket in open_tickets %}
-                <div class="ticket">
-                  <h3>{{ ticket.subject }}</h3>
-                  <p>{{ ticket.student }}</p>
-                  <p>{{ ticket.faculty }}</p>
-                  <p>{{ ticket.study_level }}</p>
-                  <p>{{ ticket.category }}</p>
-                  <p>{{ ticket.status }}</p>
-                  <p>{{ ticket.created_at }}</p>
-                </div>
-              {% endfor %}
-            {% else %}
-              <p>No open tickets.</p>
-            {% endif %}
-          </div>
-          <div>
-            <h2>Assigned tickets</h2>
-            {% if assigned_tickets %}
-              {% for ticket in assigned_tickets %}
-                <div class="ticket">
-                  <h3>{{ ticket.subject }}</h3>
-                  <p>{{ ticket.student }}</p>
-                  <p>{{ ticket.faculty }}</p>
-                  <p>{{ ticket.study_level }}</p>
-                  <p>{{ ticket.category }}</p>
-                  <p>{{ ticket.status }}</p>
-                  <p>{{ ticket.created_at }}</p>
-                </div>
-              {% endfor %}
-            {% else %}
-              <p>No assigned tickets.</p>
-            {% endif %}
-          </div>
-          <div>
-            <h2>Overdue tickets</h2>
-            {% if overdue_tickets %}
-              {% for ticket in overdue_tickets %}
-                <div class="ticket">
-                  <h3>{{ ticket.subject }}</h3>
-                  <p>{{ ticket.student }}</p>
-                  <p>{{ ticket.faculty }}</p>
-                  <p>{{ ticket.study_level }}</p>
-                  <p>{{ ticket.category }}</p>
-                  <p>{{ ticket.status }}</p>
-                  <p>{{ ticket.created_at }}</p>
-                </div>
-              {% endfor %}
-            {% else %}
-              <p>No overdue tickets.</p>
-            {% endif %}
-          </div>
-          <div>
-            <h2>Closed tickets</h2>
-            {% if closed_tickets %}
-              {% for ticket in closed_tickets %}
-                <div class="ticket">
-                  <h3>{{ ticket.subject }}</h3>
-                  <p>{{ ticket.student }}</p>
-                  <p>{{ ticket.faculty }}</p>
-                  <p>{{ ticket.study_level }}</p>
-                  <p>{{ ticket.category }}</p>
-                  <p>{{ ticket.status }}</p>
-                  <p>{{ ticket.created_at }}</p>
-                  <p>{{ ticket.closed_at }}</p>
-                  <p>{{ ticket.closed_reason }}</p>
-                </div>
-              {% endfor %}
-            {% else %}
-              <p>No closed tickets.</p>
-            {% endif %}
+        {% elif user.user_type == "staff" %}
+          <div class="btn-group mb-3" role="group" aria-label="Staff ticket tabs">
+            <a href="?tab=open_tickets"
+               class="btn btn-outline-primary {% if tab == 'open_tickets' %}active{% endif %}">Open</a>
+            <a href="?tab=assigned_tickets"
+               class="btn btn-outline-primary {% if tab == 'assigned_tickets' %}active{% endif %}">Assigned</a>
+            <a href="?tab=overdue_tickets"
+               class="btn btn-outline-primary {% if tab == 'overdue_tickets' %}active{% endif %}">Overdue</a>
+            <a href="?tab=closed_tickets"
+               class="btn btn-outline-primary {% if tab == 'closed_tickets' %}active{% endif %}">Closed</a>
           </div>
         {% endif %}
+      </div>
+    </div>
+    <!-- tickets -->
+    <div class="row">
+      <div class="col-12">
+        {% for ticket in tickets %}
+          <div class="card mb-3">
+            <div class="card-body">
+              <h5 class="card-title">{{ ticket.subject }}</h5>
+              <p class="card-text">{{ ticket.student }}</p>
+              <p class="card-text">
+                <small class="text-muted">Created at {{ ticket.created_at }}</small>
+              </p>
+            </div>
+          </div>
+        {% empty %}
+          <p class="text-muted">No tickets in this category.</p>
+        {% endfor %}
       </div>
     </div>
   </div>
