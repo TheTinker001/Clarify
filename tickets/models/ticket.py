@@ -90,7 +90,7 @@ class Ticket(models.Model):
     def clean(self):
         super().clean()
 
-        if self.student and self.student.user_type != User.USER_TYPE_STUDENT:
+        if self.student_id and self.student.user_type != User.USER_TYPE_STUDENT:
             raise ValidationError({"student": "Ticket can only be made by students."})
 
         if self.assigned_to and self.assigned_to.user_type != User.USER_TYPE_STAFF:

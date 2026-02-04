@@ -4,6 +4,11 @@
     <div class="row">
       <div class="col-12">
         <h1 class="mb-3">Welcome to your dashboard {{ user.username }}</h1>
+        {% if user.user_type == user.USER_TYPE_STUDENT %}
+          <div class="mb-3">
+            <a href="{% url 'create_ticket' %}" class="btn btn-primary">Create New Ticket</a>
+          </div>
+        {% endif %}
       </div>
     </div>
     <!-- buttons -->
