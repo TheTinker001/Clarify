@@ -46,15 +46,7 @@
       {% endif %}
       <div class="col-12">
         {% for ticket in tickets %}
-          <div class="card mb-3">
-            <div class="card-body">
-              <h5 class="card-title">{{ ticket.subject }}</h5>
-              <p class="card-text">{{ ticket.student }}</p>
-              <p class="card-text">
-                <small class="text-muted">Created at {{ ticket.created_at }}</small>
-              </p>
-            </div>
-          </div>
+          {% include 'partials/ticket_card.html' with ticket=ticket %}
         {% empty %}
           <p class="text-muted">No tickets in this category.</p>
         {% endfor %}

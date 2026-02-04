@@ -8,7 +8,7 @@ is swallowed and generation continues.
 """
 
 from faker import Faker
-from random import randint, random
+import random
 from django.core.management.base import BaseCommand, CommandError
 from tickets.models import User
 
@@ -156,20 +156,27 @@ class Command(BaseCommand):
             except User.DoesNotExist:
                 continue
 
-            # Optional: don’t duplicate tickets if you run seed twice
             existing = Ticket.objects.filter(student=user).count()
             if existing >= 2:
                 continue
 
+            FACULTIES = [choice for choice, _ in Ticket.Faculty.choices]
+            STUDY_LEVELS = [choice for choice, _ in Ticket.StudyLevel.choices]
+            CATEGORIES = [choice for choice, _ in Ticket.Category.choices]
+            STATUSES = [
+                Ticket.Status.AWAITING_STAFF,
+                Ticket.Status.AWAITING_STUDENT,
+            ]
+
             for i in range(10 - existing):
                 Ticket.objects.create(
                     student=user,
-                    faculty=Ticket.Faculty.NMES,
-                    study_level=Ticket.StudyLevel.UNDERGRADUATE,
-                    category=Ticket.Category.ASSESSMENT,
-                    subject=f"Seeded ticket {i+1} for {user.username}",
-                    body=self.faker.paragraph(nb_sentences=4),
-                    status=Ticket.Status.AWAITING_STAFF,
+                    faculty=random.choice(FACULTIES),
+                    study_level=random.choice(STUDY_LEVELS),
+                    category=random.choice(CATEGORIES),
+                    subject=self.faker.sentence(nb_words=6),
+                    body=self.faker.paragraph(nb_sentences=random.randint(3, 8)),
+                    status=random.choice(STATUSES),
                 )
 
 
