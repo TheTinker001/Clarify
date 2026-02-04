@@ -180,12 +180,12 @@ class Command(BaseCommand):
             if existing >= 2:
                 continue
 
-            remaining = 10 - existing
+            remaining = 20 - existing
             if remaining <= 0:
                 continue
 
             # ---- define mix (adjust numbers if you want) ----
-            open_count = min(3, remaining)
+            open_count = min(7, remaining)
             remaining -= open_count
 
             in_progress_count = min(2, remaining) if staff_user else 0
