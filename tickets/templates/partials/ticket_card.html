@@ -1,0 +1,34 @@
+<div class="card mb-3 shadow-sm">
+    <div class="card-body">
+        <!-- header -->
+        <div class="d-flex justify-content-between align-items-start">
+            <h5 class="card-title mb-1">{{ ticket.subject }}</h5>
+            <span class="badge {% if ticket.status == ticket.Status.CLOSED %} bg-secondary {% elif ticket.status == ticket.Status.AWAITING_STUDENT %} bg-warning text-dark {% else %} bg-primary {% endif %} ">
+                {{ ticket.get_status_display }}
+            </span>
+        </div>
+        <!-- student name, only if you are staff -->
+        {% if user.user_type == "staff" %}
+            <p class="text-muted mb-2">Student: {{ ticket.student.get_full_name|default:ticket.student.username }}</p>
+        {% endif %}
+        <!-- meta -->
+        <div class="mb-2">
+            <span class="badge bg-light text-dark me-1">{{ ticket.get_faculty_display }}</span>
+            <span class="badge bg-light text-dark me-1">{{ ticket.get_study_level_display }}</span>
+            <span class="badge bg-light text-dark">{{ ticket.get_category_display }}</span>
+        </div>
+        <!-- dates -->
+        <p class="card-text text-muted small mb-1">Created {{ ticket.created_at|date:"d M Y" }}</p>
+        {% if ticket.status != ticket.Status.CLOSED %}
+            <p class="card-text text-muted small mb-1">Last updated {{ ticket.updated_at|timesince }} ago</p>
+        {% endif %}
+        {% if ticket.status == ticket.Status.CLOSED and ticket.closed_at %}
+            <p class="card-text text-muted small">
+                Closed {{ ticket.closed_at|date:"d M Y" }}
+                {% if ticket.closed_reason %}• {{ ticket.get_closed_reason_display }}{% endif %}
+            </p>
+        {% endif %}
+    </div>
+    <!-- clickable card -->
+    <a href="" class="stretched-link"></a>
+</div>
