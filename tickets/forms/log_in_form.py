@@ -1,6 +1,5 @@
 from django import forms
 from django.contrib.auth import authenticate
-from tickets.models import User
 
 class LogInForm(forms.Form):
     """
@@ -18,11 +17,6 @@ class LogInForm(forms.Form):
 
     username = forms.CharField(label="Username")
     password = forms.CharField(label="Password", widget=forms.PasswordInput())
-    user_type = forms.ChoiceField(
-        choices=User.USER_TYPE_CHOICES,
-        required=False,
-        widget=forms.HiddenInput(),
-    )
 
     def get_user(self):
         """
