@@ -14,5 +14,7 @@ def dashboard(request):
     """
 
     current_user = request.user
-    tickets = Ticket.objects.select_related("created_by", "assigned_to").all()
-    return render(request, "dashboard.html", {"user": current_user, "tickets": tickets})
+    user_tickets = Ticket.objects.filter(student=current_user)
+    return render(
+        request, "dashboard.html", {"user": current_user, "tickets": user_tickets}
+    )

@@ -24,12 +24,25 @@ class LogInViewTestCase(TestCase, LogInTester, MenuTesterMixin):
         self.assertTemplateUsed(response, 'log_in.html')
         form = response.context['form']
         next = response.context['next']
+        user_type = response.context['user_type']
         self.assertTrue(isinstance(form, LogInForm))
         self.assertFalse(form.is_bound)
         self.assertFalse(next)
+        self.assertEqual(user_type, '')
         messages_list = list(response.context['messages'])
         self.assertEqual(len(messages_list), 0)
         self.assert_no_menu(response)
+
+    def test_get_log_in_with_user_type(self):
+        response = self.client.get(f'{self.url}?user_type=student')
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'log_in.html')
+        form = response.context['form']
+        user_type = response.context['user_type']
+        self.assertTrue(isinstance(form, LogInForm))
+        self.assertFalse(form.is_bound)
+        self.assertEqual(user_type, 'student')
+        self.assertEqual(form.initial.get('user_type'), 'student')
 
     def test_get_log_in_with_redirect(self):
         destination_url = reverse('profile')

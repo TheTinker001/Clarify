@@ -6,6 +6,13 @@ from libgravatar import Gravatar
 class User(AbstractUser):
     """Model used for user authentication, and team member related information."""
 
+    USER_TYPE_STUDENT = 'student'
+    USER_TYPE_STAFF = 'staff'
+    USER_TYPE_CHOICES = [
+        (USER_TYPE_STUDENT, 'Student'),
+        (USER_TYPE_STAFF, 'Staff'),
+    ]
+
     username = models.CharField(
         max_length=30,
         unique=True,
@@ -17,6 +24,11 @@ class User(AbstractUser):
     first_name = models.CharField(max_length=50, blank=False)
     last_name = models.CharField(max_length=50, blank=False)
     email = models.EmailField(unique=True, blank=False)
+    user_type = models.CharField(
+        max_length=10,
+        choices=USER_TYPE_CHOICES,
+        default=USER_TYPE_STUDENT,
+    )
 
 
     class Meta:
