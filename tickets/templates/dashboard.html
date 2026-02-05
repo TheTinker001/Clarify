@@ -51,7 +51,7 @@
       {% endif %}
       <div class="col-12">
         {% for ticket in tickets %}
-          {% include 'partials/ticket_card.html' with ticket=ticket %}
+          {% include "partials/ticket_card.html" with ticket=ticket %}
         {% empty %}
           <p class="text-muted">No tickets in this category.</p>
         {% endfor %}
