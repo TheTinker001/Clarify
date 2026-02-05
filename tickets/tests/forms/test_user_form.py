@@ -8,6 +8,7 @@ from tickets.models import Ticket
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 
+
 class UserFormTestCase(TestCase):
     """Unit tests of the user form."""
 

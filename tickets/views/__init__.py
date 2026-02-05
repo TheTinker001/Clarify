@@ -5,4 +5,5 @@ from .log_out_view import *
 from .password_view import *
 from .profile_view import *
 from .sign_up_view import *
+from .ticket_detail_view import *
 from .ticket_view import *
