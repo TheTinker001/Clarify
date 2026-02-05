@@ -1,10 +1,38 @@
 {% extends 'base_content.html' %}
 {% block content %}
-<div class="container">
-  <div class="row">
-    <div class="col-12">
-      <h1>Welcome to your dashboard {{ user.username }}</h1>
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <h1>Welcome to your dashboard {{ user.username }}</h1>
+                {% if user.user_type == user.USER_TYPE_STUDENT %}
+                    <div class="mt-4">
+                        <a href="{% url 'create_ticket' %}" class="btn btn-primary">Create New Ticket</a>
+                    </div>
+                {% endif %}
+                <h2 class="mt-4">My Tickets</h2>
+                {% if tickets %}
+                    <div class="mt-3">
+                        {% for ticket in tickets %}
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ ticket.subject }}</h5>
+                                    <p class="card-text">
+                                        <strong>Category:</strong> {{ ticket.get_category_display }}
+                                    </p>
+                                    <p class="card-text">
+                                        <strong>Status:</strong> {{ ticket.get_status_display }}
+                                    </p>
+                                    <p class="card-text">
+                                        <strong>Created:</strong> {{ ticket.created_at|date:"M d, Y, g:i a" }}
+                                    </p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="mt-3">You have no tickets yet.</p>
+                {% endif %}
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 {% endblock %}
