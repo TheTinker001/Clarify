@@ -16,21 +16,12 @@ class LogInFormTestCase(TestCase):
         form = LogInForm()
         self.assertIn('username', form.fields)
         self.assertIn('password', form.fields)
-        self.assertIn('user_type', form.fields)
         password_field = form.fields['password']
         self.assertTrue(isinstance(password_field.widget,forms.PasswordInput))
-        user_type_field = form.fields['user_type']
-        self.assertTrue(isinstance(user_type_field.widget, forms.HiddenInput))
 
     def test_form_accepts_valid_input(self):
         form = LogInForm(data=self.form_input)
         self.assertTrue(form.is_valid())
-
-    def test_form_accepts_user_type(self):
-        self.form_input['user_type'] = User.USER_TYPE_STUDENT
-        form = LogInForm(data=self.form_input)
-        self.assertTrue(form.is_valid())
-        self.assertEqual(form.cleaned_data['user_type'], User.USER_TYPE_STUDENT)
 
     def test_form_rejects_blank_username(self):
         self.form_input['username'] = ''
