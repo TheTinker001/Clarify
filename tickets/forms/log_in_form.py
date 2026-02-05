@@ -24,22 +24,6 @@ class LogInForm(forms.Form):
         required=False,
         widget=forms.HiddenInput(),
     )
-    """
-    staff_id = forms.CharField(
-        label="Staff ID",
-        max_length=20,
-        required=False,
-        help_text="Required if logging in as staff."
-    )
-
-    def clean(self):
-        cleaned_data = super().clean()
-        user_type = cleaned_data.get('user_type')
-        staff_id = cleaned_data.get('staff_id')
-        if user_type == User.USER_TYPE_STAFF and not staff_id:
-            self.add_error('staff_id', 'Staff ID is required for staff users.')
-        return cleaned_data
-    """
 
     def get_user(self):
         """
