@@ -7,18 +7,35 @@ are left untouched—if a create fails (e.g., due to duplicates), the error
 is swallowed and generation continues.
 """
 
-
-
+from datetime import timedelta
 from faker import Faker
-from random import randint, random
+import random
 from django.core.management.base import BaseCommand, CommandError
 from tickets.models import User
 
+from tickets.models import Ticket
+from django.utils import timezone
+
 
 user_fixtures = [
-    {'username': '@johndoe', 'email': 'john.doe@example.org', 'first_name': 'John', 'last_name': 'Doe'},
-    {'username': '@janedoe', 'email': 'jane.doe@example.org', 'first_name': 'Jane', 'last_name': 'Doe'},
-    {'username': '@charlie', 'email': 'charlie.johnson@example.org', 'first_name': 'Charlie', 'last_name': 'Johnson'},
+    {
+        "username": "@johndoe",
+        "email": "john.doe@example.org",
+        "first_name": "John",
+        "last_name": "Doe",
+    },
+    {
+        "username": "@janedoe",
+        "email": "jane.doe@example.org",
+        "first_name": "Jane",
+        "last_name": "Doe",
+    },
+    {
+        "username": "@charlie",
+        "email": "charlie.johnson@example.org",
+        "first_name": "Charlie",
+        "last_name": "Johnson",
+    },
 ]
 
 
@@ -38,13 +55,13 @@ class Command(BaseCommand):
     """
 
     USER_COUNT = 200
-    DEFAULT_PASSWORD = 'Password123'
-    help = 'Seeds the database with sample data'
+    DEFAULT_PASSWORD = "Password123"
+    help = "Seeds the database with sample data"
 
     def __init__(self, *args, **kwargs):
         """Initialize the command with a locale-specific Faker instance."""
         super().__init__(*args, **kwargs)
-        self.faker = Faker('en_GB')
+        self.faker = Faker("en_GB")
 
     def handle(self, *args, **options):
         """
@@ -54,6 +71,7 @@ class Command(BaseCommand):
         post-processing or debugging (not required for operation).
         """
         self.create_users()
+        self.create_tickets_for_fixture_users()
         self.users = User.objects.all()
 
     def create_users(self):
@@ -78,8 +96,8 @@ class Command(BaseCommand):
         Prints a simple progress indicator to stdout during generation.
         """
         user_count = User.objects.count()
-        while  user_count < self.USER_COUNT:
-            print(f"Seeding user {user_count}/{self.USER_COUNT}", end='\r')
+        while user_count < self.USER_COUNT:
+            print(f"Seeding user {user_count}/{self.USER_COUNT}", end="\r")
             self.generate_user()
             user_count = User.objects.count()
         print("User seeding complete.      ")
@@ -94,8 +112,15 @@ class Command(BaseCommand):
         last_name = self.faker.last_name()
         email = create_email(first_name, last_name)
         username = create_username(first_name, last_name)
-        self.try_create_user({'username': username, 'email': email, 'first_name': first_name, 'last_name': last_name})
-       
+        self.try_create_user(
+            {
+                "username": username,
+                "email": email,
+                "first_name": first_name,
+                "last_name": last_name,
+            }
+        )
+
     def try_create_user(self, data):
         """
         Attempt to create a user and ignore any errors.
@@ -118,12 +143,135 @@ class Command(BaseCommand):
                 ``first_name``, and ``last_name``.
         """
         User.objects.create_user(
-            username=data['username'],
-            email=data['email'],
+            username=data["username"],
+            email=data["email"],
             password=Command.DEFAULT_PASSWORD,
-            first_name=data['first_name'],
-            last_name=data['last_name'],
+            first_name=data["first_name"],
+            last_name=data["last_name"],
         )
+
+    def create_tickets_for_fixture_users(self):
+
+        FACULTIES = [choice for choice, _ in Ticket.Faculty.choices]
+        STUDY_LEVELS = [choice for choice, _ in Ticket.StudyLevel.choices]
+        CATEGORIES = [choice for choice, _ in Ticket.Category.choices]
+
+        staff_user = User.objects.create_user(
+            first_name="Staff",
+            last_name="User",
+            username="@staffuser",
+            email="staffuser@example.org",
+            user_type=User.USER_TYPE_STAFF,
+            password="Password123",
+        )
+        overdue_cutoff = timezone.now() - timedelta(days=5)
+
+        for data in user_fixtures:
+            try:
+                user = User.objects.get(username=data["username"])
+            except User.DoesNotExist:
+                continue
+
+            # Only seed students
+            if user.user_type != User.USER_TYPE_STUDENT:
+                continue
+
+            existing = Ticket.objects.filter(student=user).count()
+            if existing >= 2:
+                continue
+
+            remaining = 20 - existing
+            if remaining <= 0:
+                continue
+
+            # ---- define mix (adjust numbers if you want) ----
+            open_count = min(7, remaining)
+            remaining -= open_count
+
+            in_progress_count = min(2, remaining) if staff_user else 0
+            remaining -= in_progress_count
+
+            need_response_count = min(2, remaining)
+            remaining -= need_response_count
+
+            overdue_count = min(1, remaining)
+            remaining -= overdue_count
+
+            closed_count = min(2, remaining)
+            remaining -= closed_count
+
+            # Anything left → open tickets
+            open_count += remaining
+
+            # ---- OPEN tickets ----
+            for _ in range(open_count):
+                Ticket.objects.create(
+                    student=user,
+                    faculty=random.choice(FACULTIES),
+                    study_level=random.choice(STUDY_LEVELS),
+                    category=random.choice(CATEGORIES),
+                    subject=self.faker.sentence(nb_words=6),
+                    body=self.faker.paragraph(nb_sentences=random.randint(3, 8)),
+                    status=Ticket.Status.AWAITING_STAFF,
+                    assigned_to=None,
+                )
+
+            # ---- IN PROGRESS tickets ----
+            for _ in range(in_progress_count):
+                Ticket.objects.create(
+                    student=user,
+                    faculty=random.choice(FACULTIES),
+                    study_level=random.choice(STUDY_LEVELS),
+                    category=random.choice(CATEGORIES),
+                    subject=self.faker.sentence(nb_words=6),
+                    body=self.faker.paragraph(nb_sentences=random.randint(3, 8)),
+                    status=Ticket.Status.AWAITING_STAFF,
+                    assigned_to=staff_user,
+                )
+
+            # ---- NEED RESPONSE tickets ----
+            for _ in range(need_response_count):
+                Ticket.objects.create(
+                    student=user,
+                    faculty=random.choice(FACULTIES),
+                    study_level=random.choice(STUDY_LEVELS),
+                    category=random.choice(CATEGORIES),
+                    subject=self.faker.sentence(nb_words=6),
+                    body=self.faker.paragraph(nb_sentences=random.randint(3, 8)),
+                    status=Ticket.Status.AWAITING_STUDENT,
+                    assigned_to=None,
+                )
+
+            # ---- OVERDUE tickets ----
+            for _ in range(overdue_count):
+                t = Ticket.objects.create(
+                    student=user,
+                    faculty=random.choice(FACULTIES),
+                    study_level=random.choice(STUDY_LEVELS),
+                    category=random.choice(CATEGORIES),
+                    subject=self.faker.sentence(nb_words=6),
+                    body=self.faker.paragraph(nb_sentences=random.randint(3, 8)),
+                    status=Ticket.Status.AWAITING_STAFF,
+                    assigned_to=None,
+                )
+                Ticket.objects.filter(pk=t.pk).update(
+                    created_at=overdue_cutoff - timedelta(days=1)
+                )
+
+            # ---- CLOSED tickets ----
+            for _ in range(closed_count):
+                Ticket.objects.create(
+                    student=user,
+                    faculty=random.choice(FACULTIES),
+                    study_level=random.choice(STUDY_LEVELS),
+                    category=random.choice(CATEGORIES),
+                    subject=self.faker.sentence(nb_words=6),
+                    body=self.faker.paragraph(nb_sentences=random.randint(3, 8)),
+                    status=Ticket.Status.CLOSED,
+                    closed_reason=Ticket.ClosedReason.ANSWERED,
+                    closed_at=timezone.now(),
+                )
+
 
 def create_username(first_name, last_name):
     """
@@ -136,7 +284,8 @@ def create_username(first_name, last_name):
     Returns:
         str: A username in the form ``@{firstname}{lastname}`` (lowercased).
     """
-    return '@' + first_name.lower() + last_name.lower()
+    return "@" + first_name.lower() + last_name.lower()
+
 
 def create_email(first_name, last_name):
     """
@@ -149,4 +298,4 @@ def create_email(first_name, last_name):
     Returns:
         str: An email in the form ``{firstname}.{lastname}@example.org``.
     """
-    return first_name + '.' + last_name + '@example.org'
+    return first_name + "." + last_name + "@example.org"
