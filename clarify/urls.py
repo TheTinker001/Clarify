@@ -40,3 +40,4 @@ urlpatterns = [
     path("create_ticket/", views.create_ticket, name="create_ticket"),
 ]
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
