@@ -28,9 +28,16 @@ urlpatterns = [
     path("log_in/", views.LogInView.as_view(), name="log_in"),
     path("log_out/", views.log_out, name="log_out"),
     path("password/", views.PasswordView.as_view(), name="password"),
-    path("profile/", views.ProfileUpdateView.as_view(), name="profile"),
+    path("profile/", views.ProfileView.as_view(), name="profile"),
+    path(
+        "profile/staffedit/",
+        views.StaffPreferencesView.as_view(),
+        name="profile_staff_edit",
+    ),
+    path("profile/edit/", views.ProfileUpdateView.as_view(), name="profile_edit"),
     path("sign_up/", views.SignUpView.as_view(), name="sign_up"),
     path("ticket/<int:pk>/", views.ticket_detail, name="ticket_detail"),
     path("create_ticket/", views.create_ticket, name="create_ticket"),
 ]
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

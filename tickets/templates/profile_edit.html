@@ -1,0 +1,25 @@
+{% extends 'base_content.html' %}
+{% block content %}
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card p-4">
+                    <h1 class="card-title">Edit Your Profile</h1>
+                    <p class="text-muted">Update your personal details and profile picture.</p>
+                    <a href="{% url 'profile' %}"
+                       class="btn btn-outline-secondary btn-sm mb-3 back-to-profile-btn">← Back to Profile</a>
+                    <!-- Form -->
+                    <form action="{% url 'profile_edit' %}"
+                          method="post"
+                          enctype="multipart/form-data"
+                          novalidate>
+                        {% csrf_token %}
+                        <!-- Form Fields rendered via partial -->
+                        {% include 'partials/bootstrap_form.html' with form=form %}
+                        <input type="submit" value="Save Changes" class="btn btn-primary mt-3">
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

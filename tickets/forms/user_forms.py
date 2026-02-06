@@ -1,7 +1,8 @@
 from django import forms
 from django.contrib.auth import authenticate
 from django.core.validators import RegexValidator
-from tickets.models import User
+from tickets.models import User, Ticket
+
 
 class UserForm(forms.ModelForm):
     """
@@ -16,7 +17,18 @@ class UserForm(forms.ModelForm):
         """Form options."""
 
         model = User
-        fields = ['first_name', 'last_name', 'username', 'email']
+        fields = [
+            "first_name",
+            "last_name",
+            "username",
+            "email",
+            "profile_picture",
+            "self_intro",
+        ]
+        widgets = {
+            "self_intro": forms.Textarea(attrs={"rows": 2}),
+        }
+
 
 class NewPasswordMixin(forms.Form):
     """
@@ -36,19 +48,21 @@ class NewPasswordMixin(forms.Form):
     """
 
     new_password = forms.CharField(
-        label='Password',
+        label="Password",
         widget=forms.PasswordInput(),
         validators=[
             RegexValidator(
-                regex=r'^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).*$',
+                regex=r"^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).*$",
                 message=(
-                    'Password must contain an uppercase character, '
-                    'a lowercase character, and a number'
-                )
+                    "Password must contain an uppercase character, "
+                    "a lowercase character, and a number"
+                ),
             )
-        ]
+        ],
     )
-    password_confirmation = forms.CharField(label='Password confirmation', widget=forms.PasswordInput())
+    password_confirmation = forms.CharField(
+        label="Password confirmation", widget=forms.PasswordInput()
+    )
 
     def clean(self):
         """
@@ -65,12 +79,11 @@ class NewPasswordMixin(forms.Form):
             ValidationError: If the password and confirmation do not match.
         """
         super().clean()
-        new_password = self.cleaned_data.get('new_password')
-        password_confirmation = self.cleaned_data.get('password_confirmation')
+        new_password = self.cleaned_data.get("new_password")
+        password_confirmation = self.cleaned_data.get("password_confirmation")
         if new_password != password_confirmation:
             self.add_error(
-                'password_confirmation', 
-                'Confirmation does not match password.'
+                "password_confirmation", "Confirmation does not match password."
             )
 
 
@@ -83,7 +96,7 @@ class PasswordForm(NewPasswordMixin):
     typically used in a “Change Password” or “Account Settings” page.
     """
 
-    password = forms.CharField(label='Current password', widget=forms.PasswordInput())
+    password = forms.CharField(label="Current password", widget=forms.PasswordInput())
 
     def __init__(self, user=None, **kwargs):
         """
@@ -93,7 +106,7 @@ class PasswordForm(NewPasswordMixin):
             user (User, optional): The authenticated user who wants to change
                 their password.
         """
-        
+
         super().__init__(**kwargs)
         self.user = user
 
@@ -118,13 +131,13 @@ class PasswordForm(NewPasswordMixin):
         """
 
         super().clean()
-        password = self.cleaned_data.get('password')
+        password = self.cleaned_data.get("password")
         if self.user is not None:
             user = authenticate(username=self.user.username, password=password)
         else:
             user = None
         if user is None:
-            self.add_error('password', "Password is invalid")
+            self.add_error("password", "Password is invalid")
 
     def save(self):
         """
@@ -137,7 +150,7 @@ class PasswordForm(NewPasswordMixin):
             User: The user instance with the updated password.
         """
 
-        new_password = self.cleaned_data['new_password']
+        new_password = self.cleaned_data["new_password"]
         if self.user is not None:
             self.user.set_password(new_password)
             self.user.save()
@@ -168,7 +181,13 @@ class SignUpForm(NewPasswordMixin, forms.ModelForm):
         """Form options."""
 
         model = User
-        fields = ['first_name', 'last_name', 'username', 'email', 'user_type']
+        fields = [
+            "first_name",
+            "last_name",
+            "username",
+            "email",
+            "user_type",
+        ]
 
     user_type = forms.ChoiceField(
         choices=User.USER_TYPE_CHOICES,
@@ -189,11 +208,71 @@ class SignUpForm(NewPasswordMixin, forms.ModelForm):
 
         super().save(commit=False)
         user = User.objects.create_user(
-            self.cleaned_data.get('username'),
-            first_name=self.cleaned_data.get('first_name'),
-            last_name=self.cleaned_data.get('last_name'),
-            email=self.cleaned_data.get('email'),
-            password=self.cleaned_data.get('new_password'),
-            user_type=self.cleaned_data.get('user_type'),
+            self.cleaned_data.get("username"),
+            first_name=self.cleaned_data.get("first_name"),
+            last_name=self.cleaned_data.get("last_name"),
+            email=self.cleaned_data.get("email"),
+            password=self.cleaned_data.get("new_password"),
+            user_type=self.cleaned_data.get("user_type"),
         )
         return user
+
+
+class StaffPreferenceForm(forms.ModelForm):
+    """
+    Form enabling staff users to set their ticket handling preferences.
+
+    This form allows staff members to select the faculties, study levels,
+    and categories of tickets they are willing to handle. It is typically
+    used in a staff profile or settings page.
+    """
+
+    faculties = forms.MultipleChoiceField(
+        choices=Ticket.Faculty.choices,
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+    )
+    study_levels = forms.MultipleChoiceField(
+        choices=Ticket.StudyLevel.choices,
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+    )
+    categories = forms.MultipleChoiceField(
+        choices=Ticket.Category.choices,
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+    )
+
+    class Meta:
+        """Form options."""
+
+        model = User
+        fields = ["faculties", "study_levels", "categories"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Convert comma-separated string to list for initial display
+        self.fields["faculties"].initial = (
+            self.instance.faculties.split(",") if self.instance.faculties else []
+        )
+        self.fields["study_levels"].initial = (
+            self.instance.study_levels.split(",") if self.instance.study_levels else []
+        )
+        self.fields["categories"].initial = (
+            self.instance.categories.split(",") if self.instance.categories else []
+        )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if self.instance.user_type != User.USER_TYPE_STAFF:
+            raise forms.ValidationError("Only staff can edit preferences.")
+        return cleaned_data
+
+    def clean_faculties(self):
+        return ",".join(self.cleaned_data["faculties"])
+
+    def clean_study_levels(self):
+        return ",".join(self.cleaned_data["study_levels"])
+
+    def clean_categories(self):
+        return ",".join(self.cleaned_data["categories"])

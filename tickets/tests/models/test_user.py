@@ -1,6 +1,7 @@
 """Unit tests for the User model."""
 
 from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from tickets.models import User
 
@@ -160,3 +161,38 @@ class UserModelTestCase(TestCase):
     def _assert_user_is_invalid(self):
         with self.assertRaises(ValidationError):
             self.user.full_clean()
+
+    def test_get_initials(self):
+        self.user.first_name = "John"
+        self.user.last_name = "Cage"
+        self.assertEqual(self.user.get_initials, "JC")
+
+    def test_profile_picture_field(self):
+        # Simulate uploading a file
+        pic = SimpleUploadedFile("test.jpg", b"file_content", content_type="image/jpeg")
+        self.user.profile_picture = pic
+        self.user.save()
+        self.assertTrue(self.user.profile_picture.name.startswith("profile_pictures/"))
+
+    def test_self_intro_field(self):
+        self.assertEqual(self.user.self_intro, "Hello! My friends!")
+
+    def test_faculties_field(self):
+        self.user.faculties = "folsm,sspp"
+        self.user.save()
+        self.assertEqual(self.user.faculties, "folsm,sspp")
+        self.assertIn("folsm", self.user.faculties)
+        self.assertIn("sspp", self.user.faculties)
+
+    def test_study_levels_field(self):
+        self.user.study_levels = "undergraduate,postgraduate"
+        self.user.save()
+        self.assertEqual(self.user.study_levels, "undergraduate,postgraduate")
+        self.assertIn("undergraduate", self.user.study_levels)
+        self.assertIn("postgraduate", self.user.study_levels)
+
+    def test_categories_field(self):
+        self.user.categories = "assessment,health"
+        self.assertEqual(self.user.categories, "assessment,health")
+        self.assertIn("assessment", self.user.categories)
+        self.assertIn("health", self.user.categories)

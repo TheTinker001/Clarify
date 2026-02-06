@@ -1,0 +1,21 @@
+{% extends 'base_content.html' %}
+{% block content %}
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card p-4">
+                    <!-- Staff Preferences Form -->
+                    <form method="post" action="{% url 'profile_staff_edit' %}">
+                        {% csrf_token %}
+                        <h1>Staff Preferences</h1>
+                        <p class="text-muted">Which types of tickets do you want to see?</p>
+                        <a href="{% url 'profile' %}"
+                           class="btn btn-outline-secondary btn-sm mb-3 back-to-profile-btn">← Back to Profile</a>
+                        {{ form.as_p }}
+                        <button type="submit" class="btn btn-primary">Save Preferences</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
