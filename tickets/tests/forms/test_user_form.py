@@ -8,7 +8,6 @@ from tickets.models import Ticket
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 
-
 class UserFormTestCase(TestCase):
     """Unit tests of the user form."""
 
@@ -16,10 +15,10 @@ class UserFormTestCase(TestCase):
 
     def setUp(self):
         self.form_input = {
-            "first_name": "Jane",
-            "last_name": "Doe",
-            "username": "@janedoe",
-            "email": "janedoe@example.org",
+            "first_name": "Jimmy",
+            "last_name": "Atom",
+            "username": "@jimmyatom",
+            "email": "jimmyatom@example.org",
         }
 
     def test_form_has_necessary_fields(self):
@@ -53,10 +52,10 @@ class UserFormTestCase(TestCase):
         form.save()
         after_count = User.objects.count()
         self.assertEqual(after_count, before_count)
-        self.assertEqual(user.username, "@janedoe")
-        self.assertEqual(user.first_name, "Jane")
-        self.assertEqual(user.last_name, "Doe")
-        self.assertEqual(user.email, "janedoe@example.org")
+        self.assertEqual(user.username, "@jimmyatom")
+        self.assertEqual(user.first_name, "Jimmy")
+        self.assertEqual(user.last_name, "Atom")
+        self.assertEqual(user.email, "jimmyatom@example.org")
 
     def test_user_form_profile_picture_and_self_intro(self):
         from PIL import Image
