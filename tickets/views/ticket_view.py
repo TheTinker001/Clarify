@@ -1,21 +1,26 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect
+from django.views.generic.edit import CreateView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib import messages
+from django.urls import reverse_lazy
+from tickets.models import Ticket
 from tickets.forms import TicketForm
 
 
-@login_required
-def create_ticket(request):
-    if request.user.user_type != "student":
-        return redirect("dashboard")
+class CreateTicketView(LoginRequiredMixin, CreateView):
+    model = Ticket
+    form_class = TicketForm
+    template_name = "create_ticket.html"
+    success_url = reverse_lazy("dashboard")
 
-    if request.method == "POST":
-        form = TicketForm(request.POST)
-        if form.is_valid():
-            ticket = form.save(commit=False)
-            ticket.student = request.user
-            ticket.save()
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return super().dispatch(request, *args, **kwargs)
+        if request.user.user_type != "student":
             return redirect("dashboard")
-    else:
-        form = TicketForm()
+        return super().dispatch(request, *args, **kwargs)
 
-    return render(request, "create_ticket.html", {"form": form})
+    def form_valid(self, form):
+        form.instance.student = self.request.user
+        messages.success(self.request, "Ticket created successfully!")
+        return super().form_valid(form)
