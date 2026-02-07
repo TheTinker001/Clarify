@@ -38,6 +38,10 @@ urlpatterns = [
     path("sign_up/", views.SignUpView.as_view(), name="sign_up"),
     path("ticket/<int:pk>/", views.ticket_detail, name="ticket_detail"),
     path("create_ticket/", views.create_ticket, name="create_ticket"),
+    path("ticket/<int:ticket_id>/claim/", views.ticket_claim, name="ticket_claim"),
+    path(
+        "ticket/<int:ticket_id>/unclaim/", views.ticket_unclaim, name="ticket_unclaim"
+    ),
 ]
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
