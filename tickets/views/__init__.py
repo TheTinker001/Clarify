@@ -7,3 +7,5 @@ from .profile_view import *
 from .sign_up_view import *
 from .ticket_detail_view import *
 from .ticket_view import *
+from .ticket_claim_view import *
+from .ticket_unclaim_view import *
