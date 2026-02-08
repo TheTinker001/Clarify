@@ -53,7 +53,7 @@ user_fixtures = [
         "last_name": "001",
         "user_type": "staff",
         "is_staff": True,
-        "is_superuser": False,
+        "is_superuser": True,
     },
     {
         "username": "@staff002",
@@ -62,7 +62,7 @@ user_fixtures = [
         "last_name": "002",
         "user_type": "staff",
         "is_staff": True,
-        "is_superuser": False,
+        "is_superuser": True,
     },
 ]
 
@@ -176,6 +176,9 @@ class Command(BaseCommand):
             password=Command.DEFAULT_PASSWORD,
             first_name=data["first_name"],
             last_name=data["last_name"],
+            user_type=data.get("user_type", User.USER_TYPE_STUDENT),
+            is_staff=data.get("is_staff", False),
+            is_superuser=data.get("is_superuser", False),
         )
 
     def create_tickets_for_fixture_users(self):
@@ -190,6 +193,8 @@ class Command(BaseCommand):
             username="@staffuser",
             email="staffuser@example.org",
             user_type=User.USER_TYPE_STAFF,
+            is_staff=True,
+            is_superuser=True,
             password="Password123",
         )
         overdue_cutoff = timezone.now() - timedelta(days=5)
