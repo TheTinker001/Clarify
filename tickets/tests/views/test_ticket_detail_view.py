@@ -54,12 +54,14 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
         self.client.login(username=self.staff.username, password="Password123")
         claim_url = reverse("ticket_claim", args=[self.ticket.pk])
         response = self.client.post(claim_url, follow=True)
+
         self.ticket.refresh_from_db()
         self.assertEqual(self.ticket.assigned_to, self.staff)
         self.assertContains(response, "You have claimed this ticket.")
 
         unclaim_url = reverse("ticket_unclaim", args=[self.ticket.pk])
         response = self.client.post(unclaim_url, follow=True)
+
         self.ticket.refresh_from_db()
         self.assertIsNone(self.ticket.assigned_to)
         self.assertContains(response, "You have unclaimed this ticket.")
@@ -107,3 +109,15 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
         self.ticket.refresh_from_db()
         self.assertEqual(self.ticket.assigned_to, other_staff)
         self.assertContains(response, f"You are not assigned to this ticket.")
+
+    def test_ticket_claim_unclaimed(self):
+        self.ticket.assigned_to = None
+        self.ticket.save(update_fields=["assigned_to"])
+
+        self.client.login(username=self.staff.username, password="Password123")
+        claim_url = reverse("ticket_claim", args=[self.ticket.pk])
+        response = self.client.post(claim_url, follow=True)
+
+        self.ticket.refresh_from_db()
+        self.assertEqual(self.ticket.assigned_to, self.staff)
+        self.assertContains(response, "You have claimed this ticket.")
