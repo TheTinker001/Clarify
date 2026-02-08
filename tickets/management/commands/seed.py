@@ -184,7 +184,7 @@ class Command(BaseCommand):
             if remaining <= 0:
                 continue
 
-            # ---- define mix (adjust numbers if you want) ----
+            # Define mix (adjust numbers if you want)
             open_count = min(7, remaining)
             remaining -= open_count
 
@@ -200,10 +200,10 @@ class Command(BaseCommand):
             closed_count = min(2, remaining)
             remaining -= closed_count
 
-            # Anything left → open tickets
+            # Anything left -> open tickets
             open_count += remaining
 
-            # ---- OPEN tickets ----
+            # OPEN tickets
             for _ in range(open_count):
                 Ticket.objects.create(
                     student=user,
@@ -216,7 +216,7 @@ class Command(BaseCommand):
                     assigned_to=None,
                 )
 
-            # ---- IN PROGRESS tickets ----
+            # IN PROGRESS tickets
             for _ in range(in_progress_count):
                 Ticket.objects.create(
                     student=user,
@@ -229,7 +229,7 @@ class Command(BaseCommand):
                     assigned_to=staff_user,
                 )
 
-            # ---- NEED RESPONSE tickets ----
+            # NEED RESPONSE tickets
             for _ in range(need_response_count):
                 Ticket.objects.create(
                     student=user,
@@ -242,7 +242,7 @@ class Command(BaseCommand):
                     assigned_to=None,
                 )
 
-            # ---- OVERDUE tickets ----
+            # OVERDUE tickets
             for _ in range(overdue_count):
                 t = Ticket.objects.create(
                     student=user,
@@ -258,7 +258,7 @@ class Command(BaseCommand):
                     created_at=overdue_cutoff - timedelta(days=1)
                 )
 
-            # ---- CLOSED tickets ----
+            # CLOSED tickets
             for _ in range(closed_count):
                 Ticket.objects.create(
                     student=user,

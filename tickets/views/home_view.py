@@ -1,9 +1,10 @@
-from django.shortcuts import render
+from django.utils.decorators import method_decorator
+from django.views.generic import TemplateView
 from tickets.views.decorators import login_prohibited
 
 
-@login_prohibited
-def home(request):
+@method_decorator(login_prohibited, name="dispatch")
+class HomeView(TemplateView):
     """Display the application's start/home screen."""
 
-    return render(request, 'home.html')
+    template_name = "home.html"
