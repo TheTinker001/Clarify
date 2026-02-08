@@ -9,7 +9,10 @@ from tickets.tests.helpers import MenuTesterMixin, reverse_with_next
 class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
     """Test suite for the ticket detail view."""
 
-    fixtures = ["tickets/tests/fixtures/default_user.json"]
+    fixtures = [
+        "tickets/tests/fixtures/default_user.json",
+        "tickets/tests/fixtures/other_users.json",
+    ]
 
     def setUp(self):
         self.student = User.objects.get(username="@johndoe")
