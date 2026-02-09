@@ -9,3 +9,5 @@ from .staff_preferences_view import *
 from .sign_up_view import *
 from .ticket_detail_view import *
 from .create_ticket_view import *
+from .ticket_claim_view import *
+from .ticket_unclaim_view import *

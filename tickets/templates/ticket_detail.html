@@ -48,6 +48,29 @@
                 {{ ticket.updated_at|date:"M j, Y, P" }}
               </dd>
             </dl>
+            <!-- claiming -->
+            {% if user.user_type == "staff" %}
+              {% if ticket.assigned_to == user %}
+                <div class="d-flex justify-content-between align-items-start">
+                  <form method="post" action="{% url 'ticket_unclaim' ticket.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Unclaim</button>
+                  </form>
+                </div>
+              {% elif ticket.assigned_to %}
+                <div class="alert alert-warning d-flex align-items-center" role="alert">
+                  <span class="bi-flag me-2"></span>
+                  Claimed by {{ ticket.assigned_to.get_full_name|default:ticket.assigned_to.username }}
+                </div>
+              {% else %}
+                <div class="d-flex justify-content-between align-items-start">
+                  <form method="post" action="{% url 'ticket_claim' ticket.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-success">Claim</button>
+                  </form>
+                </div>
+              {% endif %}
+            {% endif %}
           </div>
         </div>
       </div>
