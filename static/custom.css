@@ -25,9 +25,6 @@
     align-items: center;
 }
 
-/*
- * Cover page
- */
 h1.cover-heading {
   font-size: 4rem;
 }
@@ -51,7 +48,7 @@ p.cover-text {
 
 
 /*
- * forms
+ * Forms
  */
 .nolabel label {
   display: none;
