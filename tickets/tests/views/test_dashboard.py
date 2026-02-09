@@ -249,7 +249,7 @@ class DashboardViewTestCase(TestCase, LogInTester):
 
         response = self.client.get(self.url, {"tab": "open_tickets", "page": 1})
         self.assertEqual(response.status_code, 200)
-        detail_url = reverse("ticket_detail", args=[ticket.pk])
+        detail_url = ticket.get_absolute_url()
         self.assertContains(response, f'href="{detail_url}"')
         detail_response = self.client.get(detail_url)
         self.assertEqual(detail_response.status_code, 200)

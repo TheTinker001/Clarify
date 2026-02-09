@@ -1,7 +1,6 @@
 """Tests for the ticket detail view."""
 
 from django.test import TestCase
-from django.urls import reverse
 from tickets.models import Ticket, User
 from tickets.tests.helpers import MenuTesterMixin, reverse_with_next
 
@@ -26,10 +25,10 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
             subject="Update card access",
             body="Card access not working for lab.",
         )
-        self.url = reverse("ticket_detail", kwargs={"pk": self.ticket.pk})
+        self.url = self.ticket.get_absolute_url()
 
     def test_ticket_detail_url(self):
-        self.assertEqual(self.url, f"/ticket/{self.ticket.pk}/")
+        self.assertEqual(self.url, f"/ticket/{self.ticket.url_code}/")
 
     def test_get_ticket_detail_redirects_when_not_logged_in(self):
         redirect_url = reverse_with_next("log_in", self.url)
@@ -50,5 +49,5 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
 
     def test_ticket_detail_returns_404_for_missing_ticket(self):
         self.client.login(username=self.student.username, password="Password123")
-        response = self.client.get("/ticket/9999/")
+        response = self.client.get("/ticket/jujutsu/")
         self.assertEqual(response.status_code, 404)

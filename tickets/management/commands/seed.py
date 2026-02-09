@@ -183,9 +183,9 @@ class Command(BaseCommand):
 
     def create_tickets_for_fixture_users(self):
 
-        FACULTIES = [choice for choice, _ in Ticket.Faculty.choices]
-        STUDY_LEVELS = [choice for choice, _ in Ticket.StudyLevel.choices]
-        CATEGORIES = [choice for choice, _ in Ticket.Category.choices]
+        FACULTIES = [choice for choice, _ in Ticket.Faculty.choices if choice]
+        STUDY_LEVELS = [choice for choice, _ in Ticket.StudyLevel.choices if choice]
+        CATEGORIES = [choice for choice, _ in Ticket.Category.choices if choice]
 
         staff_user = User.objects.create_user(
             first_name="Staff",

@@ -30,5 +30,5 @@
         {% endif %}
     </div>
     <!-- clickable card -->
-    <a href="{% url 'ticket_detail' ticket.pk %}" class="stretched-link"></a>
+    <a href="{{ ticket.get_absolute_url }}" class="stretched-link"></a>
 </div>
