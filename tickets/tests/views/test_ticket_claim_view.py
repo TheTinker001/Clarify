@@ -1,17 +1,17 @@
 """Tests for the ticket claim view."""
 
 from django.test import TestCase
-from django.urls import reverse
 from tickets.models import Ticket, User
-from tickets.tests.helpers import MenuTesterMixin, reverse_with_next
-from tickets.views.ticket_claim_view import TicketClaimView
-from tickets.views.ticket_unclaim_view import TicketUnclaimView
+from tickets.tests.helpers import MenuTesterMixin
 
 
 class TicketClaimViewTestCase(TestCase, MenuTesterMixin):
     """Test suite for the ticket claim view."""
 
-    fixtures = ["tickets/tests/fixtures/default_user.json"]
+    fixtures = [
+        "tickets/tests/fixtures/default_user.json",
+        "tickets/tests/fixtures/other_users.json",
+    ]
 
     def setUp(self):
         self.student = User.objects.get(username="@johndoe")
@@ -25,18 +25,18 @@ class TicketClaimViewTestCase(TestCase, MenuTesterMixin):
             subject="Update card access",
             body="Card access not working for lab.",
         )
-        self.url = reverse("ticket_detail", kwargs={"pk": self.ticket.pk})
+        self.url = self.ticket.get_absolute_url()
 
     def test_ticket_claim_and_unclaim(self):
         self.client.login(username=self.staff.username, password="Password123")
-        claim_url = reverse("ticket_claim", args=[self.ticket.pk])
+        claim_url = self.ticket.get_claim_url()
         response = self.client.post(claim_url, follow=True)
 
         self.ticket.refresh_from_db()
         self.assertEqual(self.ticket.assigned_to, self.staff)
         self.assertContains(response, "You have claimed this ticket.")
 
-        unclaim_url = reverse("ticket_unclaim", args=[self.ticket.pk])
+        unclaim_url = self.ticket.get_unclaim_url()
         response = self.client.post(unclaim_url, follow=True)
 
         self.ticket.refresh_from_db()
@@ -45,13 +45,13 @@ class TicketClaimViewTestCase(TestCase, MenuTesterMixin):
 
     def test_ticket_claim_and_unclaim_by_non_staff(self):
         self.client.login(username=self.student.username, password="Password123")
-        claim_url = reverse("ticket_claim", args=[self.ticket.pk])
+        claim_url = self.ticket.get_claim_url()
         response = self.client.post(claim_url, follow=True)
         self.ticket.refresh_from_db()
         self.assertNotEqual(self.ticket.assigned_to, self.student)
         self.assertContains(response, "You are not a staff member!")
 
-        unclaim_url = reverse("ticket_unclaim", args=[self.ticket.pk])
+        unclaim_url = self.ticket.get_unclaim_url()
         response = self.client.post(unclaim_url, follow=True)
         self.ticket.refresh_from_db()
         self.assertNotEqual(self.ticket.assigned_to, self.student)
@@ -66,7 +66,7 @@ class TicketClaimViewTestCase(TestCase, MenuTesterMixin):
         self.ticket.assigned_to = other_staff
         self.ticket.save()
         self.client.login(username=self.staff.username, password="Password123")
-        claim_url = reverse("ticket_claim", args=[self.ticket.pk])
+        claim_url = self.ticket.get_claim_url()
         response = self.client.post(claim_url, follow=True)
         self.ticket.refresh_from_db()
         self.assertEqual(self.ticket.assigned_to, other_staff)
@@ -81,7 +81,7 @@ class TicketClaimViewTestCase(TestCase, MenuTesterMixin):
         self.ticket.assigned_to = other_staff
         self.ticket.save()
         self.client.login(username=self.staff.username, password="Password123")
-        unclaim_url = reverse("ticket_unclaim", args=[self.ticket.pk])
+        unclaim_url = self.ticket.get_unclaim_url()
         response = self.client.post(unclaim_url, follow=True)
         self.ticket.refresh_from_db()
         self.assertEqual(self.ticket.assigned_to, other_staff)
@@ -92,7 +92,7 @@ class TicketClaimViewTestCase(TestCase, MenuTesterMixin):
         self.ticket.save(update_fields=["assigned_to"])
 
         self.client.login(username=self.staff.username, password="Password123")
-        claim_url = reverse("ticket_claim", args=[self.ticket.pk])
+        claim_url = self.ticket.get_claim_url()
         response = self.client.post(claim_url, follow=True)
 
         self.ticket.refresh_from_db()

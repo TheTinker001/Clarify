@@ -8,21 +8,22 @@ from django.views import View
 from tickets.models import Ticket, User
 
 
-@method_decorator(login_required, name="dispatch")
+@method_decorator([login_required, require_POST], name="dispatch")
 class TicketUnclaimView(View):
-    @method_decorator(require_POST, name="dispatch")
-    def post(self, request, ticket_id):
+    def post(self, request, url_code):
+        ticket = get_object_or_404(Ticket, url_code=url_code)
+
         if request.user.user_type != User.USER_TYPE_STAFF:
             messages.error(request, "You are not a staff member!")
-            return redirect("ticket_detail", pk=ticket_id)
+            return redirect(ticket.get_absolute_url())
 
-        updated = Ticket.objects.filter(pk=ticket_id, assigned_to=request.user).update(
-            assigned_to=None
-        )
+        updated = Ticket.objects.filter(
+            url_code=url_code, assigned_to=request.user
+        ).update(assigned_to=None)
 
         if updated == 0:
             messages.error(request, "You are not assigned to this ticket.")
         else:
             messages.success(request, "You have unclaimed this ticket.")
 
-        return redirect("ticket_detail", pk=ticket_id)
+        return redirect(ticket.get_absolute_url())

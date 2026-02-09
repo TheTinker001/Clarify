@@ -88,6 +88,10 @@ def dashboard(request):
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
+    params = request.GET.copy()
+    params.pop("page", None)
+    querystring = params.urlencode()
+
     return render(
         request,
         "dashboard.html",
@@ -98,5 +102,6 @@ def dashboard(request):
             "paginator": paginator,
             "tab": tab,
             "total": qs.count(),
+            "querystring": querystring,
         },
     )

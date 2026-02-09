@@ -3,7 +3,6 @@
   <div class="container">
     <div class="row">
       <div class="col-12">
-        <a class="text-muted" href="{% url 'dashboard' %}">Back to dashboard</a>
         <div class="ticket-header mt-2">
           <h1 class="mb-1">{{ ticket.title }}</h1>
           <div class="d-flex flex-wrap gap-2 align-items-center">
@@ -53,7 +52,7 @@
             {% if user.user_type == "staff" %}
               {% if ticket.assigned_to == user %}
                 <div class="d-flex justify-content-between align-items-start">
-                  <form method="post" action="{% url 'ticket_unclaim' ticket.id %}">
+                  <form method="post" action="{{ ticket.get_unclaim_url }}">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-sm btn-outline-danger">Unclaim</button>
                   </form>
@@ -65,7 +64,7 @@
                 </div>
               {% else %}
                 <div class="d-flex justify-content-between align-items-start">
-                  <form method="post" action="{% url 'ticket_claim' ticket.id %}">
+                  <form method="post" action="{{ ticket.get_claim_url }}">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-sm btn-outline-success">Claim</button>
                   </form>

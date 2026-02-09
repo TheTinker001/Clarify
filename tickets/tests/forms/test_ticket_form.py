@@ -17,7 +17,7 @@ class TicketFormTest(TestCase):
         form_data = {
             "faculty": "kbs",
             "study_level": "undergraduate",
-            "category": "health",
+            "category": "health_and_wellbeing",
             "subject": "Test Subject",
             "body": "Test body content",
         }
@@ -39,7 +39,7 @@ class TicketFormTest(TestCase):
         form_data = {
             "faculty": "kbs",
             "study_level": "undergraduate",
-            "category": "health",
+            "category": "health_and_wellbeing",
             "body": "Test body",
         }
         form = TicketForm(data=form_data)
@@ -50,7 +50,7 @@ class TicketFormTest(TestCase):
         form_data = {
             "faculty": "kbs",
             "study_level": "undergraduate",
-            "category": "health",
+            "category": "health_and_wellbeing",
             "subject": "Test subject",
         }
         form = TicketForm(data=form_data)
@@ -74,26 +74,38 @@ class TicketFormTest(TestCase):
             form_data = {
                 "faculty": faculty_code,
                 "study_level": "undergraduate",
-                "category": "health",
+                "category": "health_and_wellbeing",
                 "subject": "Test",
                 "body": "Test body",
             }
             form = TicketForm(data=form_data)
-            self.assertTrue(form.is_valid(), f"Faculty {faculty_code} should be valid")
+            if faculty_code != "":
+                self.assertTrue(
+                    form.is_valid(), f"Faculty {faculty_code} should be valid"
+                )
+            else:
+                self.assertFalse(
+                    form.is_valid(), f"Faculty {faculty_code} should be valid"
+                )
 
     def test_all_study_level_choices_valid(self):
         for level_code, _ in Ticket.StudyLevel.choices:
             form_data = {
                 "faculty": "kbs",
                 "study_level": level_code,
-                "category": "health",
+                "category": "health_and_wellbeing",
                 "subject": "Test",
                 "body": "Test body",
             }
             form = TicketForm(data=form_data)
-            self.assertTrue(
-                form.is_valid(), f"Study level {level_code} should be valid"
-            )
+            if level_code != "":
+                self.assertTrue(
+                    form.is_valid(), f"Study level {level_code} should be valid"
+                )
+            else:
+                self.assertFalse(
+                    form.is_valid(), f"Study level {level_code} should be valid"
+                )
 
     def test_all_category_choices_valid(self):
         for category_code, _ in Ticket.Category.choices:
@@ -105,6 +117,12 @@ class TicketFormTest(TestCase):
                 "body": "Test body",
             }
             form = TicketForm(data=form_data)
-            self.assertTrue(
-                form.is_valid(), f"Category {category_code} should be valid"
-            )
+
+            if category_code != "":
+                self.assertTrue(
+                    form.is_valid(), f"Category {category_code} should be valid"
+                )
+            else:
+                self.assertFalse(
+                    form.is_valid(), f"Category {category_code} should be valid"
+                )

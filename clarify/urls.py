@@ -23,7 +23,7 @@ from tickets import views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", views.home, name="home"),
+    path("", views.HomeView.as_view(), name="home"),
     path("dashboard/", views.dashboard, name="dashboard"),
     path("log_in/", views.LogInView.as_view(), name="log_in"),
     path("log_out/", views.log_out, name="log_out"),
@@ -36,15 +36,15 @@ urlpatterns = [
     ),
     path("profile/edit/", views.ProfileUpdateView.as_view(), name="profile_edit"),
     path("sign_up/", views.SignUpView.as_view(), name="sign_up"),
-    path("ticket/<int:pk>/", views.ticket_detail, name="ticket_detail"),
+    path("ticket/<str:url_code>/", views.ticket_detail, name="ticket_detail"),
     path("create_ticket/", views.CreateTicketView.as_view(), name="create_ticket"),
     path(
-        "ticket/<int:ticket_id>/claim/",
+        "ticket/<str:url_code>/claim/",
         views.TicketClaimView.as_view(),
         name="ticket_claim",
     ),
     path(
-        "ticket/<int:ticket_id>/unclaim/",
+        "ticket/<str:url_code>/unclaim/",
         views.TicketUnclaimView.as_view(),
         name="ticket_unclaim",
     ),

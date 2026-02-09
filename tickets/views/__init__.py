@@ -4,8 +4,10 @@ from .log_in_view import *
 from .log_out_view import *
 from .password_view import *
 from .profile_view import *
+from .profile_update_view import *
+from .staff_preferences_view import *
 from .sign_up_view import *
 from .ticket_detail_view import *
-from .ticket_view import *
+from .create_ticket_view import *
 from .ticket_claim_view import *
 from .ticket_unclaim_view import *

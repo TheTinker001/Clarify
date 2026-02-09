@@ -29,7 +29,7 @@ class CreateTicketViewTest(TestCase):
         self.valid_ticket_data = {
             "faculty": "kbs",
             "study_level": "undergraduate",
-            "category": "health",
+            "category": "health_and_wellbeing",
             "subject": "Need medical support",
             "body": "I need help with accessing medical services.",
         }

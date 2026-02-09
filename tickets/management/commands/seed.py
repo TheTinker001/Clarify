@@ -23,18 +23,46 @@ user_fixtures = [
         "email": "john.doe@example.org",
         "first_name": "John",
         "last_name": "Doe",
+        "user_type": "student",
     },
     {
         "username": "@janedoe",
         "email": "jane.doe@example.org",
         "first_name": "Jane",
         "last_name": "Doe",
+        "user_type": "student",
     },
     {
         "username": "@charlie",
         "email": "charlie.johnson@example.org",
         "first_name": "Charlie",
         "last_name": "Johnson",
+        "user_type": "student",
+    },
+    {
+        "username": "@student001",
+        "email": "student001@example.org",
+        "first_name": "Student",
+        "last_name": "001",
+        "user_type": "student",
+    },
+    {
+        "username": "@staff001",
+        "email": "staff001@example.org",
+        "first_name": "Staff",
+        "last_name": "001",
+        "user_type": "staff",
+        "is_staff": True,
+        "is_superuser": True,
+    },
+    {
+        "username": "@staff002",
+        "email": "staff002@example.org",
+        "first_name": "Staff",
+        "last_name": "002",
+        "user_type": "staff",
+        "is_staff": True,
+        "is_superuser": True,
     },
 ]
 
@@ -148,13 +176,16 @@ class Command(BaseCommand):
             password=Command.DEFAULT_PASSWORD,
             first_name=data["first_name"],
             last_name=data["last_name"],
+            user_type=data.get("user_type", User.USER_TYPE_STUDENT),
+            is_staff=data.get("is_staff", False),
+            is_superuser=data.get("is_superuser", False),
         )
 
     def create_tickets_for_fixture_users(self):
 
-        FACULTIES = [choice for choice, _ in Ticket.Faculty.choices]
-        STUDY_LEVELS = [choice for choice, _ in Ticket.StudyLevel.choices]
-        CATEGORIES = [choice for choice, _ in Ticket.Category.choices]
+        FACULTIES = [choice for choice, _ in Ticket.Faculty.choices if choice]
+        STUDY_LEVELS = [choice for choice, _ in Ticket.StudyLevel.choices if choice]
+        CATEGORIES = [choice for choice, _ in Ticket.Category.choices if choice]
 
         staff_user = User.objects.create_user(
             first_name="Staff",
@@ -162,6 +193,8 @@ class Command(BaseCommand):
             username="@staffuser",
             email="staffuser@example.org",
             user_type=User.USER_TYPE_STAFF,
+            is_staff=True,
+            is_superuser=True,
             password="Password123",
         )
         overdue_cutoff = timezone.now() - timedelta(days=5)
@@ -184,7 +217,7 @@ class Command(BaseCommand):
             if remaining <= 0:
                 continue
 
-            # ---- define mix (adjust numbers if you want) ----
+            # Define mix (adjust numbers if you want)
             open_count = min(7, remaining)
             remaining -= open_count
 
@@ -200,10 +233,10 @@ class Command(BaseCommand):
             closed_count = min(2, remaining)
             remaining -= closed_count
 
-            # Anything left → open tickets
+            # Anything left -> open tickets
             open_count += remaining
 
-            # ---- OPEN tickets ----
+            # OPEN tickets
             for _ in range(open_count):
                 Ticket.objects.create(
                     student=user,
@@ -216,7 +249,7 @@ class Command(BaseCommand):
                     assigned_to=None,
                 )
 
-            # ---- IN PROGRESS tickets ----
+            # IN PROGRESS tickets
             for _ in range(in_progress_count):
                 Ticket.objects.create(
                     student=user,
@@ -229,7 +262,7 @@ class Command(BaseCommand):
                     assigned_to=staff_user,
                 )
 
-            # ---- NEED RESPONSE tickets ----
+            # NEED RESPONSE tickets
             for _ in range(need_response_count):
                 Ticket.objects.create(
                     student=user,
@@ -242,7 +275,7 @@ class Command(BaseCommand):
                     assigned_to=None,
                 )
 
-            # ---- OVERDUE tickets ----
+            # OVERDUE tickets
             for _ in range(overdue_count):
                 t = Ticket.objects.create(
                     student=user,
@@ -258,7 +291,7 @@ class Command(BaseCommand):
                     created_at=overdue_cutoff - timedelta(days=1)
                 )
 
-            # ---- CLOSED tickets ----
+            # CLOSED tickets
             for _ in range(closed_count):
                 Ticket.objects.create(
                     student=user,

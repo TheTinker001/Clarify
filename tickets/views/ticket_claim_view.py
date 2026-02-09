@@ -7,30 +7,30 @@ from django.views import View
 from tickets.models import Ticket, User
 
 
-@method_decorator(login_required, name="dispatch")
+@method_decorator([login_required, require_POST], name="dispatch")
 class TicketClaimView(View):
+    def post(self, request, url_code):
+        ticket = get_object_or_404(
+            Ticket.objects.select_related("assigned_to"),
+            url_code=url_code,
+        )
 
-    @method_decorator(require_POST)
-    def post(self, request, ticket_id):
         if request.user.user_type != User.USER_TYPE_STAFF:
             messages.error(request, "You are not a staff member!")
-            return redirect("ticket_detail", pk=ticket_id)
+            return redirect(ticket.get_absolute_url())
 
-        updated = Ticket.objects.filter(pk=ticket_id, assigned_to__isnull=True).update(
-            assigned_to=request.user
-        )
+        updated = Ticket.objects.filter(
+            url_code=url_code, assigned_to__isnull=True
+        ).update(assigned_to=request.user)
 
         if updated:
             messages.success(request, "You have claimed this ticket.")
-            return redirect("ticket_detail", pk=ticket_id)
+            return redirect(ticket.get_absolute_url())
 
-        ticket = get_object_or_404(
-            Ticket.objects.select_related("assigned_to"), pk=ticket_id
-        )
-
-        if ticket.assigned_to == request.user:
+        ticket.refresh_from_db(fields=["assigned_to"])
+        if ticket.assigned_to_id == request.user.id:
             messages.success(request, "You have claimed this ticket.")
         else:
             messages.error(request, f"Ticket already claimed by {ticket.assigned_to}.")
 
-        return redirect("ticket_detail", pk=ticket_id)
+        return redirect(ticket.get_absolute_url())
