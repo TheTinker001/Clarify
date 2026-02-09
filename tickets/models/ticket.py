@@ -11,6 +11,7 @@ class Ticket(models.Model):
     """Model representing a student ticket."""
 
     class Faculty(models.TextChoices):
+        EMPTY = "", "Select"
         FOLSM = "folsm", "Faculty of Life Sciences & Medicine (FoLSM)"
         SSPP = "sspp", "Faculty of Social Science & Public Policy (SSPP)"
         NMPC = (
@@ -25,12 +26,14 @@ class Ticket(models.Model):
         IOPPN = "ioppn", "Institute of Psychiatry, Psychology & Neuroscience (IoPPN)"
 
     class StudyLevel(models.TextChoices):
+        EMPTY = "", "Select"
         UNDERGRADUATE = "undergraduate", "Undergraduate"
         POSTGRADUATE_TAUGHT = "postgraduate_taught", "Postgraduate Taught"
         POSTGRADUATE_RESEARCH = "postgraduate_research", "Postgraduate Research"
         OTHER = "other", "Other"
 
     class Category(models.TextChoices):
+        EMPTY = "", "Select"
         ASSESSMENT = "assessment", "Assessment"
         WELFARE = "welfare", "Welfare"
         CAREERS = "careers", "Careers"
