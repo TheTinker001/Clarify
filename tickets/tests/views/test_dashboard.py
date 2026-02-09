@@ -57,9 +57,9 @@ class DashboardViewTestCase(TestCase, LogInTester):
         for i in range(30):
             Ticket.objects.create(
                 student=self.student_user,
-                faculty=Ticket.Faculty.choices[0][0],
-                study_level=Ticket.StudyLevel.choices[0][0],
-                category=Ticket.Category.choices[0][0],
+                faculty=Ticket.Faculty.choices[1][0],
+                study_level=Ticket.StudyLevel.choices[1][0],
+                category=Ticket.Category.choices[1][0],
                 subject=f"Test ticket {i+1}",
                 body="This is a test ticket body.",
                 status=Ticket.Status.choices[0][0],
@@ -87,9 +87,9 @@ class DashboardViewTestCase(TestCase, LogInTester):
         for i in range(6):
             Ticket.objects.create(
                 student=self.student_user,
-                faculty=Ticket.Faculty.choices[0][0],
-                study_level=Ticket.StudyLevel.choices[0][0],
-                category=Ticket.Category.choices[0][0],
+                faculty=Ticket.Faculty.choices[1][0],
+                study_level=Ticket.StudyLevel.choices[1][0],
+                category=Ticket.Category.choices[1][0],
                 subject=f"Test ticket {i+1}",
                 body="This is a test ticket body.",
                 status=Ticket.Status.choices[0][0],
@@ -98,9 +98,9 @@ class DashboardViewTestCase(TestCase, LogInTester):
         for i in range(3):
             Ticket.objects.create(
                 student=self.student_user,
-                faculty=Ticket.Faculty.choices[0][0],
-                study_level=Ticket.StudyLevel.choices[0][0],
-                category=Ticket.Category.choices[0][0],
+                faculty=Ticket.Faculty.choices[1][0],
+                study_level=Ticket.StudyLevel.choices[1][0],
+                category=Ticket.Category.choices[1][0],
                 subject=f"Test ticket {i+1}",
                 body="This is a test ticket body.",
                 status=Ticket.Status.choices[0][0],
@@ -110,9 +110,9 @@ class DashboardViewTestCase(TestCase, LogInTester):
         for i in range(4):
             ticket = Ticket.objects.create(
                 student=self.student_user,
-                faculty=Ticket.Faculty.choices[0][0],
-                study_level=Ticket.StudyLevel.choices[0][0],
-                category=Ticket.Category.choices[0][0],
+                faculty=Ticket.Faculty.choices[1][0],
+                study_level=Ticket.StudyLevel.choices[1][0],
+                category=Ticket.Category.choices[1][0],
                 subject=f"Test ticket {i+1}",
                 body="This is a test ticket body.",
                 status=Ticket.Status.AWAITING_STAFF,
@@ -125,9 +125,9 @@ class DashboardViewTestCase(TestCase, LogInTester):
         for i in range(5):
             Ticket.objects.create(
                 student=self.student_user,
-                faculty=Ticket.Faculty.choices[0][0],
-                study_level=Ticket.StudyLevel.choices[0][0],
-                category=Ticket.Category.choices[0][0],
+                faculty=Ticket.Faculty.choices[1][0],
+                study_level=Ticket.StudyLevel.choices[1][0],
+                category=Ticket.Category.choices[1][0],
                 subject=f"Closed ticket {i+1}",
                 body="This is a test ticket body.",
                 status=Ticket.Status.CLOSED,
@@ -162,9 +162,9 @@ class DashboardViewTestCase(TestCase, LogInTester):
         for i in range(4):
             Ticket.objects.create(
                 student=student_user,
-                faculty=Ticket.Faculty.choices[0][0],
-                study_level=Ticket.StudyLevel.choices[0][0],
-                category=Ticket.Category.choices[0][0],
+                faculty=Ticket.Faculty.choices[1][0],
+                study_level=Ticket.StudyLevel.choices[1][0],
+                category=Ticket.Category.choices[1][0],
                 subject=f"Open ticket {i+1}",
                 body="Body",
                 status=Ticket.Status.AWAITING_STAFF,
@@ -174,9 +174,9 @@ class DashboardViewTestCase(TestCase, LogInTester):
         for i in range(3):
             Ticket.objects.create(
                 student=student_user,
-                faculty=Ticket.Faculty.choices[0][0],
-                study_level=Ticket.StudyLevel.choices[0][0],
-                category=Ticket.Category.choices[0][0],
+                faculty=Ticket.Faculty.choices[1][0],
+                study_level=Ticket.StudyLevel.choices[1][0],
+                category=Ticket.Category.choices[1][0],
                 subject=f"In progress ticket {i+1}",
                 body="Body",
                 status=Ticket.Status.AWAITING_STAFF,
@@ -186,9 +186,9 @@ class DashboardViewTestCase(TestCase, LogInTester):
         for i in range(2):
             Ticket.objects.create(
                 student=student_user,
-                faculty=Ticket.Faculty.choices[0][0],
-                study_level=Ticket.StudyLevel.choices[0][0],
-                category=Ticket.Category.choices[0][0],
+                faculty=Ticket.Faculty.choices[1][0],
+                study_level=Ticket.StudyLevel.choices[1][0],
+                category=Ticket.Category.choices[1][0],
                 subject=f"Need response ticket {i+1}",
                 body="Body",
                 status=Ticket.Status.AWAITING_STUDENT,
@@ -197,9 +197,9 @@ class DashboardViewTestCase(TestCase, LogInTester):
         for i in range(5):
             Ticket.objects.create(
                 student=student_user,
-                faculty=Ticket.Faculty.choices[0][0],
-                study_level=Ticket.StudyLevel.choices[0][0],
-                category=Ticket.Category.choices[0][0],
+                faculty=Ticket.Faculty.choices[1][0],
+                study_level=Ticket.StudyLevel.choices[1][0],
+                category=Ticket.Category.choices[1][0],
                 subject=f"Closed ticket {i+1}",
                 body="Body",
                 status=Ticket.Status.CLOSED,
