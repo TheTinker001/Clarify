@@ -98,7 +98,10 @@ class StaffPreferenceFormTestCase(TestCase):
         self.form_data = {
             "faculties": [Ticket.Faculty.FOLSM, Ticket.Faculty.SSPP],
             "study_levels": [Ticket.StudyLevel.UNDERGRADUATE],
-            "categories": [Ticket.Category.ASSESSMENT, Ticket.Category.HEALTH],
+            "categories": [
+                Ticket.Category.ASSESSMENT,
+                Ticket.Category.HEALTH_AND_WELLBEING,
+            ],
         }
 
     def get_form(self, instance=None, data=None):
@@ -121,7 +124,8 @@ class StaffPreferenceFormTestCase(TestCase):
         )
         self.assertEqual(user.study_levels, Ticket.StudyLevel.UNDERGRADUATE)
         self.assertEqual(
-            user.categories, f"{Ticket.Category.ASSESSMENT},{Ticket.Category.HEALTH}"
+            user.categories,
+            f"{Ticket.Category.ASSESSMENT},{Ticket.Category.HEALTH_AND_WELLBEING}",
         )
 
     def test_only_staff_can_edit(self):

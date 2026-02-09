@@ -17,7 +17,7 @@ class TicketFormTest(TestCase):
         form_data = {
             "faculty": "kbs",
             "study_level": "undergraduate",
-            "category": "health",
+            "category": "health_and_wellbeing",
             "subject": "Test Subject",
             "body": "Test body content",
         }
@@ -39,7 +39,7 @@ class TicketFormTest(TestCase):
         form_data = {
             "faculty": "kbs",
             "study_level": "undergraduate",
-            "category": "health",
+            "category": "health_and_wellbeing",
             "body": "Test body",
         }
         form = TicketForm(data=form_data)
@@ -50,7 +50,7 @@ class TicketFormTest(TestCase):
         form_data = {
             "faculty": "kbs",
             "study_level": "undergraduate",
-            "category": "health",
+            "category": "health_and_wellbeing",
             "subject": "Test subject",
         }
         form = TicketForm(data=form_data)
@@ -74,7 +74,7 @@ class TicketFormTest(TestCase):
             form_data = {
                 "faculty": faculty_code,
                 "study_level": "undergraduate",
-                "category": "health",
+                "category": "health_and_wellbeing",
                 "subject": "Test",
                 "body": "Test body",
             }
@@ -86,7 +86,7 @@ class TicketFormTest(TestCase):
             form_data = {
                 "faculty": "kbs",
                 "study_level": level_code,
-                "category": "health",
+                "category": "health_and_wellbeing",
                 "subject": "Test",
                 "body": "Test body",
             }

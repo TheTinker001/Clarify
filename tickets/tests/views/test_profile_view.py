@@ -111,7 +111,7 @@ class ProfileViewTest(TestCase):
     def test_profile_view_context_labels(self):
         self.user.faculties = "folsm,sspp"
         self.user.study_levels = "undergraduate"
-        self.user.categories = "assessment,health"
+        self.user.categories = "assessment,health_and_wellbeing"
         self.user.save()
         self.client.login(username=self.user.username, password="Password123")
         response = self.client.get(self.url)
@@ -120,7 +120,9 @@ class ProfileViewTest(TestCase):
 
         self.assertEqual(context["faculty_list"], ["folsm", "sspp"])
         self.assertEqual(context["study_level_list"], ["undergraduate"])
-        self.assertEqual(context["category_list"], ["assessment", "health"])
+        self.assertEqual(
+            context["category_list"], ["assessment", "health_and_wellbeing"]
+        )
 
         self.assertEqual(len(context["faculty_labels"]), 2)
         self.assertEqual(len(context["study_level_labels"]), 1)
@@ -178,7 +180,7 @@ class StaffPreferencesViewTestCase(TestCase):
         self.form_input = {
             "faculties": ["folsm", "sspp"],
             "study_levels": ["undergraduate"],
-            "categories": ["assessment", "health"],
+            "categories": ["assessment", "health_and_wellbeing"],
         }
 
     def test_get_staff_preferences_as_staff(self):
@@ -206,7 +208,7 @@ class StaffPreferencesViewTestCase(TestCase):
         )
         self.assertEqual(self.staff.faculties, "folsm,sspp")
         self.assertEqual(self.staff.study_levels, "undergraduate")
-        self.assertEqual(self.staff.categories, "assessment,health")
+        self.assertEqual(self.staff.categories, "assessment,health_and_wellbeing")
 
     def test_post_staff_preferences_as_student(self):
         self.client.login(username=self.student.username, password="Password123")
