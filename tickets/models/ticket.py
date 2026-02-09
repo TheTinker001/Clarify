@@ -170,6 +170,24 @@ class Ticket(models.Model):
         """
         return reverse("ticket_detail", kwargs={"url_code": self.url_code})
 
+    def get_claim_url(self):
+        """
+        Return the absolute URL for this ticket's claim view.
+
+        Returns:
+            str: A fully resolved URL for this ticket's claim page.
+        """
+        return reverse("ticket_claim", kwargs={"url_code": self.url_code})
+
+    def get_unclaim_url(self):
+        """
+        Return the absolute URL for this ticket's unclaim view.
+
+        Returns:
+            str: A fully resolved URL for this ticket's unclaim page.
+        """
+        return reverse("ticket_unclaim", kwargs={"url_code": self.url_code})
+
     def generate_unique_url_code(self):
         """
         Generate a unique URL-safe identifier for the ticket.
