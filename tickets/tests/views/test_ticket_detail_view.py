@@ -15,6 +15,7 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
 
     def setUp(self):
         self.student = User.objects.get(username="@johndoe")
+        self.student2 = User.objects.get(username="@petrapickles")
         self.staff = User.objects.get(username="@janedoe")
         self.ticket = Ticket.objects.create(
             student=self.student,
@@ -50,4 +51,9 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
     def test_ticket_detail_returns_404_for_missing_ticket(self):
         self.client.login(username=self.student.username, password="Password123")
         response = self.client.get("/ticket/jujutsu/")
+        self.assertEqual(response.status_code, 404)
+
+    def test_user_is_not_owner_nor_staff(self):
+        self.client.login(username=self.student2.username, password="Password123")
+        response = self.client.get(self.url)
         self.assertEqual(response.status_code, 404)
