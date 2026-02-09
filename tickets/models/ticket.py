@@ -27,19 +27,47 @@ class Ticket(models.Model):
     class StudyLevel(models.TextChoices):
         UNDERGRADUATE = "undergraduate", "Undergraduate"
         POSTGRADUATE_TAUGHT = "postgraduate_taught", "Postgraduate Taught"
-        POSTGRADUATE = "postgraduate", "Postgraduate"
+        POSTGRADUATE_RESEARCH = "postgraduate_research", "Postgraduate Research"
+        OTHER = "other", "Other"
 
     class Category(models.TextChoices):
         ASSESSMENT = "assessment", "Assessment"
         WELFARE = "welfare", "Welfare"
-        HEALTH = "health", "Health"
         CAREERS = "careers", "Careers"
         FINANCIAL_ISSUES = "financial_issues", "Financial Issues"
         UNI_PROCEDURES_REGULATIONS = (
             "uni_procedures_regulations",
-            "University Procedures and Regulations",
+            "University Procedures & Regulations",
         )
-        MISCONDUCT_ALLEGATIONS = "misconduct_allegations", "Misconduct Allegations"
+        ADMINISTRATION = "administration", "Administration"
+        APPEALS_COMPLAINTS_AND_MISCONDUCT = (
+            "appeals_complaints_and_misconduct",
+            "Appeals, Complaints & Misconduct",
+        )
+        DIGNITY_AND_INCLUSION = "dignity_and_inclusion", "Dignity & Inclusion"
+        DISABILITY_SUPPORT = "disability_support", "Disability Support"
+        DOCUMENT_AND_LETTER_REQUESTS = (
+            "document_and_letter_requests",
+            "Document & Letter Requests",
+        )
+        FEES_FUNDING_AND_MONEY_ADVICE = (
+            "fees_funding_and_money_advice",
+            "Fees, Funding & Money Advice",
+        )
+        GRADUATION = "graduation", "Graduation"
+        HEALTH_AND_WELLBEING = "health_and_wellbeing", "Health & Wellbeing"
+        HOUSING_AND_ACCOMMODATION_SUPPORT = (
+            "housing_and_accommodation_support",
+            "Housing & Accommodation Support",
+        )
+        INDUSTRIAL_ACTION = "industrial_action", "Industrial Action"
+        NEW_STUDENTS = "new_students", "New Students"
+        RETURNING_TO_STUDY = "returning_to_study", "Returning to Study"
+        STUDENT_LIFE = "student_life", "Student Life"
+        VISAS_IMMIGRATION_AND_SUPPORT = (
+            "visas_immigration_and_support",
+            "Visas, Immigration & Support",
+        )
         OTHER = "other", "Other"
 
     class Status(models.TextChoices):
@@ -66,9 +94,9 @@ class Ticket(models.Model):
         limit_choices_to={"user_type": User.USER_TYPE_STAFF},
     )
 
-    faculty = models.CharField(max_length=64, choices=Faculty.choices)
-    study_level = models.CharField(max_length=64, choices=StudyLevel.choices)
-    category = models.CharField(max_length=64, choices=Category.choices)
+    faculty = models.CharField(max_length=100, choices=Faculty.choices)
+    study_level = models.CharField(max_length=100, choices=StudyLevel.choices)
+    category = models.CharField(max_length=100, choices=Category.choices)
 
     subject = models.CharField(max_length=78)
 
