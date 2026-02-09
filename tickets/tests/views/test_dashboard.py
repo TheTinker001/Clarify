@@ -14,32 +14,21 @@ from django.utils import timezone
 class DashboardViewTestCase(TestCase, LogInTester):
     """Tests of the dashboard view."""
 
-    fixtures = ["tickets/tests/fixtures/default_user.json"]
+    fixtures = [
+        "tickets/tests/fixtures/default_user.json",
+        "tickets/tests/fixtures/other_users.json",
+    ]
 
     def setUp(self):
         self.url = reverse("dashboard")
-        self.student_user = User.objects.create_user(
-            first_name="Student",
-            last_name="User",
-            username="@studentuser",
-            email="studentuser@example.org",
-            user_type=User.USER_TYPE_STUDENT,
-            password="Password123",
-        )
-        self.staff_user = User.objects.create_user(
-            first_name="Staff",
-            last_name="User",
-            username="@staffuser",
-            email="staffuser@example.org",
-            user_type=User.USER_TYPE_STAFF,
-            password="Password123",
-        )
+        self.student = User.objects.get(username="@johndoe")
+        self.staff = User.objects.get(username="@janedoe")
 
     def test_home_url(self):
         self.assertEqual(self.url, "/dashboard/")
 
     def test_get_dashboard_when_logged_in(self):
-        self.client.login(username=self.student_user.username, password="Password123")
+        self.client.login(username=self.student.username, password="Password123")
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "dashboard.html")
@@ -53,10 +42,10 @@ class DashboardViewTestCase(TestCase, LogInTester):
         self.assertTemplateUsed(response, "log_in.html")
 
     def test_pagination_on_dashboard(self):
-        self.client.login(username=self.student_user.username, password="Password123")
+        self.client.login(username=self.student.username, password="Password123")
         for i in range(30):
             Ticket.objects.create(
-                student=self.student_user,
+                student=self.student,
                 faculty=Ticket.Faculty.choices[1][0],
                 study_level=Ticket.StudyLevel.choices[1][0],
                 category=Ticket.Category.choices[1][0],
@@ -81,12 +70,11 @@ class DashboardViewTestCase(TestCase, LogInTester):
         self.assertEqual(len(page_obj2.object_list), 10)
 
     def test_context_when_user_is_staff(self):
-        staff_user = self.staff_user
-        self.client.login(username=staff_user.username, password="Password123")
+        self.client.login(username=self.staff.username, password="Password123")
         # create 6 open tickets
         for i in range(6):
             Ticket.objects.create(
-                student=self.student_user,
+                student=self.student,
                 faculty=Ticket.Faculty.choices[1][0],
                 study_level=Ticket.StudyLevel.choices[1][0],
                 category=Ticket.Category.choices[1][0],
@@ -97,19 +85,19 @@ class DashboardViewTestCase(TestCase, LogInTester):
         # create 3 assigned tickets
         for i in range(3):
             Ticket.objects.create(
-                student=self.student_user,
+                student=self.student,
                 faculty=Ticket.Faculty.choices[1][0],
                 study_level=Ticket.StudyLevel.choices[1][0],
                 category=Ticket.Category.choices[1][0],
                 subject=f"Test ticket {i+1}",
                 body="This is a test ticket body.",
                 status=Ticket.Status.choices[0][0],
-                assigned_to=staff_user,
+                assigned_to=self.staff,
             )
         # create 4 overdue tickets
         for i in range(4):
             ticket = Ticket.objects.create(
-                student=self.student_user,
+                student=self.student,
                 faculty=Ticket.Faculty.choices[1][0],
                 study_level=Ticket.StudyLevel.choices[1][0],
                 category=Ticket.Category.choices[1][0],
@@ -124,7 +112,7 @@ class DashboardViewTestCase(TestCase, LogInTester):
         # create 5 closed tickets
         for i in range(5):
             Ticket.objects.create(
-                student=self.student_user,
+                student=self.student,
                 faculty=Ticket.Faculty.choices[1][0],
                 study_level=Ticket.StudyLevel.choices[1][0],
                 category=Ticket.Category.choices[1][0],
@@ -135,8 +123,7 @@ class DashboardViewTestCase(TestCase, LogInTester):
                 closed_at=timezone.now(),
             )
 
-        staff_user = self.staff_user
-        self.client.login(username=staff_user.username, password="Password123")
+        self.client.login(username=self.staff.username, password="Password123")
 
         resp = self.client.get(self.url, {"tab": "open_tickets", "page": 1})
         self.assertEqual(resp.status_code, 200)
@@ -155,13 +142,12 @@ class DashboardViewTestCase(TestCase, LogInTester):
         self.assertEqual(len(resp.context["page_obj"].object_list), 5)
 
     def test_context_when_user_is_student(self):
-        student_user = self.student_user
-        self.client.login(username=student_user.username, password="Password123")
+        self.client.login(username=self.student.username, password="Password123")
 
         # 4 open
         for i in range(4):
             Ticket.objects.create(
-                student=student_user,
+                student=self.student,
                 faculty=Ticket.Faculty.choices[1][0],
                 study_level=Ticket.StudyLevel.choices[1][0],
                 category=Ticket.Category.choices[1][0],
@@ -173,19 +159,19 @@ class DashboardViewTestCase(TestCase, LogInTester):
         # 3 in progress
         for i in range(3):
             Ticket.objects.create(
-                student=student_user,
+                student=self.student,
                 faculty=Ticket.Faculty.choices[1][0],
                 study_level=Ticket.StudyLevel.choices[1][0],
                 category=Ticket.Category.choices[1][0],
                 subject=f"In progress ticket {i+1}",
                 body="Body",
                 status=Ticket.Status.AWAITING_STAFF,
-                assigned_to=self.staff_user,
+                assigned_to=self.staff,
             )
         # 2 need response
         for i in range(2):
             Ticket.objects.create(
-                student=student_user,
+                student=self.student,
                 faculty=Ticket.Faculty.choices[1][0],
                 study_level=Ticket.StudyLevel.choices[1][0],
                 category=Ticket.Category.choices[1][0],
@@ -196,7 +182,7 @@ class DashboardViewTestCase(TestCase, LogInTester):
         # 5 closed
         for i in range(5):
             Ticket.objects.create(
-                student=student_user,
+                student=self.student,
                 faculty=Ticket.Faculty.choices[1][0],
                 study_level=Ticket.StudyLevel.choices[1][0],
                 category=Ticket.Category.choices[1][0],
@@ -207,7 +193,7 @@ class DashboardViewTestCase(TestCase, LogInTester):
                 closed_at=timezone.now(),
             )
 
-        self.client.login(username=student_user.username, password="Password123")
+        self.client.login(username=self.student.username, password="Password123")
 
         resp = self.client.get(self.url, {"tab": "open_tickets", "page": 1})
         self.assertEqual(resp.status_code, 200)
@@ -226,7 +212,7 @@ class DashboardViewTestCase(TestCase, LogInTester):
         self.assertEqual(len(resp.context["page_obj"].object_list), 5)
 
     def test_dashboard_invalid_tab_defaults_to_open(self):
-        self.client.login(username=self.student_user.username, password="Password123")
+        self.client.login(username=self.student.username, password="Password123")
         response = self.client.get(self.url, {"tab": "not_a_real_tab"})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["tab"], "open_tickets")
@@ -249,3 +235,21 @@ class DashboardViewTestCase(TestCase, LogInTester):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.context["tab"], "open_tickets")
         self.assertEqual(len(resp.context["page_obj"].object_list), 0)
+
+    def test_ticket_card_contains_link_to_ticket_detail(self):
+        self.client.login(username=self.student.username, password="Password123")
+        ticket = Ticket.objects.create(
+            student=self.student,
+            faculty="nmes",
+            study_level="undergraduate",
+            category="other",
+            subject="Test subject",
+            body="Test body",
+        )
+
+        response = self.client.get(self.url, {"tab": "open_tickets", "page": 1})
+        self.assertEqual(response.status_code, 200)
+        detail_url = reverse("ticket_detail", args=[ticket.pk])
+        self.assertContains(response, f'href="{detail_url}"')
+        detail_response = self.client.get(detail_url)
+        self.assertEqual(detail_response.status_code, 200)
