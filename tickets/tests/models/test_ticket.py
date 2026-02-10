@@ -162,7 +162,7 @@ class TicketModelTestCase(TestCase):
             subject="Test subject",
             body="Test body",
         )
-        self.assertEqual(ticket.priority, Ticket.Priority.UNASSIGNED)
+        self.assertEqual(ticket.priority, Ticket.Priority.PENDING_PRIORITY)
 
     def test_invalid_ticket_priority(self):
         with self.assertRaises(ValidationError):

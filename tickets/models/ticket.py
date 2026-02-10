@@ -85,7 +85,7 @@ class Ticket(models.Model):
         INACTIVITY = "inactivity", "Inactivity"
 
     class Priority(models.TextChoices):
-        UNASSIGNED = "unassigned", "Unassigned"
+        PENDING_PRIORITY = "pending priority", "Pending Priority"
         LOW = "low", "Low"
         MEDIUM = "medium", "Medium"
         HIGH = "high", "High"
@@ -129,7 +129,7 @@ class Ticket(models.Model):
         max_length=32, choices=ClosedReason.choices, null=True, blank=True
     )
     priority = models.CharField(
-        max_length=32, choices=Priority.choices, default=Priority.UNASSIGNED
+        max_length=32, choices=Priority.choices, default=Priority.PENDING_PRIORITY
     )
     closed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
