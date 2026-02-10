@@ -152,3 +152,26 @@ class TicketModelTestCase(TestCase):
             code = ticket2.generate_unique_url_code()
 
         self.assertEqual(code, "unique4")
+
+    def test_ticket_priority_default_is_unassigned(self):
+        ticket = Ticket.objects.create(
+            student=self.student,
+            faculty=Ticket.Faculty.NMES,
+            study_level=Ticket.StudyLevel.UNDERGRADUATE,
+            category=Ticket.Category.ASSESSMENT,
+            subject="Test subject",
+            body="Test body",
+        )
+        self.assertEqual(ticket.priority, Ticket.Priority.UNASSIGNED)
+
+    def test_invalid_ticket_priority(self):
+        with self.assertRaises(ValidationError):
+            Ticket.objects.create(
+                student=self.student,
+                faculty=Ticket.Faculty.NMES,
+                study_level=Ticket.StudyLevel.UNDERGRADUATE,
+                category=Ticket.Category.ASSESSMENT,
+                subject="Test subject",
+                body="Test body",
+                priority="invalid",
+            )
