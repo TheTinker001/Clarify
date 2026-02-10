@@ -8,7 +8,7 @@
           <div class="d-flex flex-wrap gap-2 align-items-center">
             <span class="badge bg-secondary text-uppercase">{{ ticket.get_status_display }}</span>
             <span class="text-muted">Ticket #{{ ticket.pk }}</span>
-            {% if ticket.status != ticket.Status.CLOSED %}
+            {% if user.user_type == "staff" and ticket.status != ticket.Status.CLOSED %}
               <span class="ms-auto badge {% if ticket.priority == ticket.Priority.HIGH %} bg-danger {% elif ticket.priority == ticket.Priority.MEDIUM %} bg-warning {% elif ticket.priority == ticket.Priority.LOW %} bg-success {% else %} bg-secondary {% endif %} ">
                 {{ ticket.get_priority_display }}
               </span>
