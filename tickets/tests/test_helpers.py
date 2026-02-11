@@ -29,6 +29,7 @@ class SendTicketCreatedEmailTest(TestCase):
             body="Test body content.",
         )
 
+    @override_settings(EMAIL_HOST_USER="", EMAIL_HOST_PASSWORD="")
     def test_no_email_sent_when_email_host_user_is_empty(self):
         """Email is not sent when EMAIL_HOST_USER is empty."""
         with patch("tickets.helpers.send_mail") as mock_send:
@@ -69,9 +70,9 @@ class SendTicketCreatedEmailTest(TestCase):
         with patch("tickets.helpers.send_mail") as mock_send:
             _send_ticket_created_email(self.ticket)
             mock_send.assert_called_once()
-            call_kwargs = mock_send.call_args
-            self.assertIn("Test ticket", call_kwargs[1]["subject"])
-            self.assertIn(str(self.ticket.pk), call_kwargs[1]["subject"])
+            call_kwargs = mock_send.call_args.kwargs
+            self.assertIn(str(self.ticket.pk), call_kwargs["subject"])
+            self.assertIn("We received your query", call_kwargs["subject"])
 
     @override_settings(
         EMAIL_HOST_USER="clarify@example.com",
@@ -83,8 +84,8 @@ class SendTicketCreatedEmailTest(TestCase):
         with patch("tickets.helpers.send_mail") as mock_send:
             _send_ticket_created_email(self.ticket)
             mock_send.assert_called_once()
-            call_kwargs = mock_send.call_args
-            body = call_kwargs[1]["message"]
+            call_kwargs = mock_send.call_args.kwargs
+            body = call_kwargs["message"]
             self.assertIn("Test", body)
             self.assertIn(str(self.ticket.pk), body)
             self.assertIn("Test ticket", body)
@@ -99,8 +100,8 @@ class SendTicketCreatedEmailTest(TestCase):
         with patch("tickets.helpers.send_mail") as mock_send:
             _send_ticket_created_email(self.ticket)
             mock_send.assert_called_once()
-            call_kwargs = mock_send.call_args
-            self.assertEqual(call_kwargs[1]["recipient_list"], ["student@test.com"])
+            call_kwargs = mock_send.call_args.kwargs
+            self.assertEqual(call_kwargs["recipient_list"], ["student@test.com"])
 
     @override_settings(
         EMAIL_HOST_USER="clarify@example.com",
@@ -112,8 +113,8 @@ class SendTicketCreatedEmailTest(TestCase):
         with patch("tickets.helpers.send_mail") as mock_send:
             _send_ticket_created_email(self.ticket)
             mock_send.assert_called_once()
-            call_kwargs = mock_send.call_args
-            self.assertEqual(call_kwargs[1]["from_email"], "clarify@example.com")
+            call_kwargs = mock_send.call_args.kwargs
+            self.assertEqual(call_kwargs["from_email"], "clarify@example.com")
 
     @override_settings(
         EMAIL_HOST_USER="clarify@example.com",
@@ -125,8 +126,8 @@ class SendTicketCreatedEmailTest(TestCase):
         with patch("tickets.helpers.send_mail") as mock_send:
             _send_ticket_created_email(self.ticket)
             mock_send.assert_called_once()
-            call_kwargs = mock_send.call_args
-            self.assertEqual(call_kwargs[1]["from_email"], "clarify@example.com")
+            call_kwargs = mock_send.call_args.kwargs
+            self.assertEqual(call_kwargs["from_email"], "clarify@example.com")
 
     @override_settings(
         EMAIL_HOST_USER="clarify@example.com",
@@ -140,6 +141,6 @@ class SendTicketCreatedEmailTest(TestCase):
         with patch("tickets.helpers.send_mail") as mock_send:
             _send_ticket_created_email(self.ticket)
             mock_send.assert_called_once()
-            call_kwargs = mock_send.call_args
-            body = call_kwargs[1]["message"]
+            call_kwargs = mock_send.call_args.kwargs
+            body = call_kwargs["message"]
             self.assertIn("Hi there", body)
