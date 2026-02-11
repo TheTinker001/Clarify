@@ -25,7 +25,6 @@ class LogInView(LoginProhibitedMixin, View):
         """
 
         self.next = request.GET.get('next') or ''
-        self.user_type = request.GET.get('user_type') or ''
         return self.render()
 
     def post(self, request):
@@ -39,7 +38,6 @@ class LogInView(LoginProhibitedMixin, View):
 
         form = LogInForm(request.POST)
         self.next = request.POST.get('next') or settings.REDIRECT_URL_WHEN_LOGGED_IN
-        self.user_type = request.POST.get('user_type') or ''
         user = form.get_user()
         if user is not None:
             login(request, user)
@@ -52,9 +50,5 @@ class LogInView(LoginProhibitedMixin, View):
         Render log in template with blank log in form.
         """
 
-        form = LogInForm(initial={'user_type': self.user_type})
-        return render(
-            self.request,
-            'log_in.html',
-            {'form': form, 'next': self.next, 'user_type': self.user_type},
-        )
+        form = LogInForm()
+        return render(self.request, 'log_in.html', {'form': form, 'next': self.next})

@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.test import TestCase
+from unittest.mock import patch
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from tickets.models import Ticket
@@ -124,3 +125,30 @@ class TicketModelTestCase(TestCase):
         self.assertEqual(
             str(self.ticket), f"Ticket {self.ticket.pk} | {self.ticket.subject}"
         )
+
+    # Tests for generate_unique_url_code(self)
+    def test_generate_unique_url_code_returns_non_empty_string(self):
+        code = self.ticket.generate_unique_url_code()
+        self.assertTrue(isinstance(code, str))
+        self.assertTrue(len(code) == 10)
+
+    def test_generate_unique_url_code_retries_on_collision(self):
+        """Method must retry when token_urlsafe generates a duplicate."""
+        ticket2 = Ticket.objects.create(
+            student=self.student,
+            faculty=Ticket.Faculty.NMES,
+            study_level=Ticket.StudyLevel.UNDERGRADUATE,
+            category=Ticket.Category.ASSESSMENT,
+            subject="Assessment Marking Criteria",
+            body="I'm unsure about the marking criteria. Can someone explain?",
+            url_code="collisi",
+        )
+
+        # First call produces a collision, second call produces unique result
+        with patch(
+            "tickets.models.ticket.secrets.token_urlsafe",
+            side_effect=["collisi", "unique4"],
+        ):
+            code = ticket2.generate_unique_url_code()
+
+        self.assertEqual(code, "unique4")

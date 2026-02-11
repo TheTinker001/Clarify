@@ -30,7 +30,7 @@ class CreateTicketViewTest(TestCase):
         self.valid_ticket_data = {
             "faculty": "kbs",
             "study_level": "undergraduate",
-            "category": "health",
+            "category": "health_and_wellbeing",
             "subject": "Need medical support",
             "body": "I need help with accessing medical services.",
         }
@@ -114,13 +114,13 @@ class CreateTicketViewTest(TestCase):
     )
     def test_email_sent_on_ticket_creation(self):
         self.client.login(username="student1", password="testpass123")
-        with patch("tickets.views.ticket_view.send_mail") as mock_send:
+        with patch("tickets.helpers.send_mail") as mock_send:
             self.client.post(self.url, self.valid_ticket_data)
             self.assertEqual(mock_send.call_count, 1)
 
     def test_no_email_sent_without_email_settings(self):
         self.client.login(username="student1", password="testpass123")
-        with patch("tickets.views.ticket_view.send_mail") as mock_send:
+        with patch("tickets.helpers.send_mail") as mock_send:
             self.client.post(self.url, self.valid_ticket_data)
             self.assertEqual(mock_send.call_count, 0)
 

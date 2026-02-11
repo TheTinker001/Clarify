@@ -141,6 +141,10 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 
+# Media files
+MEDIA_URL = "media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -194,3 +198,6 @@ if ENVIRONMENT == "production":
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_HSTS_PRELOAD = True
+
+# Pagination settings
+ITEMS_PER_PAGE = 20

@@ -1,38 +1,77 @@
 {% extends 'base_content.html' %}
+{% block messages %}
+    {% if messages %}
+        <div class="container mt-3">
+            <div class="row">
+                <div class="col-12">
+                    {% for message in messages %}
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="alert"
+                                    aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}
 {% block content %}
     <div class="container">
         <div class="row">
             <div class="col-12">
-                <h1>Welcome to your dashboard {{ user.username }}</h1>
+                <h1 class="mb-3">Welcome to your dashboard {{ user.username }}</h1>
                 {% if user.user_type == user.USER_TYPE_STUDENT %}
-                    <div class="mt-4">
+                    <div class="mb-3">
                         <a href="{% url 'create_ticket' %}" class="btn btn-primary">Create New Ticket</a>
                     </div>
                 {% endif %}
-                <h2 class="mt-4">My Tickets</h2>
-                {% if tickets %}
-                    <div class="mt-3">
-                        {% for ticket in tickets %}
-                            <div class="card mb-3">
-                                <div class="card-body">
-                                    <h5 class="card-title">{{ ticket.subject }}</h5>
-                                    <p class="card-text">
-                                        <strong>Category:</strong> {{ ticket.get_category_display }}
-                                    </p>
-                                    <p class="card-text">
-                                        <strong>Status:</strong> {{ ticket.get_status_display }}
-                                    </p>
-                                    <p class="card-text">
-                                        <strong>Created:</strong> {{ ticket.created_at|date:"M d, Y, g:i a" }}
-                                    </p>
-                                </div>
-                            </div>
-                        {% endfor %}
+            </div>
+        </div>
+        <!-- Buttons -->
+        <div class="row">
+            <h2>Ticket categories:</h2>
+            <div class="col-12">
+                {% if user.user_type == "student" %}
+                    <div class="btn-group mb-3" role="group" aria-label="Student ticket tabs">
+                        <a href="?tab=open_tickets"
+                           class="btn btn-outline-primary {% if tab == 'open_tickets' %}active{% endif %}">Open</a>
+                        <a href="?tab=in_progress_tickets"
+                           class="btn btn-outline-primary {% if tab == 'in_progress_tickets' %}active{% endif %}">In progress</a>
+                        <a href="?tab=need_response_tickets"
+                           class="btn btn-outline-primary {% if tab == 'need_response_tickets' %}active{% endif %}">Need response</a>
+                        <a href="?tab=closed_tickets"
+                           class="btn btn-outline-primary {% if tab == 'closed_tickets' %}active{% endif %}">Closed</a>
                     </div>
-                {% else %}
-                    <p class="mt-3">You have no tickets yet.</p>
+                {% elif user.user_type == "staff" %}
+                    <div class="btn-group mb-3" role="group" aria-label="Staff ticket tabs">
+                        <a href="?tab=open_tickets"
+                           class="btn btn-outline-primary {% if tab == 'open_tickets' %}active{% endif %}">Open</a>
+                        <a href="?tab=assigned_tickets"
+                           class="btn btn-outline-primary {% if tab == 'assigned_tickets' %}active{% endif %}">Assigned</a>
+                        <a href="?tab=overdue_tickets"
+                           class="btn btn-outline-primary {% if tab == 'overdue_tickets' %}active{% endif %}">Overdue</a>
+                        <a href="?tab=closed_tickets"
+                           class="btn btn-outline-primary {% if tab == 'closed_tickets' %}active{% endif %}">Closed</a>
+                    </div>
                 {% endif %}
             </div>
         </div>
+        <!-- Tickets -->
+        <div class="row">
+            <h2>{{ category }} Tickets ({{ total }})</h2>
+            <div class="col-12">
+                {% include "partials/pagination_navbar.html" with page_obj=page_obj %}
+                {% for ticket in tickets %}
+                    {% include "partials/ticket_card.html" with ticket=ticket %}
+                {% empty %}
+                    <p class="text-muted">No tickets in this category.</p>
+                {% endfor %}
+            </div>
+        </div>
+        <!-- Pagination -->
+        {% include "partials/pagination_navbar.html" with page_obj=page_obj %}
     </div>
 {% endblock %}

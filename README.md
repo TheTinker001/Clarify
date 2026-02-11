@@ -7,7 +7,7 @@ The members of the team are:
 - *Aliaa Mostafa*
 - *Gor Vardanyan*
 - *Bingyan Yang*
-- *Chen-Han ...*
+- *Chen-Han Yen*
 
 ## Project structure
 The project is called `clarify`.  It currently consists of a single app `tickets`.

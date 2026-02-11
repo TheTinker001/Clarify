@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError
-from tickets.models import User
+from tickets.models import User, Ticket
+
 
 class Command(BaseCommand):
     """
@@ -13,8 +14,8 @@ class Command(BaseCommand):
         help (str): Short description displayed when running
             `python manage.py help unseed`.
     """
-    
-    help = 'Seeds the database with sample data'
+
+    help = "Seeds the database with sample data"
 
     def handle(self, *args, **options):
         """
@@ -30,5 +31,12 @@ class Command(BaseCommand):
         Returns:
             None
         """
+        ticket_count = Ticket.objects.count()
+        user_count = User.objects.count()
 
-        User.objects.filter(is_staff=False).delete()
+        Ticket.objects.all().delete()
+        User.objects.all().delete()
+
+        print(
+            f"Unseed complete: deleted {ticket_count} tickets and {user_count} users."
+        )
