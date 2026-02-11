@@ -6,7 +6,7 @@ class TicketForm(forms.ModelForm):
 
     class Meta:
         model = Ticket
-        fields = ["faculty", "study_level", "category", "subject", "body"]
+        fields = ["faculty", "study_level", "category", "subject", "body", "attachment"]
         widgets = {
             "body": forms.Textarea(attrs={"rows": 10}),
         }
@@ -25,3 +25,7 @@ class TicketForm(forms.ModelForm):
             "placeholder"
         ] = "Write your subject here..."
         self.fields["body"].widget.attrs["placeholder"] = "Write your body here..."
+        self.fields["attachment"].widget.attrs[
+            "accept"
+        ] = ".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+        self.fields["attachment"].required = False
