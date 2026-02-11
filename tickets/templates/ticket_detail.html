@@ -9,7 +9,7 @@
             <span class="badge bg-secondary text-uppercase">{{ ticket.get_status_display }}</span>
             <span class="text-muted">Ticket #{{ ticket.pk }}</span>
             {% if user.user_type == "staff" and ticket.status != ticket.Status.CLOSED %}
-              <span class="ms-auto badge {% if ticket.priority == ticket.Priority.HIGH %} bg-danger {% elif ticket.priority == ticket.Priority.MEDIUM %} bg-warning {% elif ticket.priority == ticket.Priority.LOW %} bg-success {% else %} bg-secondary {% endif %} ">
+              <span class="ms-auto text-uppercase badge {% if ticket.priority == ticket.Priority.HIGH %} bg-danger {% elif ticket.priority == ticket.Priority.MEDIUM %} bg-warning {% elif ticket.priority == ticket.Priority.LOW %} bg-success {% else %} bg-secondary {% endif %} ">
                 {{ ticket.get_priority_display }}
               </span>
             {% endif %}
@@ -78,7 +78,25 @@
             {% endif %}
           </div>
         </div>
+        <!-- priority updating -->
       </div>
+      {% if user.user_type == "staff" %}
+        <div class="col-12 col-lg-4 mt-3 mt-lg-0">
+          <div class="card ticket-card-detail">
+            <div class="card-body">
+              <form id="priority-form" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="set_priority">
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text">Priority</span>
+                  {{ ticket_priority_form.priority }}
+                  <button type="submit" form="priority-form" class="btn btn-outline-primary">Update</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      {% endif %}
     </div>
   </div>
 {% endblock %}
