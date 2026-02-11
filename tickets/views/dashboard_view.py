@@ -83,7 +83,22 @@ def dashboard(request):
     if tab not in groups:
         tab = "open_tickets"
 
-    qs = groups[tab]
+    if current_user.user_type == User.USER_TYPE_STAFF:
+        sort = request.GET.get("sort", "")
+        if sort == "high":
+            qs = groups[tab].filter(priority=Ticket.Priority.HIGH)
+        elif sort == "medium":
+            qs = groups[tab].filter(priority=Ticket.Priority.MEDIUM)
+        elif sort == "low":
+            qs = groups[tab].filter(priority=Ticket.Priority.LOW)
+        elif sort == "pending":
+            qs = groups[tab].filter(priority=Ticket.Priority.PENDING_PRIORITY)
+        else:
+            qs = groups[tab]
+        qs = qs.order_by("created_at")
+    else:
+        qs = groups[tab].order_by("created_at")
+
     paginator = Paginator(qs, settings.ITEMS_PER_PAGE)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
@@ -103,5 +118,6 @@ def dashboard(request):
             "tab": tab,
             "total": qs.count(),
             "querystring": querystring,
+            "priority_sort": request.GET.get("sort", ""),
         },
     )

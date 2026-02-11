@@ -78,11 +78,12 @@
                                 <select class="form-select form-select-sm w-auto"
                                         name="sort"
                                         onchange="this.form.submit()">
-                                    <option value="high" {% if selected_sort == 'high' %}selected{% endif %}>High priority</option>
-                                    <option value="medium" {% if selected_sort == 'medium' %}selected{% endif %}>Medium priority</option>
-                                    <option value="low" {% if selected_sort == 'low' %}selected{% endif %}>Low priority</option>
+                                    <option value="" {% if not priority_sort %}selected{% endif %}>All</option>
+                                    <option value="high" {% if priority_sort == 'high' %}selected{% endif %}>High priority</option>
+                                    <option value="medium" {% if priority_sort == 'medium' %}selected{% endif %}>Medium priority</option>
+                                    <option value="low" {% if priority_sort == 'low' %}selected{% endif %}>Low priority</option>
                                     <option value="pending"
-                                            {% if selected_sort == 'pending' %}selected{% endif %}>Pending</option>
+                                            {% if priority_sort == 'pending' %}selected{% endif %}>Pending</option>
                                 </select>
                             </form>
                         {% endif %}
