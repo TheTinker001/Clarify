@@ -80,7 +80,7 @@
         </div>
         <!-- priority updating -->
       </div>
-      {% if user.user_type == "staff" %}
+      {% if user.user_type == "staff" and ticket.status != ticket.Status.CLOSED %}
         <div class="col-12 col-lg-4 mt-3 mt-lg-0">
           <div class="card ticket-card-detail">
             <div class="card-body">
