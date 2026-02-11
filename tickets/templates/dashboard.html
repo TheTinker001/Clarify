@@ -74,13 +74,15 @@
                     <div class="col-4 d-flex justify-content-end align-items-center">
                         {% if user.user_type == "staff" and tab != "closed_tickets" %}
                             <form method="get" class="d-flex align-items-center">
+                                <input type="hidden" name="tab" value="{{ tab }}">
                                 <select class="form-select form-select-sm w-auto"
                                         name="sort"
                                         onchange="this.form.submit()">
-                                    <option value="high">High priority</option>
-                                    <option value="medium">Medium priority</option>
-                                    <option value="low">Low priority</option>
-                                    <option value="pending">Pending</option>
+                                    <option value="high" {% if selected_sort == 'high' %}selected{% endif %}>High priority</option>
+                                    <option value="medium" {% if selected_sort == 'medium' %}selected{% endif %}>Medium priority</option>
+                                    <option value="low" {% if selected_sort == 'low' %}selected{% endif %}>Low priority</option>
+                                    <option value="pending"
+                                            {% if selected_sort == 'pending' %}selected{% endif %}>Pending</option>
                                 </select>
                             </form>
                         {% endif %}
