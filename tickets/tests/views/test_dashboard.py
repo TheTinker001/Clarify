@@ -23,6 +23,13 @@ class DashboardViewTestCase(TestCase, LogInTester):
         self.url = reverse("dashboard")
         self.student = User.objects.get(username="@johndoe")
         self.staff = User.objects.get(username="@janedoe")
+        self.ticket_data = {
+            "student": self.student,
+            "faculty": Ticket.Faculty.choices[1][0],
+            "study_level": Ticket.StudyLevel.choices[1][0],
+            "category": Ticket.Category.choices[1][0],
+            "body": "This is a test ticket body.",
+        }
 
     def test_home_url(self):
         self.assertEqual(self.url, "/dashboard/")
@@ -44,15 +51,7 @@ class DashboardViewTestCase(TestCase, LogInTester):
     def test_pagination_on_dashboard(self):
         self.client.login(username=self.student.username, password="Password123")
         for i in range(30):
-            Ticket.objects.create(
-                student=self.student,
-                faculty=Ticket.Faculty.choices[1][0],
-                study_level=Ticket.StudyLevel.choices[1][0],
-                category=Ticket.Category.choices[1][0],
-                subject=f"Test ticket {i+1}",
-                body="This is a test ticket body.",
-                status=Ticket.Status.choices[0][0],
-            )
+            Ticket.objects.create(**self.ticket_data, subject=f"Test ticket {i+1}")
 
         response = self.client.get(self.url, {"tab": "open_tickets", "page": 1})
         self.assertEqual(response.status_code, 200)
@@ -73,36 +72,19 @@ class DashboardViewTestCase(TestCase, LogInTester):
         self.client.login(username=self.staff.username, password="Password123")
         # create 6 open tickets
         for i in range(6):
-            Ticket.objects.create(
-                student=self.student,
-                faculty=Ticket.Faculty.choices[1][0],
-                study_level=Ticket.StudyLevel.choices[1][0],
-                category=Ticket.Category.choices[1][0],
-                subject=f"Test ticket {i+1}",
-                body="This is a test ticket body.",
-                status=Ticket.Status.choices[0][0],
-            )
+            Ticket.objects.create(**self.ticket_data, subject=f"Test open ticket {i+1}")
         # create 3 assigned tickets
         for i in range(3):
             Ticket.objects.create(
-                student=self.student,
-                faculty=Ticket.Faculty.choices[1][0],
-                study_level=Ticket.StudyLevel.choices[1][0],
-                category=Ticket.Category.choices[1][0],
-                subject=f"Test ticket {i+1}",
-                body="This is a test ticket body.",
-                status=Ticket.Status.choices[0][0],
+                **self.ticket_data,
+                subject=f"Test assigned ticket {i+1}",
                 assigned_to=self.staff,
             )
         # create 4 overdue tickets
         for i in range(4):
             ticket = Ticket.objects.create(
-                student=self.student,
-                faculty=Ticket.Faculty.choices[1][0],
-                study_level=Ticket.StudyLevel.choices[1][0],
-                category=Ticket.Category.choices[1][0],
-                subject=f"Test ticket {i+1}",
-                body="This is a test ticket body.",
+                **self.ticket_data,
+                subject=f"Test overdue ticket {i+1}",
                 status=Ticket.Status.AWAITING_STAFF,
             )
 
@@ -112,12 +94,8 @@ class DashboardViewTestCase(TestCase, LogInTester):
         # create 5 closed tickets
         for i in range(5):
             Ticket.objects.create(
-                student=self.student,
-                faculty=Ticket.Faculty.choices[1][0],
-                study_level=Ticket.StudyLevel.choices[1][0],
-                category=Ticket.Category.choices[1][0],
-                subject=f"Closed ticket {i+1}",
-                body="This is a test ticket body.",
+                **self.ticket_data,
+                subject=f"Test closed ticket {i+1}",
                 status=Ticket.Status.CLOSED,
                 closed_reason=Ticket.ClosedReason.ANSWERED,
                 closed_at=timezone.now(),
@@ -147,47 +125,31 @@ class DashboardViewTestCase(TestCase, LogInTester):
         # 4 open
         for i in range(4):
             Ticket.objects.create(
-                student=self.student,
-                faculty=Ticket.Faculty.choices[1][0],
-                study_level=Ticket.StudyLevel.choices[1][0],
-                category=Ticket.Category.choices[1][0],
-                subject=f"Open ticket {i+1}",
-                body="Body",
+                **self.ticket_data,
+                subject=f"Test open ticket {i+1}",
                 status=Ticket.Status.AWAITING_STAFF,
                 assigned_to=None,
             )
         # 3 in progress
         for i in range(3):
             Ticket.objects.create(
-                student=self.student,
-                faculty=Ticket.Faculty.choices[1][0],
-                study_level=Ticket.StudyLevel.choices[1][0],
-                category=Ticket.Category.choices[1][0],
-                subject=f"In progress ticket {i+1}",
-                body="Body",
+                **self.ticket_data,
+                subject=f"Test assigned ticket {i+1}",
                 status=Ticket.Status.AWAITING_STAFF,
                 assigned_to=self.staff,
             )
         # 2 need response
         for i in range(2):
             Ticket.objects.create(
-                student=self.student,
-                faculty=Ticket.Faculty.choices[1][0],
-                study_level=Ticket.StudyLevel.choices[1][0],
-                category=Ticket.Category.choices[1][0],
-                subject=f"Need response ticket {i+1}",
-                body="Body",
+                **self.ticket_data,
+                subject=f"Test need response ticket {i+1}",
                 status=Ticket.Status.AWAITING_STUDENT,
             )
         # 5 closed
         for i in range(5):
             Ticket.objects.create(
-                student=self.student,
-                faculty=Ticket.Faculty.choices[1][0],
-                study_level=Ticket.StudyLevel.choices[1][0],
-                category=Ticket.Category.choices[1][0],
+                **self.ticket_data,
                 subject=f"Closed ticket {i+1}",
-                body="Body",
                 status=Ticket.Status.CLOSED,
                 closed_reason=Ticket.ClosedReason.ANSWERED,
                 closed_at=timezone.now(),
@@ -253,3 +215,86 @@ class DashboardViewTestCase(TestCase, LogInTester):
         self.assertContains(response, f'href="{detail_url}"')
         detail_response = self.client.get(detail_url)
         self.assertEqual(detail_response.status_code, 200)
+
+    def test_dashboard_priority_sorting(self):
+        self.client.login(username=self.staff.username, password="Password123")
+        priorities = [
+            Ticket.Priority.HIGH,
+            Ticket.Priority.MEDIUM,
+            Ticket.Priority.LOW,
+            Ticket.Priority.PENDING_PRIORITY,
+        ]
+        for i in priorities:
+            Ticket.objects.create(
+                **self.ticket_data,
+                subject=f"Test ticket {i}",
+                priority=i,
+            )
+
+        response = self.client.get(self.url, {"tab": "open_tickets", "sort": "high"})
+        self.assertEqual(response.status_code, 200)
+        tickets = response.context["page_obj"].object_list
+        self.assertTrue(all(t.priority == Ticket.Priority.HIGH for t in tickets))
+
+        response = self.client.get(self.url, {"tab": "open_tickets", "sort": "medium"})
+        self.assertEqual(response.status_code, 200)
+        tickets = response.context["page_obj"].object_list
+        self.assertTrue(all(t.priority == Ticket.Priority.MEDIUM for t in tickets))
+
+        response = self.client.get(self.url, {"tab": "open_tickets", "sort": "low"})
+        self.assertEqual(response.status_code, 200)
+        tickets = response.context["page_obj"].object_list
+        self.assertTrue(all(t.priority == Ticket.Priority.LOW for t in tickets))
+
+        response = self.client.get(self.url, {"tab": "open_tickets", "sort": "pending"})
+        self.assertEqual(response.status_code, 200)
+        tickets = response.context["page_obj"].object_list
+        self.assertTrue(
+            all(t.priority == Ticket.Priority.PENDING_PRIORITY for t in tickets)
+        )
+
+        response = self.client.get(self.url, {"tab": "open_tickets", "sort": "invalid"})
+        self.assertEqual(response.status_code, 200)
+        tickets = response.context["page_obj"].object_list
+        self.assertEqual(len(tickets), len(Ticket.objects.all()))
+
+    def test_student_dashboard_priority_sorting(self):
+        self.client.login(username=self.student.username, password="Password123")
+        priorities = [
+            Ticket.Priority.HIGH,
+            Ticket.Priority.MEDIUM,
+            Ticket.Priority.LOW,
+            Ticket.Priority.PENDING_PRIORITY,
+        ]
+        for i in priorities:
+            Ticket.objects.create(
+                **self.ticket_data,
+                subject=f"Test ticket {i}",
+                priority=i,
+            )
+
+        # returns all without sorting since students don't have sorting options
+        response = self.client.get(self.url, {"tab": "open_tickets", "sort": "high"})
+        self.assertEqual(response.status_code, 200)
+        tickets = response.context["page_obj"].object_list
+        self.assertEqual(len(tickets), len(Ticket.objects.all()))
+
+        response = self.client.get(self.url, {"tab": "open_tickets", "sort": "medium"})
+        self.assertEqual(response.status_code, 200)
+        tickets = response.context["page_obj"].object_list
+        self.assertEqual(len(tickets), len(Ticket.objects.all()))
+
+        response = self.client.get(self.url, {"tab": "open_tickets", "sort": "low"})
+        self.assertEqual(response.status_code, 200)
+        tickets = response.context["page_obj"].object_list
+        self.assertEqual(len(tickets), len(Ticket.objects.all()))
+
+        response = self.client.get(self.url, {"tab": "open_tickets", "sort": "pending"})
+        self.assertEqual(response.status_code, 200)
+        tickets = response.context["page_obj"].object_list
+        self.assertEqual(len(tickets), len(Ticket.objects.all()))
+
+        response = self.client.get(self.url, {"tab": "open_tickets", "sort": "invalid"})
+        self.assertEqual(response.status_code, 200)
+        tickets = response.context["page_obj"].object_list
+        self.assertEqual(len(tickets), len(Ticket.objects.all()))

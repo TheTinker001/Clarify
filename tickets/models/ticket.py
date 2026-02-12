@@ -85,6 +85,12 @@ class Ticket(models.Model):
         ANSWERED = "answered", "Answered"
         INACTIVITY = "inactivity", "Inactivity"
 
+    class Priority(models.TextChoices):
+        PENDING_PRIORITY = "pending priority", "Pending Priority"
+        LOW = "low", "Low"
+        MEDIUM = "medium", "Medium"
+        HIGH = "high", "High"
+
     student = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -133,6 +139,9 @@ class Ticket(models.Model):
     )
     closed_reason = models.CharField(
         max_length=32, choices=ClosedReason.choices, null=True, blank=True
+    )
+    priority = models.CharField(
+        max_length=32, choices=Priority.choices, default=Priority.PENDING_PRIORITY
     )
     closed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
