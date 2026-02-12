@@ -1,4 +1,5 @@
-from django.test import TestCase, Client
+from django.test import TestCase, Client, override_settings
+from unittest.mock import patch
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from tickets.models import Ticket
@@ -105,6 +106,51 @@ class CreateTicketViewTest(TestCase):
         response = self.client.post(self.url, self.valid_ticket_data)
         self.assertRedirects(response, reverse("dashboard"))
         self.assertEqual(Ticket.objects.count(), initial_count)
+
+    @override_settings(
+        EMAIL_HOST_USER="clarify@example.com",
+        EMAIL_HOST_PASSWORD="app-password",
+        DEFAULT_FROM_EMAIL="clarify@example.com",
+    )
+    def test_email_sent_on_ticket_creation(self):
+        self.client.login(username="student1", password="testpass123")
+        with patch("tickets.helpers.send_mail") as mock_send:
+            self.client.post(self.url, self.valid_ticket_data)
+            self.assertEqual(mock_send.call_count, 1)
+
+    @override_settings(
+        EMAIL_HOST_USER="clarify@example.com",
+        EMAIL_HOST_PASSWORD="app-password",
+        DEFAULT_FROM_EMAIL="clarify@example.com",
+    )
+    def test_ticket_still_created_when_email_fails(self):
+        """Ticket is created even if email sending raises an exception (lines 30-31)."""
+        self.client.login(username="student1", password="testpass123")
+        initial_count = Ticket.objects.count()
+        with patch("tickets.helpers.send_mail", side_effect=Exception("SMTP error")):
+            response = self.client.post(self.url, self.valid_ticket_data)
+            self.assertEqual(Ticket.objects.count(), initial_count + 1)
+            self.assertRedirects(response, reverse("dashboard"))
+
+    @override_settings(
+        EMAIL_HOST_USER="clarify@example.com",
+        EMAIL_HOST_PASSWORD="app-password",
+        DEFAULT_FROM_EMAIL="clarify@example.com",
+    )
+    def test_success_message_shown_when_email_fails(self):
+        """Success message is still shown even if email sending fails."""
+        self.client.login(username="student1", password="testpass123")
+        with patch("tickets.helpers.send_mail", side_effect=Exception("SMTP error")):
+            response = self.client.post(self.url, self.valid_ticket_data, follow=True)
+            message_list = list(response.context["messages"])
+            self.assertEqual(len(message_list), 1)
+            self.assertIn("successfully", str(message_list[0]))
+
+    def test_no_email_sent_without_email_settings(self):
+        self.client.login(username="student1", password="testpass123")
+        with patch("tickets.helpers.send_mail") as mock_send:
+            self.client.post(self.url, self.valid_ticket_data)
+            self.assertEqual(mock_send.call_count, 0)
 
     def test_form_in_context_on_get(self):
         self.client.login(username="student1", password="testpass123")

@@ -4,7 +4,10 @@
     {{ field }}
   {% else %}
     <div class="mb-3">
-      {{ field.label_tag }}
+      <label for="{{ field.id_for_label }}">
+        {{ field.label }}
+        {% if field.field.required %}*{% endif %}
+      </label>
       {% if form.is_bound %}
         {% if field.errors %}
           {% render_field field class="form-control is-invalid" %}
@@ -14,12 +17,8 @@
       {% else %}
         {% render_field field class="form-control" %}
       {% endif %}
-      <div class="valid-feedback">
-        Looks good!
-      </div>
-      <div class="invalid-feedback">
-        {{ field.errors }}
-      </div>
+      <div class="valid-feedback">Looks good!</div>
+      <div class="invalid-feedback">{{ field.errors }}</div>
     </div>
   {% endif %}
 {% endfor %}

@@ -1,9 +1,10 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
-from django.core.validators import MaxLengthValidator
+from django.core.validators import MaxLengthValidator, FileExtensionValidator
 from django.utils import timezone
 from django.urls import reverse
+from tickets.helpers import validate_file_size
 import secrets
 
 User = get_user_model()
@@ -84,6 +85,12 @@ class Ticket(models.Model):
         ANSWERED = "answered", "Answered"
         INACTIVITY = "inactivity", "Inactivity"
 
+    class Priority(models.TextChoices):
+        PENDING_PRIORITY = "pending priority", "Pending Priority"
+        LOW = "low", "Low"
+        MEDIUM = "medium", "Medium"
+        HIGH = "high", "High"
+
     student = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -116,11 +123,25 @@ class Ticket(models.Model):
         max_length=BODY_MAX_LENGTH, validators=[MaxLengthValidator(BODY_MAX_LENGTH)]
     )
 
+    attachment = models.FileField(
+        upload_to="ticket_attachments/%Y/%m/%d/",
+        null=True,
+        blank=True,
+        validators=[
+            FileExtensionValidator(
+                allowed_extensions=["pdf", "doc", "docx", "txt", "jpg", "jpeg", "png"]
+            ),
+            validate_file_size,
+        ],
+    )
     status = models.CharField(
         max_length=32, choices=Status.choices, default=Status.AWAITING_STAFF
     )
     closed_reason = models.CharField(
         max_length=32, choices=ClosedReason.choices, null=True, blank=True
+    )
+    priority = models.CharField(
+        max_length=32, choices=Priority.choices, default=Priority.PENDING_PRIORITY
     )
     closed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

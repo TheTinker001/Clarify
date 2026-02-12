@@ -10,7 +10,7 @@ class TicketFormTest(TestCase):
         form = TicketForm()
         self.assertEqual(
             list(form.fields.keys()),
-            ["faculty", "study_level", "category", "subject", "body"],
+            ["faculty", "study_level", "category", "subject", "body", "attachment"],
         )
 
     def test_form_valid_data(self):
@@ -126,3 +126,78 @@ class TicketFormTest(TestCase):
                 self.assertFalse(
                     form.is_valid(), f"Category {category_code} should be valid"
                 )
+
+    def test_attachment_field_is_optional(self):
+        form = TicketForm()
+        self.assertFalse(form.fields["attachment"].required)
+
+    def test_attachment_accepts_valid_file_types(self):
+        """Test that attachment accepts allowed file extensions."""
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        file = SimpleUploadedFile(
+            "test.pdf", b"file content", content_type="application/pdf"
+        )
+        data = {
+            "faculty": "kbs",
+            "study_level": "undergraduate",
+            "category": "assessment",
+            "subject": "Test subject",
+            "body": "Test body",
+        }
+        form = TicketForm(data=data, files={"attachment": file})
+        self.assertTrue(form.is_valid())
+
+    def test_attachment_rejects_invalid_file_types(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        file = SimpleUploadedFile(
+            "test.exe", b"file content", content_type="application/exe"
+        )
+        data = {
+            "faculty": "kbs",
+            "study_level": "undergraduate",
+            "category": "assessment",
+            "subject": "Test subject",
+            "body": "Test body",
+        }
+        form = TicketForm(data=data, files={"attachment": file})
+        self.assertFalse(form.is_valid())
+        self.assertIn("attachment", form.errors)
+
+    def test_attachment_rejects_large_files(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        large_content = b"x" * (6 * 1024 * 1024)
+        file = SimpleUploadedFile(
+            "large_file.pdf", large_content, content_type="application/pdf"
+        )
+
+        data = {
+            "faculty": "kbs",
+            "study_level": "undergraduate",
+            "category": "assessment",
+            "subject": "Test subject",
+            "body": "Test body",
+        }
+        form = TicketForm(data=data, files={"attachment": file})
+        self.assertFalse(form.is_valid())
+        self.assertIn("attachment", form.errors)
+
+    def test_attachment_accepts_valid_file_size(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        small_content = b"x" * (1 * 1024 * 1024)
+        file = SimpleUploadedFile(
+            "small_file.pdf", small_content, content_type="application/pdf"
+        )
+
+        data = {
+            "faculty": "kbs",
+            "study_level": "undergraduate",
+            "category": "assessment",
+            "subject": "Test subject",
+            "body": "Test body",
+        }
+        form = TicketForm(data=data, files={"attachment": file})
+        self.assertTrue(form.is_valid())

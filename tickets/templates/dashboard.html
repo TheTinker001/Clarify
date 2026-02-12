@@ -61,9 +61,34 @@
         </div>
         <!-- Tickets -->
         <div class="row">
-            <h2>{{ category }} Tickets ({{ total }})</h2>
             <div class="col-12">
-                {% include "partials/pagination_navbar.html" with page_obj=page_obj %}
+                <h2>{{ category }} Tickets ({{ total }})</h2>
+                <div class="row mb-4">
+                    <!-- Left spacer -->
+                    <div class="col-4"></div>
+                    <!-- Pagination top -->
+                    <div class="col-4 d-flex justify-content-center align-items-center">
+                        {% include "partials/pagination_navbar.html" with page_obj=page_obj %}
+                    </div>
+                    <!-- Sorting dropdown aligned right -->
+                    <div class="col-4 d-flex justify-content-end align-items-center">
+                        {% if user.user_type == "staff" and tab != "closed_tickets" %}
+                            <form method="get" class="d-flex align-items-center">
+                                <input type="hidden" name="tab" value="{{ tab }}">
+                                <select class="form-select form-select-sm w-auto"
+                                        name="sort"
+                                        onchange="this.form.submit()">
+                                    <option value="" {% if not priority_sort %}selected{% endif %}>All</option>
+                                    <option value="high" {% if priority_sort == 'high' %}selected{% endif %}>High priority</option>
+                                    <option value="medium" {% if priority_sort == 'medium' %}selected{% endif %}>Medium priority</option>
+                                    <option value="low" {% if priority_sort == 'low' %}selected{% endif %}>Low priority</option>
+                                    <option value="pending"
+                                            {% if priority_sort == 'pending' %}selected{% endif %}>Pending</option>
+                                </select>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
                 {% for ticket in tickets %}
                     {% include "partials/ticket_card.html" with ticket=ticket %}
                 {% empty %}
@@ -72,6 +97,6 @@
             </div>
         </div>
         <!-- Pagination -->
-        {% include "partials/pagination_navbar.html" with page_obj=page_obj %}
+        <div class="mb-3">{% include "partials/pagination_navbar.html" with page_obj=page_obj %}</div>
     </div>
 {% endblock %}
