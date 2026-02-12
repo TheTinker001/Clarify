@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.urls import reverse_lazy
 from tickets.models import Ticket
 from tickets.forms import TicketForm
+from tickets.helpers import _send_ticket_created_email
 
 
 class CreateTicketView(LoginRequiredMixin, CreateView):
@@ -22,5 +23,12 @@ class CreateTicketView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.student = self.request.user
+        response = super().form_valid(form)
+
+        try:
+            _send_ticket_created_email(self.object)
+        except Exception:
+            pass
+
         messages.success(self.request, "Ticket created successfully!")
-        return super().form_valid(form)
+        return response
