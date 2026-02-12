@@ -1,8 +1,13 @@
 ### Helper function and classes go here.
-
+from django.core.exceptions import ValidationError
 from django.conf import settings
 from django.core.mail import send_mail
 
+
+def validate_file_size(file):
+    max_size_mb = 5
+    if file.size > max_size_mb * 1024 * 1024:
+        raise ValidationError(f"File size cannot exceed {max_size_mb}MB")
 
 def _send_ticket_created_email(ticket):
     if not settings.EMAIL_HOST_USER or not settings.EMAIL_HOST_PASSWORD:
