@@ -52,7 +52,9 @@ class CommentViewTestCase(TestCase):
 
     def test_student_can_comment(self):
         self.client.login(username=self.student.username, password="Password123")
-        self.client.post(self.url, {"body": "Hello from student."})
+        self.client.post(
+            self.url, {"action": "add_comment", "body": "Hello from student."}
+        )
         self.assertEqual(Comment.objects.filter(ticket=self.ticket).count(), 1)
         comment = Comment.objects.get(ticket=self.ticket)
         self.assertEqual(comment.author, self.student)
@@ -60,25 +62,34 @@ class CommentViewTestCase(TestCase):
 
     def test_student_comment_redirects_after_post(self):
         self.client.login(username=self.student.username, password="Password123")
-        response = self.client.post(self.url, {"body": "Hello from student."})
+        response = self.client.post(
+            self.url, {"action": "add_comment", "body": "Hello from student."}
+        )
         self.assertRedirects(response, self.url)
 
     def test_staff_can_comment_on_claimed_ticket(self):
         self.client.login(username=self.staff.username, password="Password123")
-        self.client.post(self.url, {"body": "Hello from staff."})
+        self.client.post(
+            self.url, {"action": "add_comment", "body": "Hello from staff."}
+        )
         self.assertEqual(Comment.objects.filter(ticket=self.ticket).count(), 1)
         comment = Comment.objects.get(ticket=self.ticket)
         self.assertEqual(comment.author, self.staff)
+        self.assertEqual(comment.body, "Hello from staff.")
 
     def test_staff_comment_redirects_after_post(self):
         self.client.login(username=self.staff.username, password="Password123")
-        response = self.client.post(self.url, {"body": "Hello from staff."})
+        response = self.client.post(
+            self.url, {"action": "add_comment", "body": "Hello from staff."}
+        )
         self.assertRedirects(response, self.url)
 
     def test_staff_cannot_comment_on_unclaimed_ticket(self):
         self.client.login(username=self.staff.username, password="Password123")
         unclaimed_url = self.unclaimed_ticket.get_absolute_url()
-        response = self.client.post(unclaimed_url, {"body": "Trying to comment."})
+        response = self.client.post(
+            unclaimed_url, {"action": "add_comment", "body": "Trying to comment."}
+        )
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
             Comment.objects.filter(ticket=self.unclaimed_ticket).count(), 0
@@ -86,20 +97,24 @@ class CommentViewTestCase(TestCase):
 
     def test_non_owner_student_cannot_comment(self):
         self.client.login(username=self.student2.username, password="Password123")
-        response = self.client.post(self.url, {"body": "Sneaky comment."})
+        response = self.client.post(
+            self.url, {"action": "add_comment", "body": "Sneaky comment."}
+        )
         self.assertEqual(response.status_code, 404)
         self.assertEqual(Comment.objects.filter(ticket=self.ticket).count(), 0)
 
     def test_unauthenticated_cannot_comment(self):
         redirect_url = reverse_with_next("log_in", self.url)
-        response = self.client.post(self.url, {"body": "Anonymous comment."})
+        response = self.client.post(
+            self.url, {"action": "add_comment", "body": "Anonymous comment."}
+        )
         self.assertRedirects(
             response, redirect_url, status_code=302, target_status_code=200
         )
 
     def test_invalid_comment_rerenders_form_with_errors(self):
         self.client.login(username=self.student.username, password="Password123")
-        response = self.client.post(self.url, {"body": ""})
+        response = self.client.post(self.url, {"action": "add_comment", "body": ""})
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "ticket_detail.html")
         self.assertFalse(response.context["form"].is_valid())
@@ -107,15 +122,19 @@ class CommentViewTestCase(TestCase):
 
     def test_student_can_submit_multiple_consecutive_comments(self):
         self.client.login(username=self.student.username, password="Password123")
-        self.client.post(self.url, {"body": "First comment."})
-        self.client.post(self.url, {"body": "Second comment."})
-        self.client.post(self.url, {"body": "Third comment."})
+        self.client.post(self.url, {"action": "add_comment", "body": "First comment."})
+        self.client.post(self.url, {"action": "add_comment", "body": "Second comment."})
+        self.client.post(self.url, {"action": "add_comment", "body": "Third comment."})
         self.assertEqual(Comment.objects.filter(ticket=self.ticket).count(), 3)
 
     def test_staff_can_submit_multiple_consecutive_comments(self):
         self.client.login(username=self.staff.username, password="Password123")
-        self.client.post(self.url, {"body": "First staff comment."})
-        self.client.post(self.url, {"body": "Second staff comment."})
+        self.client.post(
+            self.url, {"action": "add_comment", "body": "First staff comment."}
+        )
+        self.client.post(
+            self.url, {"action": "add_comment", "body": "Second staff comment."}
+        )
         self.assertEqual(Comment.objects.filter(ticket=self.ticket).count(), 2)
 
     def test_comments_displayed_in_template(self):
@@ -161,3 +180,17 @@ class CommentViewTestCase(TestCase):
         unclaimed_url = self.unclaimed_ticket.get_absolute_url()
         response = self.client.get(unclaimed_url)
         self.assertNotContains(response, "Add a comment")
+
+    def test_other_staff_cannot_comment_on_claimed_ticket(self):
+        other_staff = User.objects.get(username="@jonrain")
+        self.client.login(username=other_staff.username, password="Password123")
+        response = self.client.post(self.url, {"action": "add_comment", "body": "Nope"})
+        self.assertEqual(response.status_code, 404)
+
+    def test_unknown_action_returns_404(self):
+        self.client.login(username=self.student.username, password="Password123")
+        response = self.client.post(
+            self.url, {"action": "imaginary_action", "body": "Hi"}
+        )
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(Comment.objects.filter(ticket=self.ticket).count(), 0)

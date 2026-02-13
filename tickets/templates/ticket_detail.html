@@ -26,7 +26,6 @@
             <p class="card-text text-muted">{{ ticket.body }}</p>
           </div>
         </div>
-
         <!-- Comments -->
         <div class="mt-4">
           <h5>Comments</h5>
@@ -56,7 +55,6 @@
             <p class="text-muted">No comments yet.</p>
           {% endfor %}
         </div>
-
         <!-- Comment form -->
         {% if user.user_type == "student" %}
           <div class="card mt-3">
@@ -64,31 +62,28 @@
               <h6 class="card-title">Add a comment</h6>
               <form method="post">
                 {% csrf_token %}
+                <input type="hidden" name="action" value="add_comment">
                 {{ form.body }}
-                {% if form.body.errors %}
-                  <div class="text-danger mt-1">{{ form.body.errors }}</div>
-                {% endif %}
+                {% if form.body.errors %}<div class="text-danger mt-1">{{ form.body.errors }}</div>{% endif %}
                 <button type="submit" class="btn btn-primary mt-2">Submit</button>
               </form>
             </div>
           </div>
-        {% elif user.user_type == "staff" and ticket.assigned_to %}
+        {% elif user.user_type == "staff" and ticket.assigned_to == user %}
           <div class="card mt-3">
             <div class="card-body">
               <h6 class="card-title">Add a comment</h6>
               <form method="post">
                 {% csrf_token %}
+                <input type="hidden" name="action" value="add_comment">
                 {{ form.body }}
-                {% if form.body.errors %}
-                  <div class="text-danger mt-1">{{ form.body.errors }}</div>
-                {% endif %}
+                {% if form.body.errors %}<div class="text-danger mt-1">{{ form.body.errors }}</div>{% endif %}
                 <button type="submit" class="btn btn-primary mt-2">Submit</button>
               </form>
             </div>
           </div>
         {% endif %}
       </div>
-
       <div class="col-12 col-lg-4 mt-3 mt-lg-0">
         <div class="card ticket-card-detail">
           <div class="card-body">
