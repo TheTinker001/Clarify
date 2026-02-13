@@ -10,7 +10,7 @@ from tickets.models import Ticket, User
 
 @login_required
 def ticket_detail(request, url_code):
-    """Display a single ticket and handle priority and handle comment submission."""
+    """Display a single ticket, handle priority and handle comment submission."""
     ticket = get_object_or_404(
         Ticket.objects.select_related("student", "assigned_to"),
         url_code=url_code,

@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MaxLengthValidator, FileExtensionValidator
 from django.utils import timezone
 from django.urls import reverse
-from tickets.helpers import validate_file_size
+from tickets.helpers import _validate_file_size
 import secrets
 
 User = get_user_model()
@@ -131,7 +131,7 @@ class Ticket(models.Model):
             FileExtensionValidator(
                 allowed_extensions=["pdf", "doc", "docx", "txt", "jpg", "jpeg", "png"]
             ),
-            validate_file_size,
+            _validate_file_size,
         ],
     )
     status = models.CharField(
