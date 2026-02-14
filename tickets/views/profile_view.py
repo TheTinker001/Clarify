@@ -49,11 +49,19 @@ class ProfileView(LoginRequiredMixin, UpdateView):
 
         context["faculty_list"] = faculty_codes
         context["faculty_labels"] = get_labels(faculty_codes, Ticket.Faculty)
+        context["all_faculties_selected"] = len(faculty_codes) == len(
+            Ticket.Faculty.choices
+        )
         context["study_level_list"] = study_level_codes
         context["study_level_labels"] = get_labels(study_level_codes, Ticket.StudyLevel)
+        context["all_study_levels_selected"] = len(study_level_codes) == len(
+            Ticket.StudyLevel.choices
+        )
         context["category_list"] = category_codes
         context["category_labels"] = get_labels(category_codes, Ticket.Category)
-
+        context["all_categories_selected"] = len(category_codes) == len(
+            Ticket.Category.choices
+        )
         context["Faculty"] = Ticket.Faculty
         context["StudyLevel"] = Ticket.StudyLevel
         context["Category"] = Ticket.Category

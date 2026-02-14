@@ -4,6 +4,7 @@ from django.views.generic.edit import UpdateView
 from django.urls import reverse
 from tickets.forms import StaffPreferenceForm
 from tickets.models import User
+from django.http import Http404
 
 
 class StaffPreferencesView(LoginRequiredMixin, UpdateView):
@@ -28,3 +29,8 @@ class StaffPreferencesView(LoginRequiredMixin, UpdateView):
     def get_success_url(self):
         messages.add_message(self.request, messages.SUCCESS, "Preferences updated!")
         return reverse("profile")
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.user_type != User.USER_TYPE_STAFF:
+            raise Http404("Page not found")
+        return super().dispatch(request, *args, **kwargs)
