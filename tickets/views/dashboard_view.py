@@ -29,9 +29,25 @@ def dashboard(request):
     }
 
     if current_user.user_type == User.USER_TYPE_STAFF:
-        tickets = Ticket.objects.all().order_by("-created_at")
         overdue_cutoff = timezone.now() - timedelta(days=5)
 
+        def split_codes(s):
+            return [c.strip() for c in s.split(",") if c.strip()]
+
+        faculties = split_codes(current_user.faculties)
+        study_levels = split_codes(current_user.study_levels)
+        categories = split_codes(current_user.categories)
+
+        tickets = (
+            Ticket.objects.all()
+            .order_by("-created_at")
+            .filter(
+                Q(faculty__in=faculties)
+                | Q(study_level__in=study_levels)
+                | Q(category__in=categories)
+            )
+            .distinct()
+        )
         # staff cant see tickets assigned to others
         groups = {
             "open_tickets": tickets.filter(
