@@ -8,7 +8,8 @@
                     <form method="post" action="{% url 'profile_staff_edit' %}">
                         {% csrf_token %}
                         <h1>Staff Preferences</h1>
-                        <p class="text-muted">Which types of tickets do you want to see?</p>
+                        <p class="mb-0">Which types of tickets do you want to see?</p>
+                        <p class="text-muted">You must choose at least one option to view the related tickets.</p>
                         <a href="{% url 'profile' %}"
                            class="btn btn-outline-secondary btn-sm mb-3 back-to-profile-btn">← Back to Profile</a>
                         {{ form.as_p }}
