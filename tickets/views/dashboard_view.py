@@ -19,6 +19,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         "overdue_tickets": "Overdue",
         "closed_tickets": "Closed",
     }
+    default_sorting = "created_at"
 
     def get_tab(self):
         tab = self.request.GET.get("tab", "open_tickets")
@@ -28,7 +29,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
 
     def get_QS_by_user_type(self, current_user):
         if current_user.user_type == User.USER_TYPE_STAFF:
-            tickets = Ticket.objects.all().order_by("-created_at")
+            tickets = Ticket.objects.all()
             overdue_cutoff = timezone.now() - timedelta(days=5)
 
             # staff cant see tickets assigned to others
@@ -58,9 +59,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 ),
             }
         elif current_user.user_type == User.USER_TYPE_STUDENT:
-            tickets = Ticket.objects.filter(student=current_user).order_by(
-                "-created_at"
-            )
+            tickets = Ticket.objects.filter(student=current_user)
             groups = {
                 "open_tickets": tickets.filter(
                     status=Ticket.Status.AWAITING_STAFF,
@@ -98,9 +97,9 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 qs = groups[tab].filter(priority=Ticket.Priority.PENDING_PRIORITY)
             else:
                 qs = groups[tab]
-            qs = qs.order_by("created_at")
+            qs = qs.order_by(self.default_sorting)
         else:
-            qs = groups[tab].order_by("created_at")
+            qs = groups[tab].order_by(self.default_sorting)
 
         return qs
 

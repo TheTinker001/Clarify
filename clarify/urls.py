@@ -36,7 +36,9 @@ urlpatterns = [
     ),
     path("profile/edit/", views.ProfileUpdateView.as_view(), name="profile_edit"),
     path("sign_up/", views.SignUpView.as_view(), name="sign_up"),
-    path("ticket/<str:url_code>/", views.ticket_detail, name="ticket_detail"),
+    path(
+        "ticket/<str:url_code>/", views.TicketDetailView.as_view(), name="ticket_detail"
+    ),
     path("create_ticket/", views.CreateTicketView.as_view(), name="create_ticket"),
     path(
         "ticket/<str:url_code>/claim/",
