@@ -122,38 +122,40 @@
               {% elif ticket.assigned_to %}
                 <div class="alert alert-warning d-flex align-items-center" role="alert">
                   <span class="bi-flag me-2"></span>
-                  Claimed by {{ ticket.assigned_to.get_full_name|default:ticket.assigned_to.username }}
-                </div>
-              {% else %}
-                <div class="d-flex justify-content-between align-items-start">
-                  <form method="post" action="{{ ticket.get_claim_url }}">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-sm btn-outline-success">Claim</button>
-                  </form>
-                </div>
-              {% endif %}
+                  Claimed by <a href="{% url 'profile_detail_other_user' pk=ticket.assigned_to.pk %}">
+                  {{ ticket.assigned_to.get_full_name|default:ticket.assigned_to.username }}
+                </a>
+              </div>
+            {% else %}
+              <div class="d-flex justify-content-between align-items-start">
+                <form method="post" action="{{ ticket.get_claim_url }}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-success">Claim</button>
+                </form>
+              </div>
             {% endif %}
-          </div>
+          {% endif %}
         </div>
-        <!-- priority updating -->
       </div>
-      {% if user.user_type == "staff" and ticket.status != ticket.Status.CLOSED %}
-        <div class="col-12 col-lg-4 mt-3 mt-lg-0">
-          <div class="card ticket-card-detail">
-            <div class="card-body">
-              <form id="priority-form" method="post">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="set_priority">
-                <div class="input-group input-group-sm">
-                  <span class="input-group-text">Priority</span>
-                  {{ ticket_priority_form.priority }}
-                  <button type="submit" form="priority-form" class="btn btn-outline-primary">Update</button>
-                </div>
-              </form>
-            </div>
+      <!-- priority updating -->
+    </div>
+    {% if user.user_type == "staff" and ticket.status != ticket.Status.CLOSED %}
+      <div class="col-12 col-lg-4 mt-3 mt-lg-0">
+        <div class="card ticket-card-detail">
+          <div class="card-body">
+            <form id="priority-form" method="post">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="set_priority">
+              <div class="input-group input-group-sm">
+                <span class="input-group-text">Priority</span>
+                {{ ticket_priority_form.priority }}
+                <button type="submit" form="priority-form" class="btn btn-outline-primary">Update</button>
+              </div>
+            </form>
           </div>
         </div>
-      {% endif %}
-    </div>
+      </div>
+    {% endif %}
   </div>
+</div>
 {% endblock %}
