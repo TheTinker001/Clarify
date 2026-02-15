@@ -3,7 +3,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import UpdateView
 from django.urls import reverse
 from tickets.forms import UserForm
-from tickets.models import User
+from tickets.models import User, Ticket
+from django.views.generic import DetailView
 
 
 class ProfileView(LoginRequiredMixin, UpdateView):
@@ -65,4 +66,49 @@ class ProfileView(LoginRequiredMixin, UpdateView):
         context["Faculty"] = Ticket.Faculty
         context["StudyLevel"] = Ticket.StudyLevel
         context["Category"] = Ticket.Category
+        return context
+
+
+class ProfileDetailOtherUserView(LoginRequiredMixin, DetailView):
+    model = User
+    template_name = "profile_detail_other_user.html"
+    context_object_name = "profile_user"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = context["profile_user"]
+
+        def get_labels(codes, choices):
+            return [
+                choices(code).label for code in codes if code and code in choices.values
+            ]
+
+        faculty_codes = (
+            [c.strip() for c in user.faculties.split(",") if c.strip()]
+            if user.faculties
+            else []
+        )
+        study_level_codes = (
+            [c.strip() for c in user.study_levels.split(",") if c.strip()]
+            if user.study_levels
+            else []
+        )
+        category_codes = (
+            [c.strip() for c in user.categories.split(",") if c.strip()]
+            if user.categories
+            else []
+        )
+
+        context["faculty_labels"] = get_labels(faculty_codes, Ticket.Faculty)
+        context["all_faculties_selected"] = len(faculty_codes) == len(
+            Ticket.Faculty.choices
+        )
+        context["study_level_labels"] = get_labels(study_level_codes, Ticket.StudyLevel)
+        context["all_study_levels_selected"] = len(study_level_codes) == len(
+            Ticket.StudyLevel.choices
+        )
+        context["category_labels"] = get_labels(category_codes, Ticket.Category)
+        context["all_categories_selected"] = len(category_codes) == len(
+            Ticket.Category.choices
+        )
         return context
