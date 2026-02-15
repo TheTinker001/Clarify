@@ -53,13 +53,12 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         elif action == "add_comment":
             return self.post_action_add_comment(request, *args, **kwargs)
 
+        # Unknown action
         else:
             raise Http404
 
     def post_action_set_priority(self, request, *args, **kwargs):
-        if not self.is_staff_user:
-            raise Http404
-        if self.ticket.status == Ticket.Status.CLOSED:
+        if not self.is_staff_user or self.ticket.status == Ticket.Status.CLOSED:
             raise Http404
 
         priority_form = TicketPriorityForm(request.POST, instance=self.ticket)
@@ -84,6 +83,8 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
             comment.save()
             messages.success(request, "Comment added.")
             return redirect("ticket_detail", url_code=kwargs.get("url_code"))
+
+        return self.get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
