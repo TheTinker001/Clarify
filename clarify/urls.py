@@ -49,9 +49,9 @@ urlpatterns = [
         name="ticket_unclaim",
     ),
     path(
-        "profile/<int:pk>/",
-        views.ProfileDetailOtherUserView.as_view(),
-        name="profile_detail_other_user",
+        "profile_otheruser/<str:username>/",
+        views.ProfileOtherUserView.as_view(),
+        name="profile_other_user",
     ),
 ]
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

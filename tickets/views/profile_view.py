@@ -69,10 +69,12 @@ class ProfileView(LoginRequiredMixin, UserProfileContext, UpdateView):
         return reverse("dashboard")
 
 
-class ProfileDetailOtherUserView(LoginRequiredMixin, UserProfileContext, DetailView):
+class ProfileOtherUserView(LoginRequiredMixin, UserProfileContext, DetailView):
     model = User
-    template_name = "profile_detail_other_user.html"
+    template_name = "profile_other_user.html"
     context_object_name = "profile_user"
+    slug_field = "username"
+    slug_url_kwarg = "username"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
