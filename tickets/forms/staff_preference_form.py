@@ -14,17 +14,17 @@ class StaffPreferenceForm(forms.ModelForm):
     faculties = forms.MultipleChoiceField(
         choices=Ticket.Faculty.choices,
         required=False,
-        widget=forms.CheckboxSelectMultiple,
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "faculty-checkbox"}),
     )
     study_levels = forms.MultipleChoiceField(
         choices=Ticket.StudyLevel.choices,
         required=False,
-        widget=forms.CheckboxSelectMultiple,
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "study-level-checkbox"}),
     )
     categories = forms.MultipleChoiceField(
         choices=Ticket.Category.choices,
         required=False,
-        widget=forms.CheckboxSelectMultiple,
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "category-checkbox"}),
     )
 
     class Meta:

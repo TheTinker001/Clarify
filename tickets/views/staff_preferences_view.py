@@ -31,6 +31,9 @@ class StaffPreferencesView(LoginRequiredMixin, UpdateView):
         return reverse("profile")
 
     def dispatch(self, request, *args, **kwargs):
-        if request.user.user_type != User.USER_TYPE_STAFF:
+        if (
+            not request.user.is_authenticated
+            or request.user.user_type != User.USER_TYPE_STAFF
+        ):
             raise Http404("Page not found")
         return super().dispatch(request, *args, **kwargs)
