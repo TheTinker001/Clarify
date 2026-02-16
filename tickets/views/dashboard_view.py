@@ -10,6 +10,14 @@ from tickets.models import Ticket, User
 
 
 class DashboardView(LoginRequiredMixin, TemplateView):
+    """
+    Display the current user's dashboard.
+
+    This view renders the dashboard page for the authenticated user.
+    Only logged-in users can access the page.
+    If a user is not authenticated, they are automatically redirected to the login page.
+    """
+
     template_name = "dashboard.html"
     TAB_LABELS = {
         "open_tickets": "Open",

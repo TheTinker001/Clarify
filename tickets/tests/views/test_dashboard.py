@@ -273,7 +273,7 @@ class DashboardViewTestCase(TestCase, LogInTester):
                 priority=i,
             )
 
-        # returns all without sorting since students don't have sorting options
+        # Returns all without sorting since students don't have sorting options
         response = self.client.get(self.url, {"tab": "open_tickets", "sort": "high"})
         self.assertEqual(response.status_code, 200)
         tickets = response.context["page_obj"].object_list
