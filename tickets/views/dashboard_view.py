@@ -27,7 +27,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         "overdue_tickets": "Overdue",
         "closed_tickets": "Closed",
     }
-    default_sorting = "created_at"
+    default_sorting = "-created_at"
 
     def get_tab(self):
         tab = self.request.GET.get("tab", "open_tickets")
@@ -109,7 +109,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         else:
             qs = groups[tab].order_by(self.default_sorting)
 
-        return qs
+        return tab, qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -117,7 +117,8 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         current_user = self.request.user
         groups = self.get_QS_by_user_type(current_user)
         tab = self.get_tab()
-        qs = self.get_queryset_for_tab(groups, tab, current_user)
+
+        tab, qs = self.get_queryset_for_tab(groups, tab, current_user)
 
         paginator = Paginator(qs, settings.ITEMS_PER_PAGE)
         page_number = self.request.GET.get("page")

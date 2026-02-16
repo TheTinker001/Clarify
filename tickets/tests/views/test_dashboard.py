@@ -298,3 +298,31 @@ class DashboardViewTestCase(TestCase, LogInTester):
         self.assertEqual(response.status_code, 200)
         tickets = response.context["page_obj"].object_list
         self.assertEqual(len(tickets), len(Ticket.objects.all()))
+
+    def test_dashboard_tab_not_in_groups_defaults_to_open_for_staff(self):
+        self.client.login(username=self.staff.username, password="Password123")
+
+        # Create 2 "open" tickets for staff (unassigned, awaiting staff, not overdue)
+        for i in range(2):
+            Ticket.objects.create(
+                **self.ticket_data,
+                subject=f"Open {i+1}",
+                status=Ticket.Status.AWAITING_STAFF,
+                assigned_to=None,
+            )
+
+        # Ticket not in open_tickets
+        Ticket.objects.create(
+            **self.ticket_data,
+            subject="Assigned",
+            status=Ticket.Status.AWAITING_STAFF,
+            assigned_to=self.staff,
+        )
+
+        # This tab is valid in TAB_LABELS but doesn't exist in staff groups
+        response = self.client.get(self.url, {"tab": "in_progress_tickets"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["tab"], "open_tickets")
+        self.assertEqual(response.context["category"], "Open")
+        self.assertEqual(len(response.context["page_obj"].object_list), 2)

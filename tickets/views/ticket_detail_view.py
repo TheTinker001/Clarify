@@ -84,7 +84,7 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
             messages.success(request, "Comment added.")
             return redirect("ticket_detail", url_code=kwargs.get("url_code"))
 
-        return self.get(request, *args, **kwargs)
+        return self.render_to_response(self.get_context_data(form=comment_form))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
