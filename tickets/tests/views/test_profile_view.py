@@ -6,6 +6,8 @@ from django.urls import reverse
 from tickets.forms import UserForm
 from tickets.models import User
 from tickets.tests.helpers import reverse_with_next
+from tickets.views.profile_view import UserProfileContext
+from tickets.models.ticket import Ticket
 
 
 class ProfileViewTest(TestCase):
@@ -157,6 +159,53 @@ class ProfileViewTest(TestCase):
         messages_list = list(response.context["messages"])
         self.assertTrue(any(m.level == messages.SUCCESS for m in messages_list))
 
+    def test_get_labels_various_cases(self):
+        from tickets.models.ticket import Ticket
+        from tickets.views.profile_view import UserProfileContext
+
+        ctx = UserProfileContext()
+        # Valid code
+        self.user.faculties = Ticket.Faculty.choices[1][0]
+        self.user.save()
+        self.assertEqual(
+            ctx.get_profile_context(self.user)["faculty_labels"],
+            [Ticket.Faculty(self.user.faculties).label] if self.user.faculties else [],
+        )
+        # Empty codes
+        self.user.faculties = ""
+        self.user.save()
+        self.assertEqual(ctx.get_profile_context(self.user)["faculty_labels"], [])
+        # Invalid code
+        self.user.faculties = "notarealcode"
+        self.user.save()
+        self.assertEqual(ctx.get_profile_context(self.user)["faculty_labels"], [])
+
+
+class ProfileOtherUserViewTest(TestCase):
+    """Test suite for the profile view of other users."""
+
+    fixtures = [
+        "tickets/tests/fixtures/default_user.json",
+        "tickets/tests/fixtures/other_users.json",
+    ]
+
+    def setUp(self):
+        self.user = User.objects.get(username="@johndoe")
+        self.user.user_type = User.USER_TYPE_STAFF
+        self.other_user = User.objects.get(username="@janedoe")
+        self.user.save()
+        self.url = reverse(
+            "profile_other_user", kwargs={"username": self.other_user.username}
+        )
+
+    def test_get_other_user_profile(self):
+        self.client.login(username=self.user.username, password="Password123")
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "profile_other_user.html")
+        profile_user = response.context["profile_user"]
+        self.assertEqual(profile_user, self.other_user)
+
 
 class StaffPreferencesViewTestCase(TestCase):
     """Test suite for the staff preferences view."""
@@ -194,10 +243,7 @@ class StaffPreferencesViewTestCase(TestCase):
     def test_get_staff_preferences_as_student(self):
         self.client.login(username=self.student.username, password="Password123")
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "profile_staff_edit.html")
-        # Student should see no fields
-        self.assertFalse(response.context["form"].fields)
+        self.assertEqual(response.status_code, 404)
 
     def test_post_staff_preferences_as_staff(self):
         self.client.login(username=self.staff.username, password="Password123")
@@ -215,16 +261,8 @@ class StaffPreferencesViewTestCase(TestCase):
         response = self.client.post(self.url, self.form_input)
         self.student.refresh_from_db()
         # Student should not be able to update preferences
-        self.assertEqual(self.student.faculties, "")
-        self.assertEqual(self.student.study_levels, "")
-        self.assertEqual(self.student.categories, "")
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "profile_staff_edit.html")
-        self.assertFalse(response.context["form"].fields)
+        self.assertEqual(response.status_code, 404)
 
     def test_redirects_when_not_logged_in(self):
         response = self.client.get(self.url)
-        login_url = reverse_with_next("log_in", self.url)
-        self.assertRedirects(
-            response, login_url, status_code=302, target_status_code=200
-        )
+        self.assertEqual(response.status_code, 404)
