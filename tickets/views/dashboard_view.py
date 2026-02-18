@@ -8,6 +8,8 @@ from django.views.generic import TemplateView
 
 from tickets.models import Ticket, User
 
+from django.db.models import Q
+
 
 class DashboardView(LoginRequiredMixin, TemplateView):
     """
@@ -111,6 +113,21 @@ class DashboardView(LoginRequiredMixin, TemplateView):
 
         return tab, qs
 
+    def get_queryset_for_search_term(self, qs, current_user):
+        if current_user.user_type == User.USER_TYPE_STAFF:
+            search_term = self.request.GET.get("searchTerm", "")
+            qs = qs.filter(
+                Q(subject__icontains=search_term)
+                | Q(body__icontains=search_term)
+                | Q(student__username__icontains=search_term)
+                | Q(student__first_name__icontains=search_term)
+                | Q(student__last_name__icontains=search_term)
+                | Q(assigned_to__username__icontains=search_term)
+                | Q(assigned_to__first_name__icontains=search_term)
+                | Q(assigned_to__last_name__icontains=search_term)
+            ).order_by(self.default_sorting)
+        return qs
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
@@ -119,6 +136,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         tab = self.get_tab()
 
         tab, qs = self.get_queryset_for_tab(groups, tab, current_user)
+        qs = self.get_queryset_for_search_term(qs, current_user)
 
         paginator = Paginator(qs, settings.ITEMS_PER_PAGE)
         page_number = self.request.GET.get("page")
@@ -138,6 +156,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 "total": qs.count(),
                 "querystring": querystring,
                 "priority_sort": self.request.GET.get("sort", ""),
+                "searchTerm": self.request.GET.get("searchTerm", ""),
             }
         )
         return context
