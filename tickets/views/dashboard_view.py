@@ -115,8 +115,9 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         return tab, qs
 
     def get_queryset_for_search_term(self, qs, current_user):
+        # could use shlex in the future e.g., $username:"@johndoe"
         if current_user.user_type == User.USER_TYPE_STAFF:
-            search_term = self.request.GET.get("searchTerm", "")
+            search_term = self.request.GET.get("searchTerm", "").strip()
             if search_term:
                 qs = (
                     qs.annotate(
