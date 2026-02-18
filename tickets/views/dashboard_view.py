@@ -128,6 +128,20 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             ).order_by(self.default_sorting)
         return qs
 
+    def get_search_term(self):
+        term = self.request.GET.get("searchTerm", None)
+
+        if term is not None:
+            term = term.strip()
+            self.request.session["dashboard_searchTerm"] = term
+            return term
+
+        if "tab" in self.request.GET:
+            return self.request.session.get("dashboard_searchTerm", "")
+
+        self.request.session.pop("dashboard_searchTerm", None)
+        return ""
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
@@ -156,7 +170,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 "total": qs.count(),
                 "querystring": querystring,
                 "priority_sort": self.request.GET.get("sort", ""),
-                "searchTerm": self.request.GET.get("searchTerm", ""),
+                "searchTerm": self.get_search_term(),
             }
         )
         return context
