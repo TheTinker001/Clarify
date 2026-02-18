@@ -8,7 +8,8 @@ from django.views.generic import TemplateView
 
 from tickets.models import Ticket, User
 
-from django.db.models import Q
+from django.db.models import Q, Value
+from django.db.models.functions import Concat
 
 
 class DashboardView(LoginRequiredMixin, TemplateView):
@@ -116,18 +117,26 @@ class DashboardView(LoginRequiredMixin, TemplateView):
     def get_queryset_for_search_term(self, qs, current_user):
         if current_user.user_type == User.USER_TYPE_STAFF:
             search_term = self.request.GET.get("searchTerm", "")
-            qs = qs.filter(
-                Q(subject__icontains=search_term)
-                | Q(body__icontains=search_term)
-                | Q(student__username__icontains=search_term)
-                | Q(student__first_name__icontains=search_term)
-                | Q(student__last_name__icontains=search_term)
-                | Q(assigned_to__username__icontains=search_term)
-                | Q(assigned_to__first_name__icontains=search_term)
-                | Q(assigned_to__last_name__icontains=search_term)
-            ).order_by(self.default_sorting)
+            if search_term:
+                qs = (
+                    qs.annotate(
+                        student_full_name=Concat(
+                            "student__first_name", Value(" "), "student__last_name"
+                        )
+                    )
+                    .filter(
+                        Q(subject__icontains=search_term)
+                        | Q(body__icontains=search_term)
+                        | Q(student__username__icontains=search_term)
+                        | Q(student_full_name__icontains=search_term)
+                    )
+                    .order_by(self.default_sorting)
+                )
+
         return qs
 
+    # Search term is stored in the session to preserve between tab changes to make it easier to search without retyping between tab changes.
+    # Ideally cleared when user goes to a different page other than dashboard, detected with missing tab parameter
     def get_search_term(self):
         term = self.request.GET.get("searchTerm", None)
 
