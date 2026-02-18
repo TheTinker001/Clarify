@@ -1,10 +1,8 @@
 """Tests of dashboard searching feature."""
 
 from datetime import timedelta
-from django.contrib.auth.hashers import check_password
 from django.test import TestCase
 from django.urls import reverse
-from clarify import settings
 from tickets.models import User
 from tickets.models.ticket import Ticket
 from tickets.tests.helpers import LogInTester
