@@ -20,7 +20,7 @@ class StaffPreferencesView(LoginRequiredMixin, UpdateView):
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
 
-        # hide staff-only fields for students
+        # Hide staff-only fields for students
         if self.request.user.user_type != User.USER_TYPE_STAFF:
             form.fields.clear()
 
