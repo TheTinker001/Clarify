@@ -153,6 +153,11 @@
             </div>
           </div>
         </div>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="close_ticket">
+          <button type="submit" class="btn btn-success">Mark as solved</button>
+        </form>
       {% endif %}
     </div>
   </div>

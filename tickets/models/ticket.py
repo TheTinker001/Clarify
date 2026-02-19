@@ -146,6 +146,8 @@ class Ticket(models.Model):
     closed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    awaiting_student_since = models.DateTimeField(null=True, blank=True, db_index=True)
+
     url_code = models.CharField(max_length=64, unique=True, blank=True, null=False)
 
     def clean(self):
