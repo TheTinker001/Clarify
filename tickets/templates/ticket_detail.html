@@ -21,6 +21,40 @@
             <p class="card-text text-muted">{{ ticket.body }}</p>
           </div>
         </div>
+
+        <!-- Responses -->
+        {% if responses %}
+          <h5 class="mt-4">Responses</h5>
+          {% for resp in responses %}
+            <div class="card mt-2 {% if resp.author.user_type == 'staff' %}border-primary{% else %}border-secondary{% endif %}">
+              <div class="card-body">
+                <div class="d-flex justify-content-between">
+                  <strong>{{ resp.author.full_name }}</strong>
+                  <small class="text-muted">{{ resp.created_at|date:"M j, Y, P" }}</small>
+                </div>
+                <span class="badge {% if resp.author.user_type == 'staff' %}bg-primary{% else %}bg-secondary{% endif %} mb-2">{{ resp.author.get_user_type_display }}</span>
+                <p class="card-text mb-0">{{ resp.body|linebreaksbr }}</p>
+              </div>
+            </div>
+          {% endfor %}
+        {% endif %}
+
+        <!-- Reply form -->
+        {% if ticket.status != "closed" %}
+          <div class="card mt-4">
+            <div class="card-body">
+              <h5 class="card-title">Reply</h5>
+              <form method="post">
+                {% csrf_token %}
+                {{ form.body }}
+                {% if form.body.errors %}
+                  <div class="text-danger mt-1">{{ form.body.errors }}</div>
+                {% endif %}
+                <button type="submit" class="btn btn-primary mt-2">Send Response</button>
+              </form>
+            </div>
+          </div>
+        {% endif %}
       </div>
       <div class="col-12 col-lg-4 mt-3 mt-lg-0">
         <div class="card ticket-card-detail">

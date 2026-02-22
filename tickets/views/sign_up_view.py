@@ -3,6 +3,7 @@ from django.contrib.auth import login
 from django.views.generic.edit import FormView
 from django.urls import reverse
 from tickets.forms import SignUpForm
+from tickets.models import User
 from tickets.views.decorators import LoginProhibitedMixin
 
 
@@ -35,5 +36,11 @@ class SignUpView(LoginProhibitedMixin, FormView):
     def get_success_url(self):
         """
         Determine the redirect URL after successful registration.
+
+        Staff users are redirected to their preferences page so they can
+        configure which ticket types they want to handle. Students are
+        redirected to the dashboard.
         """
+        if self.object.user_type == User.USER_TYPE_STAFF:
+            return reverse("profile_staff_edit")
         return reverse(settings.REDIRECT_URL_WHEN_LOGGED_IN)

@@ -12,8 +12,11 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from django.contrib.messages import constants as messages
+from dotenv import load_dotenv
 import os
 import sys
+
+load_dotenv()
 
 # Label the environment we are in.
 # This is set up for PythonAnywhere deployment and must change if the
@@ -161,6 +164,24 @@ MESSAGE_TAGS = {
     messages.ERROR: "danger",
 }
 
+# Base URL for links in emails
+
+#   TODO: SHOULD BE CHANGED TO THE ACTUAL URL OF THE WEBSITE (localhost works as a fallback for now)
+SITE_URL = os.getenv("SITE_URL", "http://localhost:8000")
+
+
+# Email (SMTP) configuration
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
+
+# Pagination
+ITEMS_PER_PAGE = 20
+
 # Security settings
 if ENVIRONMENT == "production":
     SECURE_HSTS_SECONDS = 3600
@@ -169,6 +190,3 @@ if ENVIRONMENT == "production":
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_HSTS_PRELOAD = True
-
-# Pagination settings
-ITEMS_PER_PAGE = 20

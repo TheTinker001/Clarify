@@ -236,6 +236,127 @@ class DashboardViewTestCase(TestCase, LogInTester):
         self.assertEqual(resp.context["tab"], "open_tickets")
         self.assertEqual(len(resp.context["page_obj"].object_list), 0)
 
+    def test_staff_dashboard_filters_by_faculty_preference(self):
+        self.staff.faculties = "kbs"
+        self.staff.study_levels = ""
+        self.staff.categories = ""
+        self.staff.save()
+        self.client.login(username=self.staff.username, password="Password123")
+
+        Ticket.objects.create(
+            student=self.student,
+            faculty="kbs",
+            study_level="undergraduate",
+            category="other",
+            subject="KBS ticket",
+            body="Body",
+        )
+        Ticket.objects.create(
+            student=self.student,
+            faculty="nmes",
+            study_level="undergraduate",
+            category="other",
+            subject="NMES ticket",
+            body="Body",
+        )
+
+        resp = self.client.get(self.url, {"tab": "open_tickets"})
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(resp.context["page_obj"].object_list), 1)
+        self.assertEqual(
+            resp.context["page_obj"].object_list[0].subject, "KBS ticket"
+        )
+
+    def test_staff_dashboard_filters_by_study_level_preference(self):
+        self.staff.faculties = ""
+        self.staff.study_levels = "undergraduate"
+        self.staff.categories = ""
+        self.staff.save()
+        self.client.login(username=self.staff.username, password="Password123")
+
+        Ticket.objects.create(
+            student=self.student,
+            faculty="kbs",
+            study_level="undergraduate",
+            category="other",
+            subject="UG ticket",
+            body="Body",
+        )
+        Ticket.objects.create(
+            student=self.student,
+            faculty="kbs",
+            study_level="postgraduate_taught",
+            category="other",
+            subject="PG ticket",
+            body="Body",
+        )
+
+        resp = self.client.get(self.url, {"tab": "open_tickets"})
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(resp.context["page_obj"].object_list), 1)
+        self.assertEqual(
+            resp.context["page_obj"].object_list[0].subject, "UG ticket"
+        )
+
+    def test_staff_dashboard_filters_by_category_preference(self):
+        self.staff.faculties = ""
+        self.staff.study_levels = ""
+        self.staff.categories = "welfare"
+        self.staff.save()
+        self.client.login(username=self.staff.username, password="Password123")
+
+        Ticket.objects.create(
+            student=self.student,
+            faculty="kbs",
+            study_level="undergraduate",
+            category="welfare",
+            subject="Welfare ticket",
+            body="Body",
+        )
+        Ticket.objects.create(
+            student=self.student,
+            faculty="kbs",
+            study_level="undergraduate",
+            category="other",
+            subject="Other ticket",
+            body="Body",
+        )
+
+        resp = self.client.get(self.url, {"tab": "open_tickets"})
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(resp.context["page_obj"].object_list), 1)
+        self.assertEqual(
+            resp.context["page_obj"].object_list[0].subject, "Welfare ticket"
+        )
+
+    def test_staff_dashboard_no_preferences_shows_all_tickets(self):
+        self.staff.faculties = ""
+        self.staff.study_levels = ""
+        self.staff.categories = ""
+        self.staff.save()
+        self.client.login(username=self.staff.username, password="Password123")
+
+        Ticket.objects.create(
+            student=self.student,
+            faculty="kbs",
+            study_level="undergraduate",
+            category="welfare",
+            subject="Ticket 1",
+            body="Body",
+        )
+        Ticket.objects.create(
+            student=self.student,
+            faculty="nmes",
+            study_level="postgraduate_taught",
+            category="other",
+            subject="Ticket 2",
+            body="Body",
+        )
+
+        resp = self.client.get(self.url, {"tab": "open_tickets"})
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(resp.context["page_obj"].object_list), 2)
+
     def test_ticket_card_contains_link_to_ticket_detail(self):
         self.client.login(username=self.student.username, password="Password123")
         ticket = Ticket.objects.create(

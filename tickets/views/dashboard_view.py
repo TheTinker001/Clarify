@@ -32,6 +32,18 @@ def dashboard(request):
         tickets = Ticket.objects.all().order_by("-created_at")
         overdue_cutoff = timezone.now() - timedelta(days=5)
 
+        # Filter tickets by staff preferences (faculty, study_level, category).
+        # If a preference field is empty, show all (no restriction).
+        if current_user.faculties:
+            pref_faculties = current_user.faculties.split(",")
+            tickets = tickets.filter(faculty__in=pref_faculties)
+        if current_user.study_levels:
+            pref_study_levels = current_user.study_levels.split(",")
+            tickets = tickets.filter(study_level__in=pref_study_levels)
+        if current_user.categories:
+            pref_categories = current_user.categories.split(",")
+            tickets = tickets.filter(category__in=pref_categories)
+
         # staff cant see tickets assigned to others
         groups = {
             "open_tickets": tickets.filter(

@@ -5,6 +5,7 @@ from django.test import TestCase
 from django.urls import reverse
 from tickets.forms import UserForm
 from tickets.models import User
+from tickets.models.ticket import Ticket
 from tickets.tests.helpers import reverse_with_next
 
 
@@ -221,6 +222,31 @@ class StaffPreferencesViewTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "profile_staff_edit.html")
         self.assertFalse(response.context["form"].fields)
+
+    def test_all_options_selected_by_default_for_new_staff(self):
+        """When a staff user has no preferences saved, all options should be selected."""
+        self.client.login(username=self.staff.username, password="Password123")
+        response = self.client.get(self.url)
+        form = response.context["form"]
+        all_faculties = [code for code, _ in Ticket.Faculty.choices if code]
+        all_study_levels = [code for code, _ in Ticket.StudyLevel.choices if code]
+        all_categories = [code for code, _ in Ticket.Category.choices if code]
+        self.assertEqual(form.fields["faculties"].initial, all_faculties)
+        self.assertEqual(form.fields["study_levels"].initial, all_study_levels)
+        self.assertEqual(form.fields["categories"].initial, all_categories)
+
+    def test_saved_preferences_shown_instead_of_defaults(self):
+        """When a staff user has saved preferences, those should be shown."""
+        self.staff.faculties = "kbs,nmes"
+        self.staff.study_levels = "undergraduate"
+        self.staff.categories = "welfare"
+        self.staff.save()
+        self.client.login(username=self.staff.username, password="Password123")
+        response = self.client.get(self.url)
+        form = response.context["form"]
+        self.assertEqual(form.fields["faculties"].initial, ["kbs", "nmes"])
+        self.assertEqual(form.fields["study_levels"].initial, ["undergraduate"])
+        self.assertEqual(form.fields["categories"].initial, ["welfare"])
 
     def test_redirects_when_not_logged_in(self):
         response = self.client.get(self.url)

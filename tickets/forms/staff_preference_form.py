@@ -35,15 +35,20 @@ class StaffPreferenceForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Convert comma-separated string to list for initial display
+        # Convert comma-separated string to list for initial display.
+        # If a staff user has no preferences saved yet, default to all options selected.
+        all_faculties = [code for code, _ in Ticket.Faculty.choices if code]
+        all_study_levels = [code for code, _ in Ticket.StudyLevel.choices if code]
+        all_categories = [code for code, _ in Ticket.Category.choices if code]
+
         self.fields["faculties"].initial = (
-            self.instance.faculties.split(",") if self.instance.faculties else []
+            self.instance.faculties.split(",") if self.instance.faculties else all_faculties
         )
         self.fields["study_levels"].initial = (
-            self.instance.study_levels.split(",") if self.instance.study_levels else []
+            self.instance.study_levels.split(",") if self.instance.study_levels else all_study_levels
         )
         self.fields["categories"].initial = (
-            self.instance.categories.split(",") if self.instance.categories else []
+            self.instance.categories.split(",") if self.instance.categories else all_categories
         )
 
     def clean(self):
