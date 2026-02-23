@@ -1,23 +1,80 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block body %}
-  <div class="container vh-100">
-    <div class="row h-100">
-      <div class="col-12 my-auto">
-        <div class="card cover-card offset-sm-2 offset-md-4 offset-lg-7">
-          <h1 class="cover-heading">Clarify</h1>
-          <p class="cover-text">
-            A ticketing system for student queries by Team <i>bug-hunters</i>
-          </p>
-          <p>
-            <a href='{% url 'sign_up' %}' class="btn btn-lg btn-secondary">Sign up</a>
-          </p>
-          <p>
-            <a href='{% url 'log_in' %}' class="btn btn-lg btn-secondary">Log in</a>
-          </p>
+    <div class="welcome-page">
+        <nav class="navbar navbar-dark bg-dark">
+            <div class="container">
+                <a class="navbar-brand" href="{% url 'home' %}">
+                    <i class="bi bi-door-open-fill"></i>
+                    Clarify
+                </a>
+            </div>
+        </nav>
+        <div class="container py-5">
+            <div class="row align-items-center justify-content-center min-vh-100">
+                <div class="col-lg-5 col-md-6 text-center text-lg-start mb-5 mb-lg-0">
+                    <img src="{% static 'door.jpg' %}" alt="Clarify Logo" class="welcome-logo">
+                    <h1 class="display-4 fw-bold mb-3 welcome-heading">Clarify</h1>
+                    <p class="lead text-muted mb-2">Open the door to student support.</p>
+                    <p class="text-muted small">
+                        by Team <span class="fw-semibold welcome-subtext">bug-hunters</span>
+                    </p>
+                    <div class="row mt-5 text-center text-lg-start">
+                        <div class="col-4">
+                            <h4 class="fw-bold welcome-heading">Fast</h4>
+                            <p class="text-muted small">Quick responses</p>
+                        </div>
+                        <div class="col-4">
+                            <h4 class="fw-bold welcome-heading">Safe</h4>
+                            <p class="text-muted small">Secure platform</p>
+                        </div>
+                        <div class="col-4">
+                            <h4 class="fw-bold welcome-heading">Simple</h4>
+                            <p class="text-muted small">Easy to use</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-1 d-none d-lg-flex justify-content-center">
+                    <div class="welcome-divider"></div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="card border-0 shadow-sm rounded-4 p-4">
+                        <div class="card-body">
+                            <h4 class="fw-bold mb-1">Get Started</h4>
+                            <p class="text-muted small mb-4">Create an account or log in to continue</p>
+                            <div class="d-grid gap-3">
+                                <a href="{% url 'sign_up' %}"
+                                   class="btn btn-lg rounded-3 fw-semibold welcome-btn-primary">Create an account</a>
+                                <a href="{% url 'log_in' %}"
+                                   class="btn btn-lg rounded-3 fw-semibold welcome-btn-outline">Log in</a>
+                            </div>
+                            <hr class="my-4">
+                            <div class="d-flex align-items-start mb-3">
+                                <i class="bi bi-patch-check-fill me-3 mt-1 welcome-feature-icon"></i>
+                                <div>
+                                    <p class="fw-semibold mb-0 small">Raise a ticket instantly</p>
+                                    <p class="text-muted mb-0" style="font-size: 0.8rem;">Get support from your faculty staff</p>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-start mb-3">
+                                <i class="bi bi-lock-fill me-3 mt-1 welcome-feature-icon"></i>
+                                <div>
+                                    <p class="fw-semibold mb-0 small">Private & Secure</p>
+                                    <p class="text-muted mb-0" style="font-size: 0.8rem;">Your queries are kept confidential</p>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-start">
+                                <i class="bi bi-bell-fill me-3 mt-1 welcome-feature-icon"></i>
+                                <div>
+                                    <p class="fw-semibold mb-0 small">Track your tickets</p>
+                                    <p class="text-muted mb-0" style="font-size: 0.8rem;">Monitor progress in real-time</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-center text-muted small mt-3">&copy; 2026 Clarify by team bug-hunters</p>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
-  <hr>
-  <h5>© 2026 Clarify by team bug-hunters</h5>
 {% endblock %}
