@@ -199,14 +199,18 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 "total": qs.count(),
                 "querystring": querystring,
                 "searchTerm": self.get_search_term(),
-                "priority_choices": Ticket.Priority.choices,
-                "faculty_choices": Ticket.Faculty.choices,
-                "study_level_choices": Ticket.StudyLevel.choices,
-                "category_choices": Ticket.Category.choices,
-                "selected_priority": self.request.GET.get("priority", ""),
-                "selected_faculty": self.request.GET.get("faculty", ""),
-                "selected_study_level": self.request.GET.get("study_level", ""),
-                "selected_category": self.request.GET.get("category", ""),
+                "filters": {
+                    "priority": self.request.GET.get("priority", ""),
+                    "faculty": self.request.GET.get("faculty", ""),
+                    "study_level": self.request.GET.get("study_level", ""),
+                    "category": self.request.GET.get("category", ""),
+                },
+                "filter_choices": {
+                    "priority": Ticket.Priority.choices,
+                    "faculty": Ticket.Faculty.choices,
+                    "study_level": Ticket.StudyLevel.choices,
+                    "category": Ticket.Category.choices,
+                },
             }
         )
         return context

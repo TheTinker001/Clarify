@@ -66,7 +66,7 @@
                 <div class="card-body">
                     <form method="get" action="{% url 'dashboard' %}">
                         <input type="hidden" name="tab" value="{{ tab }}">
-                        <input type="hidden" name="sort" value="{{ priority_sort }}">
+                        <input type="hidden" name="sort" value="{{ filters.priority }}">
                         <!-- Search bar + buttons -->
                         <div class="d-flex align-items-center gap-3">
                             <input type="text"
@@ -89,16 +89,16 @@
                         </div>
                         <!-- Filters -->
                         <!-- if altering, make sure collapse animation is not choppy-->
-                        <div class="collapse {% if selected_faculty or selected_study_level or selected_category %}show{% endif %}"
+                        <div class="collapse {% if filters.faculty or filters.study_level or filters.category %}show{% endif %}"
                              id="filterSelectionGroup">
                             <div class="pt-3">
                                 <div class="row g-3">
                                     <div class="col-md-4">
                                         <label for="facultyFilter" class="form-label small text-muted mb-1">Faculty</label>
                                         <select class="form-select" name="faculty" id="facultyFilter">
-                                            {% for value, label in faculty_choices %}
+                                            {% for value, label in filter_choices.faculty %}
                                                 <option value="{{ value }}"
-                                                        {% if selected_faculty == value %}selected{% endif %}>
+                                                        {% if filters.faculty == value %}selected{% endif %}>
                                                     {% if value == "" %}
                                                         All faculties
                                                     {% else %}
@@ -111,9 +111,9 @@
                                     <div class="col-md-4">
                                         <label for="studyLevelFilter" class="form-label small text-muted mb-1">Study level</label>
                                         <select class="form-select" name="study_level" id="studyLevelFilter">
-                                            {% for value, label in study_level_choices %}
+                                            {% for value, label in filter_choices.study_level %}
                                                 <option value="{{ value }}"
-                                                        {% if selected_study_level == value %}selected{% endif %}>
+                                                        {% if filters.study_level == value %}selected{% endif %}>
                                                     {% if value == "" %}
                                                         All study levels
                                                     {% else %}
@@ -126,9 +126,9 @@
                                     <div class="col-md-4">
                                         <label for="categoryFilter" class="form-label small text-muted mb-1">Category</label>
                                         <select class="form-select" name="category" id="categoryFilter">
-                                            {% for value, label in category_choices %}
+                                            {% for value, label in filter_choices.category %}
                                                 <option value="{{ value }}"
-                                                        {% if selected_category == value %}selected{% endif %}>
+                                                        {% if filters.category == value %}selected{% endif %}>
                                                     {% if value == "" %}
                                                         All categories
                                                     {% else %}
@@ -162,16 +162,16 @@
                             <form method="get" class="d-flex align-items-center">
                                 <input type="hidden" name="tab" value="{{ tab }}">
                                 <input type="hidden" name="searchTerm" value="{{ searchTerm }}">
-                                <input type="hidden" name="faculty" value="{{ selected_faculty }}">
-                                <input type="hidden" name="study_level" value="{{ selected_study_level }}">
-                                <input type="hidden" name="category" value="{{ selected_category }}">
+                                <input type="hidden" name="faculty" value="{{ filters.faculty }}">
+                                <input type="hidden" name="study_level" value="{{ filters.study_level }}">
+                                <input type="hidden" name="category" value="{{ filters.category }}">
                                 <select class="form-select form-select-sm w-auto"
                                         name="priority"
                                         onchange="this.form.submit()">
-                                    <option value="" {% if selected_priority == "" %}selected{% endif %}>All priorities</option>
-                                    {% for value, label in priority_choices %}
+                                    <option value="" {% if filters.priority == "" %}selected{% endif %}>All priorities</option>
+                                    {% for value, label in filter_choices.priority %}
                                         <option value="{{ value }}"
-                                                {% if selected_priority == value %}selected{% endif %}>
+                                                {% if filters.priority == value %}selected{% endif %}>
                                             {{ label }}
                                         </option>
                                     {% endfor %}
