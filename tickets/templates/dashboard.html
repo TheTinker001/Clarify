@@ -29,28 +29,6 @@
                         <a href="{% url 'create_ticket' %}" class="btn btn-primary">Create New Ticket</a>
                     </div>
                 {% endif %}
-                <!-- Staff Search bar -->
-                {% if user.user_type == user.USER_TYPE_STAFF %}
-                    <div class="card mb-4 shadow-sm">
-                        <div class="card-body">
-                            <form method="get" action="{% url 'dashboard' %}">
-                                <input type="hidden" name="tab" value="{{ tab }}">
-                                <input type="hidden" name="sort" value="{{ priority_sort }}">
-                                <div class="mb-3">
-                                    <input type="text"
-                                           class="form-control form-control-lg"
-                                           name="searchTerm"
-                                           placeholder="Search tickets..."
-                                           value="{{ searchTerm }}"
-                                           id="searchInput">
-                                </div>
-                                <div class="mt-3">
-                                    <button class="btn btn-dark w-100" type="submit">Search</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                {% endif %}
             </div>
         </div>
         <!-- Buttons -->
@@ -82,6 +60,27 @@
                 {% endif %}
             </div>
         </div>
+        <!-- Staff Search bar -->
+        {% if user.user_type == user.USER_TYPE_STAFF %}
+            <form method="get"
+                  action="{% url 'dashboard' %}"
+                  class="d-flex align-items-center gap-2 mb-4">
+                <input type="hidden" name="tab" value="{{ tab }}">
+                <input type="hidden" name="sort" value="{{ priority_sort }}">
+                <input type="text"
+                       class="form-control"
+                       name="searchTerm"
+                       placeholder="Search tickets..."
+                       value="{{ searchTerm }}"
+                       id="searchInput">
+                <button type="button" class="btn btn-outline-secondary">
+                    <i class="bi bi-filter"></i>
+                </button>
+                <button type="submit" class="btn btn-dark">
+                    <i class="bi bi-search"></i>
+                </button>
+            </form>
+        {% endif %}
         <!-- Tickets -->
         <div class="row">
             <div class="col-12">
