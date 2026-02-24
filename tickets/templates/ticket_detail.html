@@ -17,6 +17,12 @@
               </span>
             {% endif %}
           </div>
+          {# Display ticket tags for UI consistency with dashboard view #}
+          <div class="mt-2">
+            <span class="badge bg-light text-dark me-1">{{ ticket.get_faculty_display }}</span>
+            <span class="badge bg-light text-dark me-1">{{ ticket.get_study_level_display }}</span>
+            <span class="badge bg-light text-dark">{{ ticket.get_category_display }}</span>
+          </div>
         </div>
       </div>
     </div>
