@@ -96,21 +96,44 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         if tab not in groups:
             tab = "open_tickets"
 
+        tab_qs = groups[tab]
+
         if current_user.user_type == User.USER_TYPE_STAFF:
             sort = self.request.GET.get("sort", "")
             if sort == "high":
-                qs = groups[tab].filter(priority=Ticket.Priority.HIGH)
+                qs = tab_qs.filter(priority=Ticket.Priority.HIGH)
             elif sort == "medium":
-                qs = groups[tab].filter(priority=Ticket.Priority.MEDIUM)
+                qs = tab_qs.filter(priority=Ticket.Priority.MEDIUM)
             elif sort == "low":
-                qs = groups[tab].filter(priority=Ticket.Priority.LOW)
+                qs = tab_qs.filter(priority=Ticket.Priority.LOW)
             elif sort == "pending":
-                qs = groups[tab].filter(priority=Ticket.Priority.PENDING_PRIORITY)
+                qs = tab_qs.filter(priority=Ticket.Priority.PENDING_PRIORITY)
             else:
-                qs = groups[tab]
+                qs = tab_qs
             qs = qs.order_by(self.default_sorting)
+
+            faculty_filter = self.request.GET.get("faculty", "")
+            if faculty_filter:
+                try:
+                    qs = qs.filter(faculty=faculty_filter)
+                except:
+                    pass
+
+            study_level_filter = self.request.GET.get("study_level", "")
+            if study_level_filter:
+                try:
+                    qs = qs.filter(study_level=study_level_filter)
+                except:
+                    pass
+
+            category_filter = self.request.GET.get("category", "")
+            if category_filter:
+                try:
+                    qs = qs.filter(category=category_filter)
+                except:
+                    pass
         else:
-            qs = groups[tab].order_by(self.default_sorting)
+            qs = tab_qs.order_by(self.default_sorting)
 
         return tab, qs
 
