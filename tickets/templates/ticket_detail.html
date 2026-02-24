@@ -1,5 +1,6 @@
 {% extends 'base_content.html' %}
 {% block content %}
+  {% load static %}
   <div class="container">
     <div class="row">
       <div class="col-12">
@@ -9,8 +10,10 @@
             <span class="badge bg-secondary text-uppercase">{{ ticket.get_status_display }}</span>
             <span class="text-muted">Ticket #{{ ticket.pk }}</span>
             {% if user.user_type == "staff" and ticket.status != ticket.Status.CLOSED %}
-              <span class="ms-auto text-uppercase badge {% if ticket.priority == ticket.Priority.HIGH %} bg-danger {% elif ticket.priority == ticket.Priority.MEDIUM %} bg-warning {% elif ticket.priority == ticket.Priority.LOW %} bg-success {% else %} bg-secondary {% endif %} ">
-                {{ ticket.get_priority_display }}
+              <span class="ms-auto  badge fs-1">
+                {% autoescape off %}
+                  {{ ticket.get_priority_icon }}
+                {% endautoescape %}
               </span>
             {% endif %}
           </div>
@@ -110,50 +113,46 @@
                 {{ ticket.updated_at|date:"M j, Y, P" }}
               </dd>
             </dl>
+            <div class="mb-3"></div>
             <!-- claiming -->
             {% if user.user_type == "staff" %}
               {% if ticket.assigned_to == user %}
-                <div class="d-flex justify-content-between align-items-start">
+                <div class="d-flex justify-content-between align-items-start mb-3">
                   <form method="post" action="{{ ticket.get_unclaim_url }}">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-sm btn-outline-danger">Unclaim</button>
                   </form>
                 </div>
               {% elif ticket.assigned_to %}
-                <div class="alert alert-warning d-flex align-items-center" role="alert">
+                <div class="alert alert-warning d-flex align-items-center mb-3"
+                     role="alert">
                   <span class="bi-flag me-2"></span>
                   Claimed by {{ ticket.assigned_to.get_full_name|default:ticket.assigned_to.username }}
                 </div>
               {% else %}
-                <div class="d-flex justify-content-between align-items-start">
+                <div class="d-flex justify-content-between align-items-start mb-3">
                   <form method="post" action="{{ ticket.get_claim_url }}">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-sm btn-outline-success">Claim</button>
                   </form>
                 </div>
               {% endif %}
+              <!-- priority updating -->
+              {% if ticket.status != ticket.Status.CLOSED %}
+                <form id="priority-form" method="post">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="set_priority">
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text">Priority</span>
+                    {{ ticket_priority_form.priority }}
+                    <button type="submit" form="priority-form" class="btn btn-outline-primary">Update</button>
+                  </div>
+                </form>
+              {% endif %}
             {% endif %}
           </div>
         </div>
-        <!-- priority updating -->
       </div>
-      {% if user.user_type == "staff" and ticket.status != ticket.Status.CLOSED %}
-        <div class="col-12 col-lg-4 mt-3 mt-lg-0">
-          <div class="card ticket-card-detail">
-            <div class="card-body">
-              <form id="priority-form" method="post">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="set_priority">
-                <div class="input-group input-group-sm">
-                  <span class="input-group-text">Priority</span>
-                  {{ ticket_priority_form.priority }}
-                  <button type="submit" form="priority-form" class="btn btn-outline-primary">Update</button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      {% endif %}
     </div>
   </div>
 {% endblock %}
