@@ -181,6 +181,12 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 "querystring": querystring,
                 "priority_sort": self.request.GET.get("sort", ""),
                 "searchTerm": self.get_search_term(),
+                "faculty_choices": Ticket.Faculty.choices,
+                "study_level_choices": Ticket.StudyLevel.choices,
+                "category_choices": Ticket.Category.choices,
+                "selected_faculty": self.request.GET.get("faculty", ""),
+                "selected_study_level": self.request.GET.get("study_level", ""),
+                "selected_category": self.request.GET.get("category", ""),
             }
         )
         return context
