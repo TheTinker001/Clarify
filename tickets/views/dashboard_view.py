@@ -92,25 +92,19 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             groups = {"open_tickets": tickets}
         return groups
 
-    def get_queryset_for_tab(self, groups, tab, current_user):
+    def get_queryset_for_tab_by_filters(self, groups, tab, current_user):
         if tab not in groups:
             tab = "open_tickets"
 
-        tab_qs = groups[tab]
+        qs = groups[tab]
 
         if current_user.user_type == User.USER_TYPE_STAFF:
-            sort = self.request.GET.get("sort", "")
-            if sort == "high":
-                qs = tab_qs.filter(priority=Ticket.Priority.HIGH)
-            elif sort == "medium":
-                qs = tab_qs.filter(priority=Ticket.Priority.MEDIUM)
-            elif sort == "low":
-                qs = tab_qs.filter(priority=Ticket.Priority.LOW)
-            elif sort == "pending":
-                qs = tab_qs.filter(priority=Ticket.Priority.PENDING_PRIORITY)
-            else:
-                qs = tab_qs
-            qs = qs.order_by(self.default_sorting)
+            priority_filter = self.request.GET.get("priority", "")
+            if priority_filter:
+                try:
+                    qs = qs.filter(priority=priority_filter)
+                except:
+                    pass
 
             faculty_filter = self.request.GET.get("faculty", "")
             if faculty_filter:
@@ -132,8 +126,10 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                     qs = qs.filter(category=category_filter)
                 except:
                     pass
+
+            qs = qs.order_by(self.default_sorting)
         else:
-            qs = tab_qs.order_by(self.default_sorting)
+            qs = qs.order_by(self.default_sorting)
 
         return tab, qs
 
@@ -182,7 +178,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         groups = self.get_QS_by_user_type(current_user)
         tab = self.get_tab()
 
-        tab, qs = self.get_queryset_for_tab(groups, tab, current_user)
+        tab, qs = self.get_queryset_for_tab_by_filters(groups, tab, current_user)
         qs = self.get_queryset_for_search_term(qs, current_user)
 
         paginator = Paginator(qs, settings.ITEMS_PER_PAGE)
@@ -202,11 +198,12 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 "tab": tab,
                 "total": qs.count(),
                 "querystring": querystring,
-                "priority_sort": self.request.GET.get("sort", ""),
                 "searchTerm": self.get_search_term(),
+                "priority_choices": Ticket.Priority.choices,
                 "faculty_choices": Ticket.Faculty.choices,
                 "study_level_choices": Ticket.StudyLevel.choices,
                 "category_choices": Ticket.Category.choices,
+                "selected_priority": self.request.GET.get("priority", ""),
                 "selected_faculty": self.request.GET.get("faculty", ""),
                 "selected_study_level": self.request.GET.get("study_level", ""),
                 "selected_category": self.request.GET.get("category", ""),

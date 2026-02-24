@@ -162,15 +162,19 @@
                             <form method="get" class="d-flex align-items-center">
                                 <input type="hidden" name="tab" value="{{ tab }}">
                                 <input type="hidden" name="searchTerm" value="{{ searchTerm }}">
+                                <input type="hidden" name="faculty" value="{{ selected_faculty }}">
+                                <input type="hidden" name="study_level" value="{{ selected_study_level }}">
+                                <input type="hidden" name="category" value="{{ selected_category }}">
                                 <select class="form-select form-select-sm w-auto"
-                                        name="sort"
+                                        name="priority"
                                         onchange="this.form.submit()">
-                                    <option value="" {% if not priority_sort %}selected{% endif %}>All</option>
-                                    <option value="high" {% if priority_sort == 'high' %}selected{% endif %}>High priority</option>
-                                    <option value="medium" {% if priority_sort == 'medium' %}selected{% endif %}>Medium priority</option>
-                                    <option value="low" {% if priority_sort == 'low' %}selected{% endif %}>Low priority</option>
-                                    <option value="pending"
-                                            {% if priority_sort == 'pending' %}selected{% endif %}>Pending</option>
+                                    <option value="" {% if selected_priority == "" %}selected{% endif %}>All priorities</option>
+                                    {% for value, label in priority_choices %}
+                                        <option value="{{ value }}"
+                                                {% if selected_priority == value %}selected{% endif %}>
+                                            {{ label }}
+                                        </option>
+                                    {% endfor %}
                                 </select>
                             </form>
                         {% endif %}
