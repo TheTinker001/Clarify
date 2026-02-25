@@ -41,6 +41,10 @@
                 </div>
                 <div class="card-body">
                   <p class="card-text mb-0">{{ comment.body }}</p>
+                  {% if comment.author == user %}
+                    <a href="{% url 'edit_comment' comment.pk %}"
+                       class="btn btn-sm btn-outline-secondary mt-2">Edit</a>
+                  {% endif %}
                 </div>
               </div>
             {% else %}
@@ -51,6 +55,10 @@
                 </div>
                 <div class="card-body">
                   <p class="card-text mb-0">{{ comment.body }}</p>
+                  {% if comment.author == user %}
+                    <a href="{% url 'edit_comment' comment.pk %}"
+                       class="btn btn-sm btn-outline-secondary mt-2">Edit</a>
+                  {% endif %}
                 </div>
               </div>
             {% endif %}

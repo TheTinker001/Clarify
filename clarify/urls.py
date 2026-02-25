@@ -50,6 +50,11 @@ urlpatterns = [
         views.TicketUnclaimView.as_view(),
         name="ticket_unclaim",
     ),
+    path(
+        "comment/<int:comment_id>/edit/",
+        views.EditCommentView.as_view(),
+        name="edit_comment",
+    ),
 ]
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
