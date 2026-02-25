@@ -17,6 +17,12 @@
                             </span>
                         {% endif %}
                     </div>
+                    <!-- Display ticket tags for UI consistency with dashboard view -->
+                    <div class="mt-2">
+                        <span class="badge bg-light text-dark me-1">{{ ticket.get_faculty_display }}</span>
+                        <span class="badge bg-light text-dark me-1">{{ ticket.get_study_level_display }}</span>
+                        <span class="badge bg-light text-dark">{{ ticket.get_category_display }}</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -73,12 +79,14 @@
                                 <div class="card-body">
                                     <p class="card-text mb-0">{{ comment.body }}</p>
                                     {% if comment.attachments.all %}
-                <ul class="mt-1 mb-0">
-                    {% for attachment in comment.attachments.all %}
-                        <li><a href="{{ attachment.file.url }}" target="_blank">{{ attachment.filename }}</a></li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
+                                        <ul class="mt-1 mb-0">
+                                            {% for attachment in comment.attachments.all %}
+                                                <li>
+                                                    <a href="{{ attachment.file.url }}" target="_blank">{{ attachment.filename }}</a>
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% endif %}
                                 </div>
                             </div>
                         {% endif %}
@@ -86,7 +94,6 @@
                         <p class="text-muted">No comments yet.</p>
                     {% endfor %}
                 </div>
-                <!-- Comment form -->
                 <!-- Comment form -->
                 {% if user.user_type == "student" %}
                     <div class="card mt-3">
