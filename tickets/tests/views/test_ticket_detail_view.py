@@ -104,6 +104,13 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
         self.assertEqual(self.ticket.priority, initial_priority)
         self.assertEqual(response.status_code, 302)
 
+    def test_ticket_tags_displayed_in_ticket_detail(self):
+        self.client.login(username=self.student.username, password="Password123")
+        response = self.client.get(self.url)
+        self.assertContains(response, self.ticket.get_faculty_display(), html=True)
+        self.assertContains(response, self.ticket.get_study_level_display(), html=True)
+        self.assertContains(response, self.ticket.get_category_display(), html=True)
+
     def test_post_different_valid_priorities(self):
         self.client.login(username=self.staff.username, password="Password123")
         for priority in [
