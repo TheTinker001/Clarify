@@ -100,36 +100,24 @@ class DashboardView(LoginRequiredMixin, TemplateView):
 
         if current_user.user_type == User.USER_TYPE_STAFF:
             priority_filter = self.request.GET.get("priority", "")
-            if priority_filter:
-                try:
-                    qs = qs.filter(priority=priority_filter)
-                except:
-                    pass
+            if priority_filter and priority_filter in dict(Ticket.Priority.choices):
+                qs = qs.filter(priority=priority_filter)
 
             faculty_filter = self.request.GET.get("faculty", "")
-            if faculty_filter:
-                try:
-                    qs = qs.filter(faculty=faculty_filter)
-                except:
-                    pass
+            if faculty_filter and faculty_filter in dict(Ticket.Faculty.choices):
+                qs = qs.filter(faculty=faculty_filter)
 
             study_level_filter = self.request.GET.get("study_level", "")
-            if study_level_filter:
-                try:
-                    qs = qs.filter(study_level=study_level_filter)
-                except:
-                    pass
+            if study_level_filter and study_level_filter in dict(
+                Ticket.StudyLevel.choices
+            ):
+                qs = qs.filter(study_level=study_level_filter)
 
             category_filter = self.request.GET.get("category", "")
-            if category_filter:
-                try:
-                    qs = qs.filter(category=category_filter)
-                except:
-                    pass
+            if category_filter and category_filter in dict(Ticket.Category.choices):
+                qs = qs.filter(category=category_filter)
 
-            qs = qs.order_by(self.default_sorting)
-        else:
-            qs = qs.order_by(self.default_sorting)
+        qs = qs.order_by(self.default_sorting)
 
         return tab, qs
 

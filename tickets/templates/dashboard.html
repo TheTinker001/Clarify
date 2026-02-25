@@ -66,7 +66,7 @@
                 <div class="card-body">
                     <form method="get" action="{% url 'dashboard' %}">
                         <input type="hidden" name="tab" value="{{ tab }}">
-                        <input type="hidden" name="sort" value="{{ filters.priority }}">
+                        <input type="hidden" name="priority" value="{{ filters.priority }}">
                         <!-- Search bar + buttons -->
                         <div class="d-flex align-items-center gap-3">
                             <input type="text"
