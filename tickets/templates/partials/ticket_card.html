@@ -15,8 +15,10 @@
                     <p class="text-muted mb-0">Username: {{ ticket.student.username }}</p>
                 </div>
                 {% if ticket.status != ticket.Status.CLOSED %}
-                    <span class="badge {% if ticket.priority == ticket.Priority.HIGH %} bg-danger {% elif ticket.priority == ticket.Priority.MEDIUM %} bg-warning {% elif ticket.priority == ticket.Priority.LOW %} bg-success {% else %} bg-secondary {% endif %}">
-                        {{ ticket.get_priority_display }}
+                    <span class="badge fs-2">
+                        {% autoescape off %}
+                            {{ ticket.get_priority_icon }}
+                        {% endautoescape %}
                     </span>
                 {% endif %}
             </div>
