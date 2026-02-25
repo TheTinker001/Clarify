@@ -154,7 +154,7 @@
                             </dd>
                         </dl>
                         <div class="mb-3"></div>
-                        <!-- claiming -->
+                        <!-- Claiming -->
                         {% if user.user_type == "staff" %}
                             {% if ticket.assigned_to == user %}
                                 <div class="d-flex justify-content-between align-items-start mb-3">
@@ -177,7 +177,7 @@
                                     </form>
                                 </div>
                             {% endif %}
-                            <!-- priority updating -->
+                            <!-- Priority updating -->
                             {% if ticket.status != ticket.Status.CLOSED %}
                                 <form id="priority-form" method="post">
                                     {% csrf_token %}
