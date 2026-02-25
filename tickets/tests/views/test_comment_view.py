@@ -1,8 +1,10 @@
 """Tests for comment submission in the ticket detail view."""
 
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 
 from tickets.models import Comment, Ticket, User
+from tickets.models.attachment import TicketAttachment
 from tickets.tests.helpers import reverse_with_next
 
 
@@ -194,3 +196,111 @@ class CommentViewTestCase(TestCase):
         )
         self.assertEqual(response.status_code, 404)
         self.assertEqual(Comment.objects.filter(ticket=self.ticket).count(), 0)
+
+    def test_student_can_comment_with_attachment(self):
+        self.client.login(username=self.student.username, password="Password123")
+        file = SimpleUploadedFile(
+            "test.pdf", b"content", content_type="application/pdf"
+        )
+        self.client.post(
+            self.url,
+            {
+                "action": "add_comment",
+                "body": "Comment with file.",
+                "attachments": file,
+            },
+        )
+        self.assertEqual(Comment.objects.filter(ticket=self.ticket).count(), 1)
+        comment = Comment.objects.get(ticket=self.ticket)
+        self.assertEqual(comment.attachments.count(), 1)
+
+    def test_staff_can_comment_with_attachment(self):
+        self.client.login(username=self.staff.username, password="Password123")
+        file = SimpleUploadedFile(
+            "test.pdf", b"content", content_type="application/pdf"
+        )
+        self.client.post(
+            self.url,
+            {
+                "action": "add_comment",
+                "body": "Staff comment with file.",
+                "attachments": file,
+            },
+        )
+        comment = Comment.objects.get(ticket=self.ticket)
+        self.assertEqual(comment.attachments.count(), 1)
+
+    def test_comment_with_exactly_five_attachments_is_accepted(self):
+        self.client.login(username=self.student.username, password="Password123")
+        files = [
+            SimpleUploadedFile(
+                f"test{i}.pdf", b"content", content_type="application/pdf"
+            )
+            for i in range(5)
+        ]
+        response = self.client.post(
+            self.url,
+            {"action": "add_comment", "body": "Five files.", "attachments": files},
+        )
+        self.assertRedirects(response, self.url)
+        comment = Comment.objects.get(ticket=self.ticket)
+        self.assertEqual(comment.attachments.count(), 5)
+
+    def test_comment_with_more_than_five_attachments_is_rejected(self):
+        self.client.login(username=self.student.username, password="Password123")
+        files = [
+            SimpleUploadedFile(
+                f"test{i}.pdf", b"content", content_type="application/pdf"
+            )
+            for i in range(6)
+        ]
+        response = self.client.post(
+            self.url,
+            {"action": "add_comment", "body": "Too many files.", "attachments": files},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Comment.objects.filter(ticket=self.ticket).count(), 0)
+        self.assertIn("attachments", response.context["form"].errors)
+        self.assertIn(
+            "You can upload a maximum of 5 files.",
+            response.context["form"].errors["attachments"][0],
+        )
+
+    def test_comment_with_invalid_file_type_is_rejected(self):
+        self.client.login(username=self.student.username, password="Password123")
+        file = SimpleUploadedFile(
+            "test.exe", b"content", content_type="application/exe"
+        )
+        response = self.client.post(
+            self.url,
+            {"action": "add_comment", "body": "Bad file.", "attachments": file},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Comment.objects.filter(ticket=self.ticket).count(), 0)
+        self.assertIn("attachments", response.context["form"].errors)
+
+    def test_comment_with_large_file_is_rejected(self):
+        self.client.login(username=self.student.username, password="Password123")
+        file = SimpleUploadedFile(
+            "large.pdf", b"x" * (6 * 1024 * 1024), content_type="application/pdf"
+        )
+        response = self.client.post(
+            self.url,
+            {"action": "add_comment", "body": "Large file.", "attachments": file},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Comment.objects.filter(ticket=self.ticket).count(), 0)
+        self.assertIn("attachments", response.context["form"].errors)
+
+    def test_attachment_link_displayed_in_comment(self):
+        comment = Comment.objects.create(
+            ticket=self.ticket, author=self.student, body="Comment with attachment."
+        )
+        file = SimpleUploadedFile(
+            "test.pdf", b"content", content_type="application/pdf"
+        )
+        TicketAttachment.objects.create(comment=comment, file=file)
+        self.client.login(username=self.student.username, password="Password123")
+        response = self.client.get(self.url)
+        self.assertContains(response, "ticket_attachments")
+        self.assertContains(response, ".pdf")
