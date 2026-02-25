@@ -23,6 +23,7 @@
         <div class="row">
             <div class="col-12">
                 <h1 class="mb-3">Welcome to your dashboard {{ user.username }}</h1>
+                <!-- Student creating ticket-->
                 {% if user.user_type == user.USER_TYPE_STUDENT %}
                     <div class="mb-3">
                         <a href="{% url 'create_ticket' %}" class="btn btn-primary">Create New Ticket</a>
@@ -47,18 +48,43 @@
                     </div>
                 {% elif user.user_type == "staff" %}
                     <div class="btn-group mb-3" role="group" aria-label="Staff ticket tabs">
-                        <a href="?tab=open_tickets"
+                        <a href="?tab=open_tickets{% if carry_querystring %}&{{ carry_querystring }}{% endif %}"
                            class="btn btn-outline-primary {% if tab == 'open_tickets' %}active{% endif %}">Open</a>
-                        <a href="?tab=assigned_tickets"
-                           class="btn btn-outline-primary {% if tab == 'assigned_tickets' %}active{% endif %}">Assigned</a>
-                        <a href="?tab=overdue_tickets"
-                           class="btn btn-outline-primary {% if tab == 'overdue_tickets' %}active{% endif %}">Overdue</a>
-                        <a href="?tab=closed_tickets"
+                        <a href="?tab=assigned_tickets{% if carry_querystring %}&{{ carry_querystring }}{% endif %}"
+                           class="btn btn-outline-primary {% if tab == 'assigned_tickets' %}active{% endif %}">
+                            Assigned
+                        </a>
+                        <a href="?tab=overdue_tickets{% if carry_querystring %}&{{ carry_querystring }}{% endif %}"
+                           class="btn btn-outline-primary {% if tab == 'overdue_tickets' %}active{% endif %}">
+                            Overdue
+                        </a>
+                        <a href="?tab=closed_tickets{% if carry_querystring %}&{{ carry_querystring }}{% endif %}"
                            class="btn btn-outline-primary {% if tab == 'closed_tickets' %}active{% endif %}">Closed</a>
                     </div>
                 {% endif %}
             </div>
         </div>
+        <!-- Staff Search bar -->
+        {% if user.user_type == user.USER_TYPE_STAFF %}
+            <form method="get"
+                  action="{% url 'dashboard' %}"
+                  class="d-flex align-items-center gap-2 mb-4">
+                <input type="hidden" name="tab" value="{{ tab }}">
+                <input type="hidden" name="sort" value="{{ priority_sort }}">
+                <input type="text"
+                       class="form-control"
+                       name="searchTerm"
+                       placeholder="Search tickets..."
+                       value="{{ searchTerm }}"
+                       id="searchInput">
+                <button type="button" class="btn btn-outline-secondary">
+                    <i class="bi bi-filter"></i>
+                </button>
+                <button type="submit" class="btn btn-dark">
+                    <i class="bi bi-search"></i>
+                </button>
+            </form>
+        {% endif %}
         <!-- Tickets -->
         <div class="row">
             <div class="col-12">
@@ -75,6 +101,7 @@
                         {% if user.user_type == "staff" and tab != "closed_tickets" %}
                             <form method="get" class="d-flex align-items-center">
                                 <input type="hidden" name="tab" value="{{ tab }}">
+                                <input type="hidden" name="searchTerm" value="{{ searchTerm }}">
                                 <select class="form-select form-select-sm w-auto"
                                         name="sort"
                                         onchange="this.form.submit()">

@@ -51,7 +51,7 @@ urlpatterns = [
         name="ticket_unclaim",
     ),
     path(
-        "profile_otheruser/<str:username>/",
+        "user/<str:username>/",
         views.ProfileOtherUserView.as_view(),
         name="profile_other_user",
     ),
