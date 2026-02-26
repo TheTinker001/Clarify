@@ -1,6 +1,7 @@
 """Unit tests for the helpers module."""
+
 from django.test import TestCase, override_settings
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from django.contrib.auth import get_user_model
 from tickets.models import Ticket
 from tickets.helpers import _send_ticket_created_email

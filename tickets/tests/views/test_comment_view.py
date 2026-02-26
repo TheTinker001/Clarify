@@ -5,7 +5,7 @@ from django.test import TestCase
 
 from tickets.models import Comment, Ticket, User
 from tickets.models.attachment import TicketAttachment
-from tickets.tests.helpers import reverse_with_next
+from tickets.tests.helpers import _reverse_with_next
 
 
 class CommentViewTestCase(TestCase):
@@ -106,7 +106,7 @@ class CommentViewTestCase(TestCase):
         self.assertEqual(Comment.objects.filter(ticket=self.ticket).count(), 0)
 
     def test_unauthenticated_cannot_comment(self):
-        redirect_url = reverse_with_next("log_in", self.url)
+        redirect_url = _reverse_with_next("log_in", self.url)
         response = self.client.post(
             self.url, {"action": "add_comment", "body": "Anonymous comment."}
         )

@@ -188,11 +188,13 @@
                                         <button type="submit" form="priority-form" class="btn btn-outline-primary">Update</button>
                                     </div>
                                 </form>
-                                <form method="post">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="action" value="close_ticket">
-                                    <button type="submit" class="btn btn-success">Mark as solved</button>
-                                </form>
+                                {% if ticket.assigned_to == user %}
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="close_ticket">
+                                        <button type="submit" class="btn btn-success">Mark as solved</button>
+                                    </form>
+                                {% endif %}
                             {% endif %}
                         {% endif %}
                     </div>

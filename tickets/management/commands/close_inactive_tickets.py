@@ -6,7 +6,9 @@ from tickets.models import Ticket
 
 
 class Command(BaseCommand):
-    help = "Close tickets that have been awaiting student response for 14+ days."
+    help = (
+        "Close tickets that have been awaiting student response for more than 14 days."
+    )
 
     def handle(self, *args, **options):
         cutoff = timezone.now() - timedelta(days=14)
