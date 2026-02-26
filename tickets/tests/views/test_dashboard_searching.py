@@ -1,16 +1,16 @@
 """Tests of dashboard searching feature."""
 
-from datetime import timedelta
 from django.test import TestCase
 from django.urls import reverse
 from tickets.models import User
 from tickets.models.ticket import Ticket
 from tickets.tests.helpers import LogInTester
 from django.utils import timezone
+from datetime import timedelta
 
 
-class DashboardViewTestCase(TestCase, LogInTester):
-    """Tests of the dashboard view."""
+class DashboardSearchingTestCase(TestCase, LogInTester):
+    """Tests of the dashboard searching feature."""
 
     fixtures = [
         "tickets/tests/fixtures/default_user.json",
@@ -208,7 +208,7 @@ class DashboardViewTestCase(TestCase, LogInTester):
             **self.ticket_data,
         )
 
-        response = self.client.get(self.url, {"searchTerm": "test", "sort": "high"})
+        response = self.client.get(self.url, {"searchTerm": "test", "priority": "high"})
         self.assertEqual(response.status_code, 200)
         tickets = response.context["page_obj"].object_list
         self.assertEqual(len(tickets), 1)
@@ -216,6 +216,7 @@ class DashboardViewTestCase(TestCase, LogInTester):
 
     def test_search_in_different_tabs(self):
         self.client.login(username="@janedoe", password="Password123")
+
         # Assigned ticket
         for i in range(2):
             Ticket.objects.create(
@@ -224,6 +225,7 @@ class DashboardViewTestCase(TestCase, LogInTester):
                 body="This is a test assigned ticket.",
                 assigned_to=self.staff,
             )
+
         response = self.client.get(
             self.url, {"searchTerm": "search term 1", "tab": "assigned_tickets"}
         )

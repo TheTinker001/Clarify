@@ -66,24 +66,88 @@
         </div>
         <!-- Staff Search bar -->
         {% if user.user_type == user.USER_TYPE_STAFF %}
-            <form method="get"
-                  action="{% url 'dashboard' %}"
-                  class="d-flex align-items-center gap-2 mb-4">
-                <input type="hidden" name="tab" value="{{ tab }}">
-                <input type="hidden" name="sort" value="{{ priority_sort }}">
-                <input type="text"
-                       class="form-control"
-                       name="searchTerm"
-                       placeholder="Search tickets..."
-                       value="{{ searchTerm }}"
-                       id="searchInput">
-                <button type="button" class="btn btn-outline-secondary">
-                    <i class="bi bi-filter"></i>
-                </button>
-                <button type="submit" class="btn btn-dark">
-                    <i class="bi bi-search"></i>
-                </button>
-            </form>
+            <div class="card mb-4 shadow-sm">
+                <div class="card-body">
+                    <form method="get" action="{% url 'dashboard' %}">
+                        <input type="hidden" name="tab" value="{{ tab }}">
+                        <input type="hidden" name="priority" value="{{ filters.priority }}">
+                        <!-- Search bar + buttons -->
+                        <div class="d-flex align-items-center gap-3">
+                            <input type="text"
+                                   class="form-control"
+                                   name="searchTerm"
+                                   placeholder="Search tickets..."
+                                   value="{{ searchTerm }}"
+                                   id="searchInput">
+                            <button class="btn btn-outline-secondary"
+                                    type="button"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#filterSelectionGroup"
+                                    aria-expanded="false"
+                                    aria-controls="filterSelectionGroup">
+                                <i class="bi bi-filter"></i>
+                            </button>
+                            <button class="btn btn-dark" type="submit">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                        <!-- Filters -->
+                        <!-- if altering, make sure collapse animation is not choppy-->
+                        <div class="collapse {% if filters.faculty or filters.study_level or filters.category %}show{% endif %}"
+                             id="filterSelectionGroup">
+                            <div class="pt-3">
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label for="facultyFilter" class="form-label small text-muted mb-1">Faculty</label>
+                                        <select class="form-select" name="faculty" id="facultyFilter">
+                                            {% for value, label in filter_choices.faculty %}
+                                                <option value="{{ value }}"
+                                                        {% if filters.faculty == value %}selected{% endif %}>
+                                                    {% if value == "" %}
+                                                        All faculties
+                                                    {% else %}
+                                                        {{ label }}
+                                                    {% endif %}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="studyLevelFilter" class="form-label small text-muted mb-1">Study level</label>
+                                        <select class="form-select" name="study_level" id="studyLevelFilter">
+                                            {% for value, label in filter_choices.study_level %}
+                                                <option value="{{ value }}"
+                                                        {% if filters.study_level == value %}selected{% endif %}>
+                                                    {% if value == "" %}
+                                                        All study levels
+                                                    {% else %}
+                                                        {{ label }}
+                                                    {% endif %}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="categoryFilter" class="form-label small text-muted mb-1">Category</label>
+                                        <select class="form-select" name="category" id="categoryFilter">
+                                            {% for value, label in filter_choices.category %}
+                                                <option value="{{ value }}"
+                                                        {% if filters.category == value %}selected{% endif %}>
+                                                    {% if value == "" %}
+                                                        All categories
+                                                    {% else %}
+                                                        {{ label }}
+                                                    {% endif %}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
         {% endif %}
         <!-- Tickets -->
         <div class="row">
@@ -102,15 +166,19 @@
                             <form method="get" class="d-flex align-items-center">
                                 <input type="hidden" name="tab" value="{{ tab }}">
                                 <input type="hidden" name="searchTerm" value="{{ searchTerm }}">
+                                <input type="hidden" name="faculty" value="{{ filters.faculty }}">
+                                <input type="hidden" name="study_level" value="{{ filters.study_level }}">
+                                <input type="hidden" name="category" value="{{ filters.category }}">
                                 <select class="form-select form-select-sm w-auto"
-                                        name="sort"
+                                        name="priority"
                                         onchange="this.form.submit()">
-                                    <option value="" {% if not priority_sort %}selected{% endif %}>All</option>
-                                    <option value="high" {% if priority_sort == 'high' %}selected{% endif %}>High priority</option>
-                                    <option value="medium" {% if priority_sort == 'medium' %}selected{% endif %}>Medium priority</option>
-                                    <option value="low" {% if priority_sort == 'low' %}selected{% endif %}>Low priority</option>
-                                    <option value="pending"
-                                            {% if priority_sort == 'pending' %}selected{% endif %}>Pending</option>
+                                    <option value="" {% if filters.priority == "" %}selected{% endif %}>All priorities</option>
+                                    {% for value, label in filter_choices.priority %}
+                                        <option value="{{ value }}"
+                                                {% if filters.priority == value %}selected{% endif %}>
+                                            {{ label }}
+                                        </option>
+                                    {% endfor %}
                                 </select>
                             </form>
                         {% endif %}

@@ -21,6 +21,7 @@ class DashboardViewTestCase(TestCase, LogInTester):
 
     def setUp(self):
         self.url = reverse("dashboard")
+        self.priority_sort_kw = "priority"
         self.student = User.objects.get(username="@johndoe")
         self.staff = User.objects.get(username="@janedoe")
         self.ticket_data = {
@@ -233,31 +234,43 @@ class DashboardViewTestCase(TestCase, LogInTester):
                 **self.ticket_data,
                 subject=f"Test ticket {i}",
                 priority=i,
+                status=Ticket.Status.AWAITING_STAFF,
+                assigned_to=None,
             )
 
-        response = self.client.get(self.url, {"tab": "open_tickets", "sort": "high"})
+        response = self.client.get(
+            self.url, {"tab": "open_tickets", self.priority_sort_kw: "high"}
+        )
         self.assertEqual(response.status_code, 200)
         tickets = response.context["page_obj"].object_list
         self.assertTrue(all(t.priority == Ticket.Priority.HIGH for t in tickets))
 
-        response = self.client.get(self.url, {"tab": "open_tickets", "sort": "medium"})
+        response = self.client.get(
+            self.url, {"tab": "open_tickets", self.priority_sort_kw: "medium"}
+        )
         self.assertEqual(response.status_code, 200)
         tickets = response.context["page_obj"].object_list
         self.assertTrue(all(t.priority == Ticket.Priority.MEDIUM for t in tickets))
 
-        response = self.client.get(self.url, {"tab": "open_tickets", "sort": "low"})
+        response = self.client.get(
+            self.url, {"tab": "open_tickets", self.priority_sort_kw: "low"}
+        )
         self.assertEqual(response.status_code, 200)
         tickets = response.context["page_obj"].object_list
         self.assertTrue(all(t.priority == Ticket.Priority.LOW for t in tickets))
 
-        response = self.client.get(self.url, {"tab": "open_tickets", "sort": "pending"})
+        response = self.client.get(
+            self.url, {"tab": "open_tickets", self.priority_sort_kw: "pending priority"}
+        )
         self.assertEqual(response.status_code, 200)
         tickets = response.context["page_obj"].object_list
         self.assertTrue(
             all(t.priority == Ticket.Priority.PENDING_PRIORITY for t in tickets)
         )
 
-        response = self.client.get(self.url, {"tab": "open_tickets", "sort": "invalid"})
+        response = self.client.get(
+            self.url, {"tab": "open_tickets", self.priority_sort_kw: "invalid"}
+        )
         self.assertEqual(response.status_code, 200)
         tickets = response.context["page_obj"].object_list
         self.assertEqual(len(tickets), len(Ticket.objects.all()))
@@ -278,27 +291,37 @@ class DashboardViewTestCase(TestCase, LogInTester):
             )
 
         # Returns all without sorting since students don't have sorting options
-        response = self.client.get(self.url, {"tab": "open_tickets", "sort": "high"})
+        response = self.client.get(
+            self.url, {"tab": "open_tickets", "priority": "high"}
+        )
         self.assertEqual(response.status_code, 200)
         tickets = response.context["page_obj"].object_list
         self.assertEqual(len(tickets), len(Ticket.objects.all()))
 
-        response = self.client.get(self.url, {"tab": "open_tickets", "sort": "medium"})
+        response = self.client.get(
+            self.url, {"tab": "open_tickets", self.priority_sort_kw: "medium"}
+        )
         self.assertEqual(response.status_code, 200)
         tickets = response.context["page_obj"].object_list
         self.assertEqual(len(tickets), len(Ticket.objects.all()))
 
-        response = self.client.get(self.url, {"tab": "open_tickets", "sort": "low"})
+        response = self.client.get(
+            self.url, {"tab": "open_tickets", self.priority_sort_kw: "low"}
+        )
         self.assertEqual(response.status_code, 200)
         tickets = response.context["page_obj"].object_list
         self.assertEqual(len(tickets), len(Ticket.objects.all()))
 
-        response = self.client.get(self.url, {"tab": "open_tickets", "sort": "pending"})
+        response = self.client.get(
+            self.url, {"tab": "open_tickets", self.priority_sort_kw: "pending"}
+        )
         self.assertEqual(response.status_code, 200)
         tickets = response.context["page_obj"].object_list
         self.assertEqual(len(tickets), len(Ticket.objects.all()))
 
-        response = self.client.get(self.url, {"tab": "open_tickets", "sort": "invalid"})
+        response = self.client.get(
+            self.url, {"tab": "open_tickets", self.priority_sort_kw: "invalid"}
+        )
         self.assertEqual(response.status_code, 200)
         tickets = response.context["page_obj"].object_list
         self.assertEqual(len(tickets), len(Ticket.objects.all()))
