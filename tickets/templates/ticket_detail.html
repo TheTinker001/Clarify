@@ -110,7 +110,7 @@
                             </form>
                         </div>
                     </div>
-                {% elif user.user_type == "staff" and ticket.assigned_to == user %}
+                {% elif user.user_type == "staff" and ticket.assigned_to == user and ticket.status != ticket.Status.CLOSED %}
                     <div class="card mt-3">
                         <div class="card-body">
                             <h6 class="card-title">Add a comment</h6>
@@ -192,7 +192,15 @@
                                     <form method="post">
                                         {% csrf_token %}
                                         <input type="hidden" name="action" value="close_ticket">
-                                        <button type="submit" class="btn btn-success">Mark as solved</button>
+                                        <button type="submit" class="btn btn-success">Close</button>
+                                    </form>
+                                {% endif %}
+                            {% else %}
+                                {% if ticket.assigned_to == user %}
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="unclose_ticket">
+                                        <button type="submit" class="btn btn-danger">Unclose</button>
                                     </form>
                                 {% endif %}
                             {% endif %}

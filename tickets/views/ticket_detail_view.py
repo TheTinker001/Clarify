@@ -58,6 +58,10 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         elif action == "close_ticket":
             return self.post_action_close_ticket(request, *args, **kwargs)
 
+        # Unclose ticket for being unsolved
+        elif action == "unclose_ticket":
+            return self.post_action_unclose_ticket(request, *args, **kwargs)
+
         # Unknown action
         else:
             raise Http404
@@ -99,10 +103,26 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
             for f in files:
                 TicketAttachment.objects.create(comment=comment, file=f)
 
-            # Update ticket status based on commenter (unless closed)
-            if self.ticket.status != Ticket.Status.CLOSED:
-                now = timezone.now()
+            # Update ticket status based on commenter
+            now = timezone.now()
 
+            if self.ticket.status == Ticket.Status.CLOSED:
+                # Student comment reopens the ticket
+                if not self.is_staff_user:
+                    self.ticket.status = Ticket.Status.AWAITING_STAFF
+                    self.ticket.closed_reason = None
+                    self.ticket.closed_at = None
+                    self.ticket.awaiting_student_since = None
+                    self.ticket.save(
+                        update_fields=[
+                            "status",
+                            "closed_reason",
+                            "closed_at",
+                            "awaiting_student_since",
+                            "updated_at",
+                        ]
+                    )
+            else:
                 if self.is_staff_user:
                     self.ticket.status = Ticket.Status.AWAITING_STUDENT
                     self.ticket.awaiting_student_since = now
@@ -131,19 +151,48 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
 
         self.ticket.status = Ticket.Status.CLOSED
         self.ticket.closed_reason = Ticket.ClosedReason.ANSWERED
+        self.closed_at = timezone.now()
         self.ticket.awaiting_student_since = None
 
         self.ticket.save(
             update_fields=[
                 "status",
                 "closed_reason",
+                "closed_at",
                 "awaiting_student_since",
                 "updated_at",
-                "closed_at",
             ]
         )
 
         messages.success(request, "Ticket closed as answered.")
+        return redirect("ticket_detail", url_code=kwargs.get("url_code"))
+
+    def post_action_unclose_ticket(self, request, *args, **kwargs):
+        if not self.is_staff_user:
+            raise Http404
+
+        if self.ticket.assigned_to_id and self.ticket.assigned_to_id != request.user.id:
+            raise Http404
+
+        if self.ticket.status != Ticket.Status.CLOSED:
+            return redirect("ticket_detail", url_code=kwargs.get("url_code"))
+
+        self.ticket.status = Ticket.Status.AWAITING_STAFF
+        self.ticket.closed_reason = None
+        self.ticket.closed_at = None
+        self.ticket.awaiting_student_since = None
+
+        self.ticket.save(
+            update_fields=[
+                "status",
+                "closed_reason",
+                "closed_at",
+                "awaiting_student_since",
+                "updated_at",
+            ]
+        )
+
+        messages.success(request, "Ticket opened as unsolved.")
         return redirect("ticket_detail", url_code=kwargs.get("url_code"))
 
     def get_context_data(self, **kwargs):

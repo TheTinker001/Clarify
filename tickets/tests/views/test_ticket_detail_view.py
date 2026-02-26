@@ -237,3 +237,95 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
         self.assertEqual(self.ticket.closed_reason, Ticket.ClosedReason.ANSWERED)
         # awaiting_student_since should remain unchanged by add_comment when closed
         self.assertIsNotNone(self.ticket.closed_at)
+
+    def test_post_unclose_ticket_as_staff_opens_ticket_as_unsolved(self):
+        self.client.login(username=self.staff.username, password="Password123")
+
+        self.ticket.status = Ticket.Status.CLOSED
+        self.ticket.closed_reason = Ticket.ClosedReason.ANSWERED
+        self.ticket.closed_at = timezone.now()
+        self.ticket.awaiting_student_since = timezone.now() - timedelta(days=3)
+        self.ticket.save()
+
+        response = self.client.post(self.url, data={"action": "unclose_ticket"})
+        self.assertRedirects(response, self.url)
+
+        self.ticket.refresh_from_db()
+        self.assertEqual(self.ticket.status, Ticket.Status.AWAITING_STAFF)
+        self.assertIsNone(self.ticket.closed_reason)
+        self.assertIsNone(self.ticket.closed_at)
+        self.assertIsNone(self.ticket.awaiting_student_since)
+
+    def test_post_unclose_ticket_returns_404_for_student(self):
+        self.ticket.status = Ticket.Status.CLOSED
+        self.ticket.closed_reason = Ticket.ClosedReason.ANSWERED
+        self.ticket.closed_at = timezone.now()
+        self.ticket.save()
+
+        self.client.login(username=self.student.username, password="Password123")
+        response = self.client.post(self.url, data={"action": "unclose_ticket"})
+        self.assertEqual(response.status_code, 404)
+
+    def test_post_unclose_ticket_returns_404_for_other_staff_not_assigned(self):
+        other_staff = User.objects.create_user(
+            username="@otherstaff2",
+            email="otherstaff2@example.org",
+            password="Password123",
+            first_name="Other",
+            last_name="Staff",
+            user_type=User.USER_TYPE_STAFF,
+        )
+
+        self.ticket.status = Ticket.Status.CLOSED
+        self.ticket.closed_reason = Ticket.ClosedReason.ANSWERED
+        self.ticket.closed_at = timezone.now()
+        self.ticket.save()
+
+        self.client.login(username=other_staff.username, password="Password123")
+        response = self.client.post(self.url, data={"action": "unclose_ticket"})
+        self.assertEqual(response.status_code, 404)
+
+    def test_post_unclose_ticket_redirects_if_ticket_not_closed_and_makes_no_changes(
+        self,
+    ):
+        self.client.login(username=self.staff.username, password="Password123")
+
+        self.ticket.status = Ticket.Status.AWAITING_STUDENT
+        self.ticket.closed_reason = None
+        self.ticket.closed_at = None
+        self.ticket.awaiting_student_since = timezone.now() - timedelta(days=2)
+        self.ticket.save()
+
+        before_status = self.ticket.status
+        before_closed_reason = self.ticket.closed_reason
+        before_closed_at = self.ticket.closed_at
+        before_awaiting_since = self.ticket.awaiting_student_since
+
+        response = self.client.post(self.url, data={"action": "unclose_ticket"})
+        self.assertRedirects(response, self.url)
+
+        self.ticket.refresh_from_db()
+        self.assertEqual(self.ticket.status, before_status)
+        self.assertEqual(self.ticket.closed_reason, before_closed_reason)
+        self.assertEqual(self.ticket.closed_at, before_closed_at)
+        self.assertEqual(self.ticket.awaiting_student_since, before_awaiting_since)
+
+    def test_student_comment_on_closed_ticket_reopens_and_clears_closed_fields(self):
+        self.ticket.status = Ticket.Status.CLOSED
+        self.ticket.closed_reason = Ticket.ClosedReason.ANSWERED
+        self.ticket.closed_at = timezone.now()
+        self.ticket.awaiting_student_since = timezone.now() - timedelta(days=10)
+        self.ticket.save()
+
+        self.client.login(username=self.student.username, password="Password123")
+        response = self.client.post(
+            self.url,
+            data=_valid_comment_post_data("Student follow-up on closed ticket"),
+        )
+        self.assertEqual(response.status_code, 302)
+
+        self.ticket.refresh_from_db()
+        self.assertEqual(self.ticket.status, Ticket.Status.AWAITING_STAFF)
+        self.assertIsNone(self.ticket.closed_reason)
+        self.assertIsNone(self.ticket.closed_at)
+        self.assertIsNone(self.ticket.awaiting_student_since)
