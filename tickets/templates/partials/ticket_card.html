@@ -9,11 +9,16 @@
         </div>
         <!-- student name, only if you are staff -->
         {% if user.user_type == "staff" %}
-            <div class="d-flex justify-content-between align-items-start">
-                <p class="text-muted mb-2">Student: {{ ticket.student.get_full_name|default:ticket.student.username }}</p>
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <p class="text-muted mb-0">Student: {{ ticket.student.get_full_name|default:ticket.student.username }}</p>
+                    <p class="text-muted mb-0">Username: {{ ticket.student.username }}</p>
+                </div>
                 {% if ticket.status != ticket.Status.CLOSED %}
-                    <span class="badge {% if ticket.priority == ticket.Priority.HIGH %} bg-danger {% elif ticket.priority == ticket.Priority.MEDIUM %} bg-warning {% elif ticket.priority == ticket.Priority.LOW %} bg-success {% else %} bg-secondary {% endif %} ">
-                        {{ ticket.get_priority_display }}
+                    <span class="badge fs-2">
+                        {% autoescape off %}
+                            {{ ticket.get_priority_icon }}
+                        {% endautoescape %}
                     </span>
                 {% endif %}
             </div>

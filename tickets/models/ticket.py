@@ -227,6 +227,15 @@ class Ticket(models.Model):
         """Return the ticket details for readable display."""
         return f"Ticket {self.pk} | {self.subject}"
 
+    def get_priority_icon(self):
+        icons = {
+            "pending priority": '<i class="bi bi-hourglass text-secondary"></i>',
+            "low": '<i class="bi bi-hourglass-bottom text-success"></i>',
+            "medium": '<i class="bi bi-hourglass-split text-warning"></i>',
+            "high": '<i class="bi bi-hourglass-top text-danger"></i>',
+        }
+        return icons.get(self.priority, "")
+
     class Meta:
         """Model settings controlling ordering and behaviours."""
 

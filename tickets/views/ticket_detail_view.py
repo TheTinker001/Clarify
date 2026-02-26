@@ -4,9 +4,9 @@ from django.contrib import messages
 
 from tickets.forms import CommentForm, TicketPriorityForm
 from tickets.models import Ticket, User
+from tickets.models.attachment import TicketAttachment
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
-
 from django.utils import timezone
 
 
@@ -79,13 +79,25 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         if self.is_staff_user and self.ticket.assigned_to_id != request.user.id:
             raise Http404
 
-        comment_form = CommentForm(request.POST)
+        comment_form = CommentForm(request.POST, request.FILES)
 
         if comment_form.is_valid():
+            files = comment_form.cleaned_data.get("attachments") or []
+            if len(files) > TicketAttachment.MAX_FILES_PER_TICKET:
+                comment_form.add_error(
+                    "attachments",
+                    f"You can upload a maximum of {TicketAttachment.MAX_FILES_PER_TICKET} files.",
+                )
+                return self.render_to_response(self.get_context_data(form=comment_form))
+
             comment = comment_form.save(commit=False)
             comment.ticket = self.ticket
             comment.author = request.user
             comment.save()
+
+            # Save attachments
+            for f in files:
+                TicketAttachment.objects.create(comment=comment, file=f)
 
             # Update ticket status based on commenter (unless closed)
             if self.ticket.status != Ticket.Status.CLOSED:
@@ -138,6 +150,6 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         context["ticket"] = self.ticket
         context["ticket_priority_form"] = self.get_priority_form()
-        context["form"] = kwargs.get("form", self.get_comment_form())
+        context["form"] = kwargs.get("form") or self.get_comment_form()
         context["comments"] = self.ticket.comments.select_related("author").all()
         return context

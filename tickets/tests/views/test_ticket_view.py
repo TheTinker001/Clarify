@@ -1,3 +1,4 @@
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, Client, override_settings
 from unittest.mock import patch
 from django.urls import reverse
@@ -166,3 +167,27 @@ class CreateTicketViewTest(TestCase):
         self.assertIn("form", response.context)
         self.assertTrue(response.context["form"].is_bound)
         self.assertFalse(response.context["form"].is_valid())
+
+    def test_create_ticket_with_attachment(self):
+        self.client.login(username="student1", password="testpass123")
+        file = SimpleUploadedFile(
+            "test.pdf", b"content", content_type="application/pdf"
+        )
+        data = {**self.valid_ticket_data, "attachments": file}
+        self.client.post(self.url, data)
+        ticket = Ticket.objects.get(subject="Need medical support")
+        self.assertEqual(ticket.attachments.count(), 1)
+
+    def test_create_ticket_with_too_many_attachments_is_rejected(self):
+        self.client.login(username="student1", password="testpass123")
+        files = [
+            SimpleUploadedFile(
+                f"test{i}.pdf", b"content", content_type="application/pdf"
+            )
+            for i in range(6)
+        ]
+        data = {**self.valid_ticket_data, "attachments": files}
+        response = self.client.post(self.url, data)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Ticket.objects.filter(subject="Need medical support").exists())
+        self.assertIn("attachments", response.context["form"].errors)
