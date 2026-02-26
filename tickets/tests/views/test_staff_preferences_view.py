@@ -2,7 +2,7 @@
 
 from django.test import TestCase
 from django.urls import reverse
-from tickets.models import User
+from tickets.models import User, Ticket
 
 
 class StaffPreferencesViewTestCase(TestCase):
@@ -83,3 +83,57 @@ class StaffPreferencesViewTestCase(TestCase):
 
         # fields should be cleared for non-staff users
         self.assertFalse(form.fields)
+
+    def test_get_staff_preferences_restores_multiple_faculties_from_db(self):
+        self.staff.faculties = "folsm,sspp"
+        self.staff.save()
+
+        self.client.login(username=self.staff.username, password="Password123")
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        form = response.context["form"]
+        self.assertEqual(form["faculties"].value(), ["folsm", "sspp"])
+
+    def test_get_staff_preferences_restores_multiple_study_levels_from_db(self):
+        self.staff.study_levels = (
+            f"{Ticket.StudyLevel.UNDERGRADUATE},{Ticket.StudyLevel.OTHER}"
+        )
+        self.staff.save()
+
+        self.client.login(username=self.staff.username, password="Password123")
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        form = response.context["form"]
+        self.assertEqual(
+            form["study_levels"].value(),
+            [Ticket.StudyLevel.UNDERGRADUATE, Ticket.StudyLevel.OTHER],
+        )
+
+    def test_get_staff_preferences_restores_multiple_categories_from_db(self):
+        self.staff.categories = (
+            f"{Ticket.Category.WELFARE},{Ticket.Category.UNI_PROCEDURES_REGULATIONS}"
+        )
+        self.staff.save()
+
+        self.client.login(username=self.staff.username, password="Password123")
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        form = response.context["form"]
+        self.assertEqual(
+            form["categories"].value(),
+            [Ticket.Category.WELFARE, Ticket.Category.UNI_PROCEDURES_REGULATIONS],
+        )
+
+    def test_staff_preferences_form_excludes_select_placeholder_choice(self):
+        self.client.login(username=self.staff.username, password="Password123")
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        form = response.context["form"]
+
+        self.assertNotIn("", [v for v, _ in form.fields["faculties"].choices])
+        self.assertNotIn("", [v for v, _ in form.fields["study_levels"].choices])
+        self.assertNotIn("", [v for v, _ in form.fields["categories"].choices])
