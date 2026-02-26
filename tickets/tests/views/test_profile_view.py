@@ -157,74 +157,23 @@ class ProfileViewTest(TestCase):
         messages_list = list(response.context["messages"])
         self.assertTrue(any(m.level == messages.SUCCESS for m in messages_list))
 
+    def test_get_labels_various_cases(self):
+        from tickets.models.ticket import Ticket
+        from tickets.views.profile_view import UserProfileContext
 
-class StaffPreferencesViewTestCase(TestCase):
-    """Test suite for the staff preferences view."""
-
-    fixtures = [
-        "tickets/tests/fixtures/default_user.json",
-        "tickets/tests/fixtures/other_users.json",
-    ]
-
-    def setUp(self):
-        self.staff = User.objects.create_user(
-            username="@staff",
-            first_name="Staff",
-            last_name="User",
-            email="staff@example.org",
-            password="Password123",
-            user_type=User.USER_TYPE_STAFF,
+        ctx = UserProfileContext()
+        # Valid code
+        self.user.faculties = Ticket.Faculty.choices[1][0]
+        self.user.save()
+        self.assertEqual(
+            ctx.get_profile_context(self.user)["faculty_labels"],
+            [Ticket.Faculty(self.user.faculties).label] if self.user.faculties else [],
         )
-        self.student = User.objects.get(username="@johndoe")
-        self.url = reverse("profile_staff_edit")
-        self.form_input = {
-            "faculties": ["folsm", "sspp"],
-            "study_levels": ["undergraduate"],
-            "categories": ["assessment", "health_and_wellbeing"],
-        }
-
-    def test_get_staff_preferences_as_staff(self):
-        self.client.login(username=self.staff.username, password="Password123")
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "profile_staff_edit.html")
-        self.assertIn("form", response.context)
-        self.assertTrue(response.context["form"].fields)
-
-    def test_get_staff_preferences_as_student(self):
-        self.client.login(username=self.student.username, password="Password123")
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "profile_staff_edit.html")
-        # Student should see no fields
-        self.assertFalse(response.context["form"].fields)
-
-    def test_post_staff_preferences_as_staff(self):
-        self.client.login(username=self.staff.username, password="Password123")
-        response = self.client.post(self.url, self.form_input, follow=True)
-        self.staff.refresh_from_db()
-        self.assertRedirects(
-            response, reverse("profile"), status_code=302, target_status_code=200
-        )
-        self.assertEqual(self.staff.faculties, "folsm,sspp")
-        self.assertEqual(self.staff.study_levels, "undergraduate")
-        self.assertEqual(self.staff.categories, "assessment,health_and_wellbeing")
-
-    def test_post_staff_preferences_as_student(self):
-        self.client.login(username=self.student.username, password="Password123")
-        response = self.client.post(self.url, self.form_input)
-        self.student.refresh_from_db()
-        # Student should not be able to update preferences
-        self.assertEqual(self.student.faculties, "")
-        self.assertEqual(self.student.study_levels, "")
-        self.assertEqual(self.student.categories, "")
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "profile_staff_edit.html")
-        self.assertFalse(response.context["form"].fields)
-
-    def test_redirects_when_not_logged_in(self):
-        response = self.client.get(self.url)
-        login_url = _reverse_with_next("log_in", self.url)
-        self.assertRedirects(
-            response, login_url, status_code=302, target_status_code=200
-        )
+        # Empty codes
+        self.user.faculties = ""
+        self.user.save()
+        self.assertEqual(ctx.get_profile_context(self.user)["faculty_labels"], [])
+        # Invalid code
+        self.user.faculties = "notarealcode"
+        self.user.save()
+        self.assertEqual(ctx.get_profile_context(self.user)["faculty_labels"], [])

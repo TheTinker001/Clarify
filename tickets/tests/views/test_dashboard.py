@@ -31,6 +31,10 @@ class DashboardViewTestCase(TestCase, LogInTester):
             "category": Ticket.Category.choices[1][0],
             "body": "This is a test ticket body.",
         }
+        self.staff.faculties = self.ticket_data["faculty"]
+        self.staff.study_levels = self.ticket_data["study_level"]
+        self.staff.categories = self.ticket_data["category"]
+        self.staff.save()
 
     def test_home_url(self):
         self.assertEqual(self.url, "/dashboard/")
@@ -349,3 +353,31 @@ class DashboardViewTestCase(TestCase, LogInTester):
         self.assertEqual(response.context["tab"], "open_tickets")
         self.assertEqual(response.context["category"], "Open")
         self.assertEqual(len(response.context["page_obj"].object_list), 2)
+
+    def test_staff_with_multiple_comma_separated_preferences(self):
+        self.staff.faculties = "folsm,sspp"
+        self.staff.study_levels = "undergraduate,postgraduate_taught"
+        self.staff.categories = "assessment,health_and_wellbeing"
+        self.staff.save()
+        # Create tickets for each combination
+        Ticket.objects.create(
+            student=self.student,
+            faculty="folsm",
+            study_level="undergraduate",
+            category="assessment",
+            subject="Test1",
+            body="Test",
+        )
+        Ticket.objects.create(
+            student=self.student,
+            faculty="sspp",
+            study_level="postgraduate_taught",
+            category="health_and_wellbeing",
+            subject="Test2",
+            body="Test",
+        )
+        self.client.login(username=self.staff.username, password="Password123")
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        # Should find both tickets
+        self.assertGreaterEqual(len(response.context["page_obj"].object_list), 2)

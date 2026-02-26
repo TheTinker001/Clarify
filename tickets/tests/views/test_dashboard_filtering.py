@@ -25,6 +25,25 @@ class DashboardFilteringTestCase(TestCase, LogInTester):
             "study_level": Ticket.StudyLevel.choices[1][0],
             "category": Ticket.Category.choices[1][0],
         }
+        self.staff.faculties = ",".join(
+            {self.ticket_data["faculty"], Ticket.Faculty.AH, Ticket.Faculty.NMES}
+        )
+        self.staff.study_levels = ",".join(
+            {
+                self.ticket_data["study_level"],
+                Ticket.StudyLevel.OTHER,
+                Ticket.StudyLevel.POSTGRADUATE_RESEARCH,
+            }
+        )
+        self.staff.categories = ",".join(
+            {
+                self.ticket_data["category"],
+                Ticket.Category.WELFARE,
+                Ticket.Category.UNI_PROCEDURES_REGULATIONS,
+            }
+        )
+        self.staff.save()
+
         self.create_tickets_with_various_attributes()
 
     def create_tickets_with_various_attributes(self):
