@@ -48,13 +48,17 @@
                     </div>
                 {% elif user.user_type == "staff" %}
                     <div class="btn-group mb-3" role="group" aria-label="Staff ticket tabs">
-                        <a href="?tab=open_tickets"
+                        <a href="?tab=open_tickets{% if carry_querystring %}&{{ carry_querystring }}{% endif %}"
                            class="btn btn-outline-primary {% if tab == 'open_tickets' %}active{% endif %}">Open</a>
-                        <a href="?tab=assigned_tickets"
-                           class="btn btn-outline-primary {% if tab == 'assigned_tickets' %}active{% endif %}">Assigned</a>
-                        <a href="?tab=overdue_tickets"
-                           class="btn btn-outline-primary {% if tab == 'overdue_tickets' %}active{% endif %}">Overdue</a>
-                        <a href="?tab=closed_tickets"
+                        <a href="?tab=assigned_tickets{% if carry_querystring %}&{{ carry_querystring }}{% endif %}"
+                           class="btn btn-outline-primary {% if tab == 'assigned_tickets' %}active{% endif %}">
+                            Assigned
+                        </a>
+                        <a href="?tab=overdue_tickets{% if carry_querystring %}&{{ carry_querystring }}{% endif %}"
+                           class="btn btn-outline-primary {% if tab == 'overdue_tickets' %}active{% endif %}">
+                            Overdue
+                        </a>
+                        <a href="?tab=closed_tickets{% if carry_querystring %}&{{ carry_querystring }}{% endif %}"
                            class="btn btn-outline-primary {% if tab == 'closed_tickets' %}active{% endif %}">Closed</a>
                     </div>
                 {% endif %}
