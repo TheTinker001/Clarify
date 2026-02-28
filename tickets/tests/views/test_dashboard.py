@@ -21,6 +21,7 @@ class DashboardViewTestCase(TestCase, LogInTester):
 
     def setUp(self):
         self.url = reverse("dashboard")
+        self.priority_sort_kw = "priority"
         self.student = User.objects.get(username="@johndoe")
         self.staff = User.objects.get(username="@janedoe")
         self.ticket_data = {
@@ -30,6 +31,10 @@ class DashboardViewTestCase(TestCase, LogInTester):
             "category": Ticket.Category.choices[1][0],
             "body": "This is a test ticket body.",
         }
+        self.staff.faculties = self.ticket_data["faculty"]
+        self.staff.study_levels = self.ticket_data["study_level"]
+        self.staff.categories = self.ticket_data["category"]
+        self.staff.save()
 
     def test_home_url(self):
         self.assertEqual(self.url, "/dashboard/")
@@ -229,31 +234,43 @@ class DashboardViewTestCase(TestCase, LogInTester):
                 **self.ticket_data,
                 subject=f"Test ticket {i}",
                 priority=i,
+                status=Ticket.Status.AWAITING_STAFF,
+                assigned_to=None,
             )
 
-        response = self.client.get(self.url, {"tab": "open_tickets", "sort": "high"})
+        response = self.client.get(
+            self.url, {"tab": "open_tickets", self.priority_sort_kw: "high"}
+        )
         self.assertEqual(response.status_code, 200)
         tickets = response.context["page_obj"].object_list
         self.assertTrue(all(t.priority == Ticket.Priority.HIGH for t in tickets))
 
-        response = self.client.get(self.url, {"tab": "open_tickets", "sort": "medium"})
+        response = self.client.get(
+            self.url, {"tab": "open_tickets", self.priority_sort_kw: "medium"}
+        )
         self.assertEqual(response.status_code, 200)
         tickets = response.context["page_obj"].object_list
         self.assertTrue(all(t.priority == Ticket.Priority.MEDIUM for t in tickets))
 
-        response = self.client.get(self.url, {"tab": "open_tickets", "sort": "low"})
+        response = self.client.get(
+            self.url, {"tab": "open_tickets", self.priority_sort_kw: "low"}
+        )
         self.assertEqual(response.status_code, 200)
         tickets = response.context["page_obj"].object_list
         self.assertTrue(all(t.priority == Ticket.Priority.LOW for t in tickets))
 
-        response = self.client.get(self.url, {"tab": "open_tickets", "sort": "pending"})
+        response = self.client.get(
+            self.url, {"tab": "open_tickets", self.priority_sort_kw: "pending priority"}
+        )
         self.assertEqual(response.status_code, 200)
         tickets = response.context["page_obj"].object_list
         self.assertTrue(
             all(t.priority == Ticket.Priority.PENDING_PRIORITY for t in tickets)
         )
 
-        response = self.client.get(self.url, {"tab": "open_tickets", "sort": "invalid"})
+        response = self.client.get(
+            self.url, {"tab": "open_tickets", self.priority_sort_kw: "invalid"}
+        )
         self.assertEqual(response.status_code, 200)
         tickets = response.context["page_obj"].object_list
         self.assertEqual(len(tickets), len(Ticket.objects.all()))
@@ -273,28 +290,94 @@ class DashboardViewTestCase(TestCase, LogInTester):
                 priority=i,
             )
 
-        # returns all without sorting since students don't have sorting options
-        response = self.client.get(self.url, {"tab": "open_tickets", "sort": "high"})
+        # Returns all without sorting since students don't have sorting options
+        response = self.client.get(
+            self.url, {"tab": "open_tickets", "priority": "high"}
+        )
         self.assertEqual(response.status_code, 200)
         tickets = response.context["page_obj"].object_list
         self.assertEqual(len(tickets), len(Ticket.objects.all()))
 
-        response = self.client.get(self.url, {"tab": "open_tickets", "sort": "medium"})
+        response = self.client.get(
+            self.url, {"tab": "open_tickets", self.priority_sort_kw: "medium"}
+        )
         self.assertEqual(response.status_code, 200)
         tickets = response.context["page_obj"].object_list
         self.assertEqual(len(tickets), len(Ticket.objects.all()))
 
-        response = self.client.get(self.url, {"tab": "open_tickets", "sort": "low"})
+        response = self.client.get(
+            self.url, {"tab": "open_tickets", self.priority_sort_kw: "low"}
+        )
         self.assertEqual(response.status_code, 200)
         tickets = response.context["page_obj"].object_list
         self.assertEqual(len(tickets), len(Ticket.objects.all()))
 
-        response = self.client.get(self.url, {"tab": "open_tickets", "sort": "pending"})
+        response = self.client.get(
+            self.url, {"tab": "open_tickets", self.priority_sort_kw: "pending"}
+        )
         self.assertEqual(response.status_code, 200)
         tickets = response.context["page_obj"].object_list
         self.assertEqual(len(tickets), len(Ticket.objects.all()))
 
-        response = self.client.get(self.url, {"tab": "open_tickets", "sort": "invalid"})
+        response = self.client.get(
+            self.url, {"tab": "open_tickets", self.priority_sort_kw: "invalid"}
+        )
         self.assertEqual(response.status_code, 200)
         tickets = response.context["page_obj"].object_list
         self.assertEqual(len(tickets), len(Ticket.objects.all()))
+
+    def test_dashboard_tab_not_in_groups_defaults_to_open_for_staff(self):
+        self.client.login(username=self.staff.username, password="Password123")
+
+        # Create 2 "open" tickets for staff (unassigned, awaiting staff, not overdue)
+        for i in range(2):
+            Ticket.objects.create(
+                **self.ticket_data,
+                subject=f"Open {i+1}",
+                status=Ticket.Status.AWAITING_STAFF,
+                assigned_to=None,
+            )
+
+        # Ticket not in open_tickets
+        Ticket.objects.create(
+            **self.ticket_data,
+            subject="Assigned",
+            status=Ticket.Status.AWAITING_STAFF,
+            assigned_to=self.staff,
+        )
+
+        # This tab is valid in TAB_LABELS but doesn't exist in staff groups
+        response = self.client.get(self.url, {"tab": "in_progress_tickets"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["tab"], "open_tickets")
+        self.assertEqual(response.context["category"], "Open")
+        self.assertEqual(len(response.context["page_obj"].object_list), 2)
+
+    def test_staff_with_multiple_comma_separated_preferences(self):
+        self.staff.faculties = "folsm,sspp"
+        self.staff.study_levels = "undergraduate,postgraduate_taught"
+        self.staff.categories = "assessment,health_and_wellbeing"
+        self.staff.save()
+        # Create tickets for each combination
+        Ticket.objects.create(
+            student=self.student,
+            faculty="folsm",
+            study_level="undergraduate",
+            category="assessment",
+            subject="Test1",
+            body="Test",
+        )
+        Ticket.objects.create(
+            student=self.student,
+            faculty="sspp",
+            study_level="postgraduate_taught",
+            category="health_and_wellbeing",
+            subject="Test2",
+            body="Test",
+        )
+        self.client.login(username=self.staff.username, password="Password123")
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        # Should find both tickets
+        self.assertGreaterEqual(len(response.context["page_obj"].object_list), 2)
