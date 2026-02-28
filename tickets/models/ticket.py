@@ -146,6 +146,8 @@ class Ticket(models.Model):
     closed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    awaiting_student_since = models.DateTimeField(null=True, blank=True, db_index=True)
+
     url_code = models.CharField(max_length=64, unique=True, blank=True, null=False)
 
     def clean(self):
@@ -220,6 +222,15 @@ class Ticket(models.Model):
         while Ticket.objects.filter(url_code=code).exists():
             code = secrets.token_urlsafe(7)
         return code
+
+    def get_priority_icon(self):
+        icons = {
+            "pending priority": '<i class="bi bi-hourglass text-secondary"></i>',
+            "low": '<i class="bi bi-hourglass-bottom text-success"></i>',
+            "medium": '<i class="bi bi-hourglass-split text-warning"></i>',
+            "high": '<i class="bi bi-hourglass-top text-danger"></i>',
+        }
+        return icons.get(self.priority, "")
 
     def __str__(self):
         """Return the ticket details for readable display."""
