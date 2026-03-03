@@ -2,8 +2,8 @@
 
 from django.core.exceptions import ValidationError
 from django.test import TestCase
-
 from tickets.models import Comment, Ticket, User
+from unittest.mock import patch
 
 
 class CommentModelTestCase(TestCase):
@@ -70,3 +70,27 @@ class CommentModelTestCase(TestCase):
             body=body,
         )
         comment.full_clean()
+
+    # Tests for generate_unique_url_code(self)
+    def test_generate_unique_url_code_returns_non_empty_string(self):
+        code = self.comment.generate_unique_url_code()
+        self.assertTrue(isinstance(code, str))
+        self.assertTrue(len(code) == 10)
+
+    def test_generate_unique_url_code_retries_on_collision(self):
+        """Method must retry when token_urlsafe generates a duplicate."""
+        comment2 = Comment.objects.create(
+            ticket=self.ticket,
+            author=self.student,
+            body="This is a second test comment.",
+            url_code="collisi",
+        )
+
+        # First call produces a collision, second call produces unique result
+        with patch(
+            "tickets.models.ticket.secrets.token_urlsafe",
+            side_effect=["collisi", "unique4"],
+        ):
+            code = comment2.generate_unique_url_code()
+
+        self.assertEqual(code, "unique4")

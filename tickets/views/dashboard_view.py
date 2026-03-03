@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
 from django.utils import timezone
@@ -9,6 +8,8 @@ from tickets.models import Ticket, User
 from django.db.models.functions import Concat
 
 from datetime import timedelta
+
+from clarify.settings import ITEMS_PER_PAGE
 
 
 class DashboardView(LoginRequiredMixin, TemplateView):
@@ -184,7 +185,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         tab, qs = self.get_queryset_for_tab_by_filters(groups, tab, current_user)
         qs = self.get_queryset_for_search_term(qs, current_user, search_term)
 
-        paginator = Paginator(qs, settings.ITEMS_PER_PAGE)
+        paginator = Paginator(qs, ITEMS_PER_PAGE)
         page_number = self.request.GET.get("page")
         page_obj = paginator.get_page(page_number)
 

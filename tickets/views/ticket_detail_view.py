@@ -7,7 +7,9 @@ from tickets.models import Ticket, User
 from tickets.models.attachment import TicketAttachment
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
+from datetime import timedelta
 from django.utils import timezone
+from clarify.settings import EDIT_TIME_LIMIT_MINUTES
 
 
 class TicketDetailView(LoginRequiredMixin, TemplateView):
@@ -200,5 +202,15 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         context["ticket"] = self.ticket
         context["ticket_priority_form"] = self.get_priority_form()
         context["form"] = kwargs.get("form") or self.get_comment_form()
-        context["comments"] = self.ticket.comments.select_related("author").all()
+
+        now = timezone.now()
+        limit = timedelta(minutes=EDIT_TIME_LIMIT_MINUTES)
+
+        comments = list(self.ticket.comments.select_related("author").all())
+        for c in comments:
+            c.can_edit = (c.author_id == self.request.user.id) and (
+                (now - c.created_at) <= limit
+            )
+
+        context["comments"] = comments
         return context
