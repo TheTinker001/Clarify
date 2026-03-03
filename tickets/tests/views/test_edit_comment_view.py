@@ -5,10 +5,9 @@ from unittest.mock import patch
 
 from django.test import TestCase
 from django.urls import reverse
-from django.utils import timezone
 
 from tickets.models import Comment, Ticket, User
-from tickets.views.edit_comment_view import EDIT_TIME_LIMIT_MINUTES
+from clarify.settings import EDIT_TIME_LIMIT_MINUTES
 
 
 class EditCommentViewTestCase(TestCase):
@@ -37,10 +36,9 @@ class EditCommentViewTestCase(TestCase):
             author=self.student,
             body="Original body text.",
         )
-        self.url = reverse("edit_comment", args=[self.comment.pk])
+        self.url = self.comment.get_absolute_url()
 
     # Edit button / form is rendered
-
     def test_get_renders_edit_form(self):
         self.client.login(username=self.student.username, password="Password123")
         response = self.client.get(self.url)
@@ -53,7 +51,6 @@ class EditCommentViewTestCase(TestCase):
         self.assertContains(response, "Original body text.")
 
     # Successful edit within time limit
-
     def test_author_can_edit_within_10_minutes(self):
         self.client.login(username=self.student.username, password="Password123")
         self.client.post(self.url, {"body": "Updated body text."})
@@ -69,14 +66,12 @@ class EditCommentViewTestCase(TestCase):
         self.assertRedirects(response, expected_url)
 
     # Success notification message
-
     def test_edit_shows_success_message(self):
         self.client.login(username=self.student.username, password="Password123")
         response = self.client.post(self.url, {"body": "Updated."}, follow=True)
         self.assertContains(response, "Your message has been edited.")
 
     # Time limit enforcement
-
     def test_author_cannot_edit_after_10_minutes(self):
         self.client.login(username=self.student.username, password="Password123")
         future_time = self.comment.created_at + timedelta(minutes=11)
@@ -98,7 +93,6 @@ class EditCommentViewTestCase(TestCase):
         self.assertEqual(response.status_code, 302)
 
     # Access control
-
     def test_non_author_cannot_edit(self):
         self.client.login(username=self.other_student.username, password="Password123")
         response = self.client.post(self.url, {"body": "Sneaky edit."})

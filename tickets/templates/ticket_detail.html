@@ -59,8 +59,8 @@
                                 </div>
                                 <div class="card-body">
                                     <p class="card-text mb-0">{{ comment.body }}</p>
-                                    {% if comment.author == user %}
-                                        <a href="{% url 'edit_comment' comment.pk %}"
+                                    {% if comment.can_edit %}
+                                        <a href="{{ comment.get_absolute_url }}"
                                            class="btn btn-sm btn-outline-secondary mt-2">Edit</a>
                                     {% endif %}
                                     {% if comment.attachments.all %}
@@ -82,8 +82,8 @@
                                 </div>
                                 <div class="card-body">
                                     <p class="card-text mb-0">{{ comment.body }}</p>
-                                    {% if comment.author == user %}
-                                        <a href="{% url 'edit_comment' comment.pk %}"
+                                    {% if comment.can_edit %}
+                                        <a href="{{ comment.get_absolute_url }}"
                                            class="btn btn-sm btn-outline-secondary mt-2">Edit</a>
                                     {% endif %}
                                     {% if comment.attachments.all %}

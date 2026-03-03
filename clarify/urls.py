@@ -56,7 +56,7 @@ urlpatterns = [
         name="profile_other_user",
     ),
     path(
-        "comment/<int:comment_id>/edit/",
+        "ticket/<str:ticket_url_code>/edit-comment/<str:comment_url_code>/",
         views.EditCommentView.as_view(),
         name="edit_comment",
     ),
