@@ -59,6 +59,10 @@
                                 </div>
                                 <div class="card-body">
                                     <p class="card-text mb-0">{{ comment.body }}</p>
+                                    {% if comment.can_edit %}
+                                        <a href="{{ comment.get_absolute_url }}"
+                                           class="btn btn-sm btn-outline-secondary mt-2">Edit</a>
+                                    {% endif %}
                                     {% if comment.attachments.all %}
                                         <ul class="mt-1 mb-0">
                                             {% for attachment in comment.attachments.all %}
@@ -78,6 +82,10 @@
                                 </div>
                                 <div class="card-body">
                                     <p class="card-text mb-0">{{ comment.body }}</p>
+                                    {% if comment.can_edit %}
+                                        <a href="{{ comment.get_absolute_url }}"
+                                           class="btn btn-sm btn-outline-secondary mt-2">Edit</a>
+                                    {% endif %}
                                     {% if comment.attachments.all %}
                                         <ul class="mt-1 mb-0">
                                             {% for attachment in comment.attachments.all %}
