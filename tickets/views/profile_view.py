@@ -3,29 +3,13 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import UpdateView
 from django.urls import reverse
 from tickets.forms import UserForm
-from tickets.models import User
+from tickets.models import User, Ticket
+from django.views.generic import DetailView
 
 
-class ProfileView(LoginRequiredMixin, UpdateView):
+class UserProfileContext:
+    def get_profile_context(self, user):
 
-    model = User
-    template_name = "profile.html"
-    context_object_name = "profile_user"
-    form_class = UserForm
-
-    def get_object(self, queryset=None):
-        return self.request.user
-
-    def get_success_url(self):
-        messages.add_message(self.request, messages.SUCCESS, "Profile updated!")
-        return reverse("dashboard")
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        user = self.request.user
-        from tickets.models import Ticket
-
-        # Helper to filter and map codes to labels
         def get_labels(codes, choices):
             return [
                 choices(code).label for code in codes if code and code in choices.values
@@ -47,14 +31,39 @@ class ProfileView(LoginRequiredMixin, UpdateView):
             else []
         )
 
-        context["faculty_list"] = faculty_codes
-        context["faculty_labels"] = get_labels(faculty_codes, Ticket.Faculty)
-        context["study_level_list"] = study_level_codes
-        context["study_level_labels"] = get_labels(study_level_codes, Ticket.StudyLevel)
-        context["category_list"] = category_codes
-        context["category_labels"] = get_labels(category_codes, Ticket.Category)
+        return {
+            "faculty_list": faculty_codes,
+            "faculty_labels": get_labels(faculty_codes, Ticket.Faculty),
+            "all_faculties_selected": len(faculty_codes)
+            == len(Ticket.Faculty.choices) - 1,
+            "study_level_list": study_level_codes,
+            "study_level_labels": get_labels(study_level_codes, Ticket.StudyLevel),
+            "all_study_levels_selected": len(study_level_codes)
+            == len(Ticket.StudyLevel.choices) - 1,
+            "category_list": category_codes,
+            "category_labels": get_labels(category_codes, Ticket.Category),
+            "all_categories_selected": len(category_codes)
+            == len(Ticket.Category.choices) - 1,
+            "Faculty": Ticket.Faculty,
+            "StudyLevel": Ticket.StudyLevel,
+            "Category": Ticket.Category,
+        }
 
-        context["Faculty"] = Ticket.Faculty
-        context["StudyLevel"] = Ticket.StudyLevel
-        context["Category"] = Ticket.Category
+
+class ProfileView(LoginRequiredMixin, UserProfileContext, UpdateView):
+    model = User
+    template_name = "profile.html"
+    context_object_name = "profile_user"
+    form_class = UserForm
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(self.get_profile_context(self.request.user))
         return context
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def get_success_url(self):
+        messages.add_message(self.request, messages.SUCCESS, "Profile updated!")
+        return reverse("dashboard")

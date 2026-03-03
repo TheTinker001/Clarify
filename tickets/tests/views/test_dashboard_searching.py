@@ -21,12 +21,19 @@ class DashboardSearchingTestCase(TestCase, LogInTester):
         self.url = reverse("dashboard")
         self.student = User.objects.get(username="@johndoe")
         self.staff = User.objects.get(username="@janedoe")
+
         self.ticket_data = {
             "student": self.student,
             "faculty": Ticket.Faculty.choices[1][0],
             "study_level": Ticket.StudyLevel.choices[1][0],
             "category": Ticket.Category.choices[1][0],
         }
+
+        # Make sure staff filters include our test tickets
+        self.staff.faculties = self.ticket_data["faculty"]
+        self.staff.study_levels = self.ticket_data["study_level"]
+        self.staff.categories = self.ticket_data["category"]
+        self.staff.save()
 
     def test_student_using_search(self):
         self.client.login(username="@johndoe", password="Password123")
@@ -42,7 +49,7 @@ class DashboardSearchingTestCase(TestCase, LogInTester):
 
         response = self.client.get(self.url, {"searchTerm": "test"})
         self.assertEqual(response.status_code, 200)
-        tickets = response.context["tickets"]
+        tickets = response.context["page_obj"].object_list
         self.assertEqual(len(tickets), 3)  # student shouldnt be able to use search
 
     def test_empty_search_term(self):
@@ -56,7 +63,7 @@ class DashboardSearchingTestCase(TestCase, LogInTester):
 
         response = self.client.get(self.url, {"searchTerm": ""})
         self.assertEqual(response.status_code, 200)
-        tickets = response.context["tickets"]
+        tickets = response.context["page_obj"].object_list
         self.assertEqual(len(tickets), 2)
 
     def test_search_terms(self):
@@ -86,35 +93,35 @@ class DashboardSearchingTestCase(TestCase, LogInTester):
         # Subject testing
         response = self.client.get(self.url, {"searchTerm": "unrelated"})
         self.assertEqual(response.status_code, 200)
-        tickets = response.context["tickets"]
+        tickets = response.context["page_obj"].object_list
         self.assertEqual(len(tickets), 1)
         self.assertEqual(tickets[0], ticket3)
 
         # Body testing
         response = self.client.get(self.url, {"searchTerm": "test ticket 1"})
         self.assertEqual(response.status_code, 200)
-        tickets = response.context["tickets"]
+        tickets = response.context["page_obj"].object_list
         self.assertEqual(len(tickets), 1)
         self.assertEqual(tickets[0], ticket1)
 
         # Student username testing
         response = self.client.get(self.url, {"searchTerm": "@alice"})
         self.assertEqual(response.status_code, 200)
-        tickets = response.context["tickets"]
+        tickets = response.context["page_obj"].object_list
         self.assertEqual(len(tickets), 1)
         self.assertEqual(tickets[0], ticket2)
 
         # Student full name testing
         response = self.client.get(self.url, {"searchTerm": "Alice Smith"})
         self.assertEqual(response.status_code, 200)
-        tickets = response.context["tickets"]
+        tickets = response.context["page_obj"].object_list
         self.assertEqual(len(tickets), 1)
         self.assertEqual(tickets[0], ticket2)
 
         # Student parial name testing
         response = self.client.get(self.url, {"searchTerm": "doe"})
         self.assertEqual(response.status_code, 200)
-        tickets = response.context["tickets"]
+        tickets = response.context["page_obj"].object_list
         self.assertEqual(len(tickets), 2)
         self.assertIn(ticket1, tickets)
         self.assertIn(ticket3, tickets)
@@ -124,7 +131,7 @@ class DashboardSearchingTestCase(TestCase, LogInTester):
             self.url, {"searchTerm": "Test ticket 1, test ticket 2, unrelated"}
         )
         self.assertEqual(response.status_code, 200)
-        tickets = response.context["tickets"]
+        tickets = response.context["page_obj"].object_list
         self.assertEqual(len(tickets), 0)
 
     def test_searching_is_case_insensitive(self):
@@ -135,7 +142,7 @@ class DashboardSearchingTestCase(TestCase, LogInTester):
 
         response = self.client.get(self.url, {"searchTerm": "tEsT TiCkEt 1"})
         self.assertEqual(response.status_code, 200)
-        tickets = response.context["tickets"]
+        tickets = response.context["page_obj"].object_list
         self.assertEqual(len(tickets), 1)
         self.assertEqual(tickets[0].subject, "Test ticket 1")
 
@@ -147,7 +154,7 @@ class DashboardSearchingTestCase(TestCase, LogInTester):
 
         response = self.client.get(self.url, {"searchTerm": "   test ticket 1   "})
         self.assertEqual(response.status_code, 200)
-        tickets = response.context["tickets"]
+        tickets = response.context["page_obj"].object_list
         self.assertEqual(len(tickets), 1)
         self.assertEqual(tickets[0].subject, "Test ticket 1")
 
@@ -203,12 +210,13 @@ class DashboardSearchingTestCase(TestCase, LogInTester):
 
         response = self.client.get(self.url, {"searchTerm": "test", "priority": "high"})
         self.assertEqual(response.status_code, 200)
-        tickets = response.context["tickets"]
+        tickets = response.context["page_obj"].object_list
         self.assertEqual(len(tickets), 1)
         self.assertEqual(tickets[0].priority, Ticket.Priority.HIGH)
 
     def test_search_in_different_tabs(self):
         self.client.login(username="@janedoe", password="Password123")
+
         # Assigned ticket
         for i in range(2):
             Ticket.objects.create(
@@ -217,6 +225,15 @@ class DashboardSearchingTestCase(TestCase, LogInTester):
                 body="This is a test assigned ticket.",
                 assigned_to=self.staff,
             )
+
+        response = self.client.get(
+            self.url, {"searchTerm": "search term 1", "tab": "assigned_tickets"}
+        )
+        self.assertEqual(response.status_code, 200)
+        tickets = response.context["page_obj"].object_list
+        self.assertEqual(len(tickets), 1)
+        self.assertEqual(tickets[0].subject, "search term 1")
+
         # Overdue ticket
         for i in range(2):
             ticket = Ticket.objects.create(
@@ -228,6 +245,15 @@ class DashboardSearchingTestCase(TestCase, LogInTester):
             Ticket.objects.filter(pk=ticket.pk).update(
                 created_at=timezone.now() - timedelta(days=10)
             )
+
+        response = self.client.get(
+            self.url, {"searchTerm": "search term 1", "tab": "overdue_tickets"}
+        )
+        self.assertEqual(response.status_code, 200)
+        tickets = response.context["page_obj"].object_list
+        self.assertEqual(len(tickets), 1)
+        self.assertEqual(tickets[0].subject, "search term 1")
+
         # Closed ticket
         for i in range(2):
             Ticket.objects.create(
@@ -240,25 +266,9 @@ class DashboardSearchingTestCase(TestCase, LogInTester):
             )
 
         response = self.client.get(
-            self.url, {"searchTerm": "search term 1", "tab": "assigned_tickets"}
-        )
-        self.assertEqual(response.status_code, 200)
-        tickets = response.context["tickets"]
-        self.assertEqual(len(tickets), 1)
-        self.assertEqual(tickets[0].subject, "search term 1")
-
-        response = self.client.get(
-            self.url, {"searchTerm": "search term 1", "tab": "overdue_tickets"}
-        )
-        self.assertEqual(response.status_code, 200)
-        tickets = response.context["tickets"]
-        self.assertEqual(len(tickets), 1)
-        self.assertEqual(tickets[0].subject, "search term 1")
-
-        response = self.client.get(
             self.url, {"searchTerm": "test closed ticket 1", "tab": "closed_tickets"}
         )
         self.assertEqual(response.status_code, 200)
-        tickets = response.context["tickets"]
+        tickets = response.context["page_obj"].object_list
         self.assertEqual(len(tickets), 1)
         self.assertEqual(tickets[0].subject, "test closed ticket 1")

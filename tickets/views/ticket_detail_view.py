@@ -2,13 +2,12 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib import messages
 
-from tickets.forms.ticket_priority_form import TicketPriorityForm
-from tickets.forms import CommentForm, InternalNoteForm
-from tickets.models import Ticket, User, InternalNote
+from tickets.forms import CommentForm, TicketPriorityForm, InternalNoteForm
+from tickets.models import Ticket, User
+from tickets.models.attachment import TicketAttachment
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
-
-from tickets.models.attachment import TicketAttachment
+from django.utils import timezone
 
 
 class TicketDetailView(LoginRequiredMixin, TemplateView):
@@ -59,6 +58,14 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         elif action == "add_internal_note":
             return self.post_action_add_internal_note(request, *args, **kwargs)
 
+        # Close ticket for being answered
+        elif action == "close_ticket":
+            return self.post_action_close_ticket(request, *args, **kwargs)
+
+        # Unclose ticket for being unsolved
+        elif action == "unclose_ticket":
+            return self.post_action_unclose_ticket(request, *args, **kwargs)
+
         # Unknown action
         else:
             raise Http404
@@ -96,8 +103,40 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
             comment.author = request.user
             comment.save()
 
+            # Save attachments
             for f in files:
                 TicketAttachment.objects.create(comment=comment, file=f)
+
+            # Update ticket status based on commenter
+            now = timezone.now()
+
+            if self.ticket.status == Ticket.Status.CLOSED:
+                # Student comment reopens the ticket
+                if not self.is_staff_user:
+                    self.ticket.status = Ticket.Status.AWAITING_STAFF
+                    self.ticket.closed_reason = None
+                    self.ticket.closed_at = None
+                    self.ticket.awaiting_student_since = None
+                    self.ticket.save(
+                        update_fields=[
+                            "status",
+                            "closed_reason",
+                            "closed_at",
+                            "awaiting_student_since",
+                            "updated_at",
+                        ]
+                    )
+            else:
+                if self.is_staff_user:
+                    self.ticket.status = Ticket.Status.AWAITING_STUDENT
+                    self.ticket.awaiting_student_since = now
+                else:
+                    self.ticket.status = Ticket.Status.AWAITING_STAFF
+                    self.ticket.awaiting_student_since = None
+
+                self.ticket.save(
+                    update_fields=["status", "awaiting_student_since", "updated_at"]
+                )
 
             messages.success(request, "Comment added.")
             return redirect("ticket_detail", url_code=kwargs.get("url_code"))
@@ -118,7 +157,65 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
             messages.success(request, "Internal note added.")
             return redirect("ticket_detail", url_code=kwargs.get("url_code"))
 
-        return self.render_to_response(self.get_context_data(internal_note_form=note_form))
+        return self.render_to_response(
+            self.get_context_data(internal_note_form=note_form)
+        )
+
+    def post_action_close_ticket(self, request, *args, **kwargs):
+        if not self.is_staff_user:
+            raise Http404
+
+        if self.ticket.assigned_to_id and self.ticket.assigned_to_id != request.user.id:
+            raise Http404
+
+        if self.ticket.status == Ticket.Status.CLOSED:
+            return redirect("ticket_detail", url_code=kwargs.get("url_code"))
+
+        self.ticket.status = Ticket.Status.CLOSED
+        self.ticket.closed_reason = Ticket.ClosedReason.ANSWERED
+        self.closed_at = timezone.now()
+        self.ticket.awaiting_student_since = None
+
+        self.ticket.save(
+            update_fields=[
+                "status",
+                "closed_reason",
+                "closed_at",
+                "awaiting_student_since",
+                "updated_at",
+            ]
+        )
+
+        messages.success(request, "Ticket closed as answered.")
+        return redirect("ticket_detail", url_code=kwargs.get("url_code"))
+
+    def post_action_unclose_ticket(self, request, *args, **kwargs):
+        if not self.is_staff_user:
+            raise Http404
+
+        if self.ticket.assigned_to_id and self.ticket.assigned_to_id != request.user.id:
+            raise Http404
+
+        if self.ticket.status != Ticket.Status.CLOSED:
+            return redirect("ticket_detail", url_code=kwargs.get("url_code"))
+
+        self.ticket.status = Ticket.Status.AWAITING_STAFF
+        self.ticket.closed_reason = None
+        self.ticket.closed_at = None
+        self.ticket.awaiting_student_since = None
+
+        self.ticket.save(
+            update_fields=[
+                "status",
+                "closed_reason",
+                "closed_at",
+                "awaiting_student_since",
+                "updated_at",
+            ]
+        )
+
+        messages.success(request, "Ticket opened as unsolved.")
+        return redirect("ticket_detail", url_code=kwargs.get("url_code"))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -127,6 +224,10 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         context["form"] = kwargs.get("form") or self.get_comment_form()
         context["comments"] = self.ticket.comments.select_related("author").all()
         if self.is_staff_user:
-            context["internal_notes"] = self.ticket.internal_notes.select_related("author").all()
-            context["internal_note_form"] = kwargs.get("internal_note_form") or InternalNoteForm()
+            context["internal_notes"] = self.ticket.internal_notes.select_related(
+                "author"
+            ).all()
+            context["internal_note_form"] = (
+                kwargs.get("internal_note_form") or InternalNoteForm()
+            )
         return context
