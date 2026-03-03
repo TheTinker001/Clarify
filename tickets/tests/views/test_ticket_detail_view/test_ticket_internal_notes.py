@@ -6,7 +6,7 @@ from django.urls import reverse
 from tickets.models import InternalNote, Ticket, User
 
 
-class InternalNoteViewTestCase(TestCase):
+class TicketInternalNotesTestCase(TestCase):
     """Test suite for staff-only internal notes on a ticket."""
 
     fixtures = [
@@ -62,7 +62,9 @@ class InternalNoteViewTestCase(TestCase):
 
     def test_staff_can_add_internal_note(self):
         self.client.login(username=self.staff.username, password="Password123")
-        self.client.post(self.url, {"action": "add_internal_note", "body": "Staff note."})
+        self.client.post(
+            self.url, {"action": "add_internal_note", "body": "Staff note."}
+        )
         self.assertEqual(InternalNote.objects.count(), 1)
         note = InternalNote.objects.first()
         self.assertEqual(note.body, "Staff note.")
@@ -87,7 +89,9 @@ class InternalNoteViewTestCase(TestCase):
 
     def test_any_staff_member_can_add_note(self):
         self.client.login(username=self.other_staff.username, password="Password123")
-        self.client.post(self.url, {"action": "add_internal_note", "body": "Other staff note."})
+        self.client.post(
+            self.url, {"action": "add_internal_note", "body": "Other staff note."}
+        )
         self.assertEqual(InternalNote.objects.count(), 1)
         self.assertEqual(InternalNote.objects.first().author, self.other_staff)
 
@@ -136,4 +140,6 @@ class InternalNoteViewTestCase(TestCase):
             author=self.staff,
             body="A note.",
         )
-        self.assertEqual(str(note), f"Internal note by {self.staff} on Ticket {self.ticket.pk}")
+        self.assertEqual(
+            str(note), f"Internal note by {self.staff} on Ticket {self.ticket.pk}"
+        )
