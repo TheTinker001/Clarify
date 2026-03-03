@@ -2,12 +2,19 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib import messages
 
-from tickets.forms import CommentForm, TicketPriorityForm, TicketFieldsForm
+from tickets.forms import (
+    CommentForm,
+    TicketPriorityForm,
+    InternalNoteForm,
+    TicketFieldsForm,
+)
 from tickets.models import Ticket, User
 from tickets.models.attachment import TicketAttachment
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
+from datetime import timedelta
 from django.utils import timezone
+from clarify.settings import EDIT_TIME_LIMIT_MINUTES
 
 
 class TicketDetailView(LoginRequiredMixin, TemplateView):
@@ -58,6 +65,10 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         # Comment submission
         elif action == "add_comment":
             return self.post_action_add_comment(request, *args, **kwargs)
+
+        # Internal note submission
+        elif action == "add_internal_note":
+            return self.post_action_add_internal_note(request, *args, **kwargs)
 
         # Close ticket for being answered
         elif action == "close_ticket":
@@ -147,6 +158,24 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
 
         return self.render_to_response(self.get_context_data(form=comment_form))
 
+    def post_action_add_internal_note(self, request, *args, **kwargs):
+        if not self.is_staff_user:
+            raise Http404
+
+        note_form = InternalNoteForm(request.POST)
+
+        if note_form.is_valid():
+            note = note_form.save(commit=False)
+            note.ticket = self.ticket
+            note.author = request.user
+            note.save()
+            messages.success(request, "Internal note added.")
+            return redirect("ticket_detail", url_code=kwargs.get("url_code"))
+
+        return self.render_to_response(
+            self.get_context_data(internal_note_form=note_form)
+        )
+
     def post_action_close_ticket(self, request, *args, **kwargs):
         if not self.is_staff_user:
             raise Http404
@@ -224,6 +253,25 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         context["ticket"] = self.ticket
         context["ticket_priority_form"] = self.get_priority_form()
         context["form"] = kwargs.get("form") or self.get_comment_form()
-        context["comments"] = self.ticket.comments.select_related("author").all()
-        context["ticket_fields_form"] = self.get_fields_form()
+        context["ticket_fields_form"] = (
+            kwargs.get("ticket_fields_form") or self.get_fields_form()
+        )
+
+        now = timezone.now()
+        limit = timedelta(minutes=EDIT_TIME_LIMIT_MINUTES)
+
+        comments = list(self.ticket.comments.select_related("author").all())
+        for c in comments:
+            c.can_edit = (c.author_id == self.request.user.id) and (
+                (now - c.created_at) <= limit
+            )
+
+        context["comments"] = comments
+        if self.is_staff_user:
+            context["internal_notes"] = self.ticket.internal_notes.select_related(
+                "author"
+            ).all()
+            context["internal_note_form"] = (
+                kwargs.get("internal_note_form") or InternalNoteForm()
+            )
         return context

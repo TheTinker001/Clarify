@@ -4,7 +4,7 @@ from datetime import timedelta
 from django.contrib.auth.hashers import check_password
 from django.test import TestCase
 from django.urls import reverse
-from clarify import settings
+from clarify.settings import ITEMS_PER_PAGE
 from tickets.models import User
 from tickets.models.ticket import Ticket
 from tickets.tests.helpers import LogInTester
@@ -63,10 +63,10 @@ class DashboardViewTestCase(TestCase, LogInTester):
         self.assertIn("page_obj", response.context)
 
         page_obj = response.context["page_obj"]
-        self.assertEqual(page_obj.paginator.per_page, settings.ITEMS_PER_PAGE)
+        self.assertEqual(page_obj.paginator.per_page, ITEMS_PER_PAGE)
         self.assertEqual(page_obj.start_index(), 1)
-        self.assertEqual(page_obj.end_index(), min(settings.ITEMS_PER_PAGE, 30))
-        self.assertEqual(len(page_obj.object_list), min(settings.ITEMS_PER_PAGE, 30))
+        self.assertEqual(page_obj.end_index(), min(ITEMS_PER_PAGE, 30))
+        self.assertEqual(len(page_obj.object_list), min(ITEMS_PER_PAGE, 30))
 
         response2 = self.client.get(self.url, {"tab": "open_tickets", "page": 2})
         self.assertEqual(response2.status_code, 200)

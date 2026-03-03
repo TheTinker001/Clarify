@@ -77,6 +77,10 @@
                                 </div>
                                 <div class="card-body">
                                     <p class="card-text mb-0">{{ comment.body }}</p>
+                                    {% if comment.can_edit %}
+                                        <a href="{{ comment.get_absolute_url }}"
+                                           class="btn btn-sm btn-outline-secondary mt-2">Edit</a>
+                                    {% endif %}
                                     {% if comment.attachments.all %}
                                         <ul class="mt-1 mb-0">
                                             {% for attachment in comment.attachments.all %}
@@ -96,6 +100,10 @@
                                 </div>
                                 <div class="card-body">
                                     <p class="card-text mb-0">{{ comment.body }}</p>
+                                    {% if comment.can_edit %}
+                                        <a href="{{ comment.get_absolute_url }}"
+                                           class="btn btn-sm btn-outline-secondary mt-2">Edit</a>
+                                    {% endif %}
                                     {% if comment.attachments.all %}
                                         <ul class="mt-1 mb-0">
                                             {% for attachment in comment.attachments.all %}
@@ -222,6 +230,39 @@
                                     </form>
                                 {% endif %}
                             {% endif %}
+                        {% endif %}
+                        <!-- Internal notes (staff only) -->
+                        {% if user.user_type == "staff" %}
+                            <div class="mt-4">
+                                <h5>Internal Notes</h5>
+                                {% for note in internal_notes %}
+                                    <div class="card border-warning mb-2">
+                                        <div class="card-header bg-warning d-flex justify-content-between">
+                                            <span>{{ note.author.full_name }}</span>
+                                            <small>{{ note.created_at|date:"M j, Y, P" }}</small>
+                                        </div>
+                                        <div class="card-body">
+                                            <p class="card-text mb-0">{{ note.body }}</p>
+                                        </div>
+                                    </div>
+                                {% empty %}
+                                    <p class="text-muted">No internal notes yet.</p>
+                                {% endfor %}
+                            </div>
+                            <div class="card mt-3">
+                                <div class="card-body">
+                                    <h6 class="card-title">Add an internal note</h6>
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="add_internal_note">
+                                        {{ internal_note_form.body }}
+                                        {% if internal_note_form.body.errors %}
+                                            <div class="text-danger mt-1">{{ internal_note_form.body.errors }}</div>
+                                        {% endif %}
+                                        <button type="submit" class="btn btn-warning mt-2">Add Note</button>
+                                    </form>
+                                </div>
+                            </div>
                         {% endif %}
                     </div>
                 </div>

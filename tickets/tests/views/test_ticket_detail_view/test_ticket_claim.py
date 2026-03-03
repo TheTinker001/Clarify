@@ -5,7 +5,7 @@ from tickets.models import Ticket, User
 from tickets.tests.helpers import MenuTesterMixin
 
 
-class TicketClaimViewTestCase(TestCase, MenuTesterMixin):
+class TicketClaimTestCase(TestCase, MenuTesterMixin):
     """Test suite for the ticket claim view."""
 
     fixtures = [

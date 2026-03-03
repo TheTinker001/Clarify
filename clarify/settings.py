@@ -201,3 +201,6 @@ if ENVIRONMENT == "production":
 
 # Pagination settings
 ITEMS_PER_PAGE = 20
+
+# Edit comment settings
+EDIT_TIME_LIMIT_MINUTES = 10

@@ -55,6 +55,11 @@ urlpatterns = [
         views.ProfileOtherUserView.as_view(),
         name="profile_other_user",
     ),
+    path(
+        "ticket/<str:ticket_url_code>/edit-comment/<str:comment_url_code>/",
+        views.EditCommentView.as_view(),
+        name="edit_comment",
+    ),
 ]
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
