@@ -2,7 +2,7 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib import messages
 
-from tickets.forms import CommentForm, TicketPriorityForm
+from tickets.forms import CommentForm, TicketPriorityForm, InternalNoteForm
 from tickets.models import Ticket, User
 from tickets.models.attachment import TicketAttachment
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -55,6 +55,10 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         # Comment submission
         elif action == "add_comment":
             return self.post_action_add_comment(request, *args, **kwargs)
+
+        # Internal note submission
+        elif action == "add_internal_note":
+            return self.post_action_add_internal_note(request, *args, **kwargs)
 
         # Close ticket for being answered
         elif action == "close_ticket":
@@ -141,6 +145,24 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
 
         return self.render_to_response(self.get_context_data(form=comment_form))
 
+    def post_action_add_internal_note(self, request, *args, **kwargs):
+        if not self.is_staff_user:
+            raise Http404
+
+        note_form = InternalNoteForm(request.POST)
+
+        if note_form.is_valid():
+            note = note_form.save(commit=False)
+            note.ticket = self.ticket
+            note.author = request.user
+            note.save()
+            messages.success(request, "Internal note added.")
+            return redirect("ticket_detail", url_code=kwargs.get("url_code"))
+
+        return self.render_to_response(
+            self.get_context_data(internal_note_form=note_form)
+        )
+
     def post_action_close_ticket(self, request, *args, **kwargs):
         if not self.is_staff_user:
             raise Http404
@@ -213,4 +235,12 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
             )
 
         context["comments"] = comments
+        if self.is_staff_user:
+            context["internal_notes"] = self.ticket.internal_notes.select_related(
+                "author"
+            ).all()
+            context["internal_note_form"] = (
+                kwargs.get("internal_note_form") or InternalNoteForm()
+            )
+
         return context

@@ -1,42 +1,30 @@
-from django.core.management.base import BaseCommand, CommandError
-from tickets.models import User, Ticket
+from django.core.management.base import BaseCommand
+import os
+import django
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "clarify.settings")
+django.setup()
+
+from django.core.management import call_command
 
 
 class Command(BaseCommand):
     """
-    Management command to remove (unseed) user data from the database.
-
-    This command deletes all non-staff users from the database. It is designed
-    to complement the corresponding "seed" command, allowing developers to
-    reset the database to a clean state without removing administrative users.
+    Management command to remove (unseed) all data from the database.
 
     Attributes:
         help (str): Short description displayed when running
             `python manage.py help unseed`.
     """
 
-    help = "Seeds the database with sample data"
+    help = "Unseeds all data from the database"
 
     def handle(self, *args, **options):
         """
         Execute the unseeding process.
 
-        Deletes all `User` records where `is_staff` is False, preserving
-        administrative accounts. Prints a confirmation message upon completion.
-
-        Args:
-            *args: Positional arguments passed by Django (not used here).
-            **options: Keyword arguments passed by Django (not used here).
-
-        Returns:
-            None
+        Deletes all data from the database.
+        Prints a confirmation message upon completion.
         """
-        ticket_count = Ticket.objects.count()
-        user_count = User.objects.count()
-
-        Ticket.objects.all().delete()
-        User.objects.all().delete()
-
-        print(
-            f"Unseed complete: deleted {ticket_count} tickets and {user_count} users."
-        )
+        call_command("flush", interactive=False)
+        print("Database flushed.")
