@@ -2,7 +2,7 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib import messages
 
-from tickets.forms import CommentForm, TicketPriorityForm
+from tickets.forms import CommentForm, TicketPriorityForm, TicketFieldsForm
 from tickets.models import Ticket, User
 from tickets.models.attachment import TicketAttachment
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -43,6 +43,11 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         # Default forms for GET
         return CommentForm()
 
+    def get_fields_form(self):
+        if self.is_staff_user:
+            return TicketFieldsForm(instance=self.ticket)
+        return None
+
     def post(self, request, *args, **kwargs):
         action = request.POST.get("action")
 
@@ -62,6 +67,9 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         elif action == "unclose_ticket":
             return self.post_action_unclose_ticket(request, *args, **kwargs)
 
+        # Edit ticket tags and fields
+        elif action == "set_ticket_fields":
+            return self.post_action_edit_ticket_fields(request, *args, **kwargs)
         # Unknown action
         else:
             raise Http404
@@ -195,10 +203,28 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         messages.success(request, "Ticket opened as unsolved.")
         return redirect("ticket_detail", url_code=kwargs.get("url_code"))
 
+    def post_action_edit_ticket_fields(self, request, *args, **kwargs):
+        if not self.is_staff_user:
+            raise Http404
+
+        if self.ticket.assigned_to_id and self.ticket.assigned_to_id != request.user.id:
+            raise Http404
+
+        fields_form = TicketFieldsForm(request.POST, instance=self.ticket)
+        if fields_form.is_valid():
+            fields_form.save()
+            messages.success(request, "Ticket fields updated.")
+        else:
+            messages.error(request, "Invalid input for ticket fields.")
+            return self.render_to_response(self.get_context_data(form=fields_form))
+
+        return redirect("ticket_detail", url_code=kwargs.get("url_code"))
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["ticket"] = self.ticket
         context["ticket_priority_form"] = self.get_priority_form()
         context["form"] = kwargs.get("form") or self.get_comment_form()
         context["comments"] = self.ticket.comments.select_related("author").all()
+        context["ticket_fields_form"] = self.get_fields_form()
         return context

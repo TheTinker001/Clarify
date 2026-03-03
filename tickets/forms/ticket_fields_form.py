@@ -2,7 +2,7 @@ from django import forms
 from tickets.models import Ticket
 
 
-class EditTicketFieldsForm(forms.ModelForm):
+class TicketFieldsForm(forms.ModelForm):
 
     class Meta:
         model = Ticket
