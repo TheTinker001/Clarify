@@ -204,7 +204,7 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         return redirect("ticket_detail", url_code=kwargs.get("url_code"))
 
     def post_action_edit_ticket_fields(self, request, *args, **kwargs):
-        if not self.is_staff_user:
+        if not self.is_staff_user or self.ticket.status == Ticket.Status.CLOSED:
             raise Http404
 
         if self.ticket.assigned_to_id and self.ticket.assigned_to_id != request.user.id:
@@ -216,7 +216,6 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
             messages.success(request, "Ticket fields updated.")
         else:
             messages.error(request, "Invalid input for ticket fields.")
-            return self.render_to_response(self.get_context_data(form=fields_form))
 
         return redirect("ticket_detail", url_code=kwargs.get("url_code"))
 

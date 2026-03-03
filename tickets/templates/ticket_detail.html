@@ -23,20 +23,24 @@
                         <span class="badge bg-light text-dark me-1">{{ ticket.get_study_level_display }}</span>
                         <span class="badge bg-light text-dark">{{ ticket.get_category_display }}</span>
                     </div>
-                    <div class="card-body p-4">
-                        <!-- Ticket fields -->
-                        <form id="ticket-field-form" method="post">
-                            {% csrf_token %}
-                            <input type="hidden" name="action" value="set_ticket_fields">
-                            <div class="input-group input-group-sm">
-                                <span class="input-group-text">Tags</span>
+                    <!-- Ticket fields -->
+                    {% if user.user_type == "staff" and ticket.status != ticket.Status.CLOSED %}
+                        <div class="card-body p-4">
+                            <form id="ticket-field-form" method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="set_ticket_fields">
+                                <span class="input-group-text">Change Tags</span>
                                 {{ ticket_fields_form.as_p }}
-                                <button type="submit"
-                                        form="ticket-field-form"
-                                        class="btn btn-outline-primary">Edit</button>
+                            </form>
+                            <div class="d-flex">
+                                <div class="ms-auto">
+                                    <button type="submit"
+                                            form="ticket-field-form"
+                                            class="btn btn-outline-primary">Edit</button>
+                                </div>
                             </div>
-                        </form>
-                    </div>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
