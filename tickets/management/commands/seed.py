@@ -186,6 +186,7 @@ class Command(BaseCommand):
         FACULTIES = [choice for choice, _ in Ticket.Faculty.choices if choice]
         STUDY_LEVELS = [choice for choice, _ in Ticket.StudyLevel.choices if choice]
         CATEGORIES = [choice for choice, _ in Ticket.Category.choices if choice]
+        PRIORITIES = [choice for choice, _ in Ticket.Priority.choices if choice]
 
         staff_user = User.objects.create_user(
             first_name="Staff",
@@ -247,6 +248,7 @@ class Command(BaseCommand):
                     body=self.faker.paragraph(nb_sentences=random.randint(3, 8)),
                     status=Ticket.Status.AWAITING_STAFF,
                     assigned_to=None,
+                    priority=random.choice(PRIORITIES),
                 )
 
             # IN PROGRESS tickets
@@ -260,6 +262,7 @@ class Command(BaseCommand):
                     body=self.faker.paragraph(nb_sentences=random.randint(3, 8)),
                     status=Ticket.Status.AWAITING_STAFF,
                     assigned_to=staff_user,
+                    priority=random.choice(PRIORITIES),
                 )
 
             # NEED RESPONSE tickets
@@ -273,6 +276,7 @@ class Command(BaseCommand):
                     body=self.faker.paragraph(nb_sentences=random.randint(3, 8)),
                     status=Ticket.Status.AWAITING_STUDENT,
                     assigned_to=None,
+                    priority=random.choice(PRIORITIES),
                 )
 
             # OVERDUE tickets
@@ -286,6 +290,7 @@ class Command(BaseCommand):
                     body=self.faker.paragraph(nb_sentences=random.randint(3, 8)),
                     status=Ticket.Status.AWAITING_STAFF,
                     assigned_to=None,
+                    priority=random.choice(PRIORITIES),
                 )
                 Ticket.objects.filter(pk=t.pk).update(
                     created_at=overdue_cutoff - timedelta(days=1)
@@ -303,6 +308,9 @@ class Command(BaseCommand):
                     status=Ticket.Status.CLOSED,
                     closed_reason=Ticket.ClosedReason.ANSWERED,
                     closed_at=timezone.now(),
+                    priority=random.choice(
+                        PRIORITIES
+                    ),  # shouldnt be displayed even if it has a value
                 )
 
 

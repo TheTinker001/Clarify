@@ -1,3 +1,5 @@
 from .user import *
 from .ticket import *
-from .ticket_response import *
+from .comment import *
+from .attachment import *
+from .internal_note import *

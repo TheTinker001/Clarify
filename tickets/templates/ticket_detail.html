@@ -1,113 +1,254 @@
 {% extends 'base_content.html' %}
 {% block content %}
-  <div class="container">
-    <div class="row">
-      <div class="col-12">
-        <div class="ticket-header mt-2">
-          <h1 class="mb-1">{{ ticket.title }}</h1>
-          <div class="d-flex flex-wrap gap-2 align-items-center">
-            <span class="badge bg-secondary text-uppercase">{{ ticket.get_status_display }}</span>
-            <span class="text-muted">Ticket #{{ ticket.pk }}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="row mt-4">
-      <div class="col-12 col-lg-8">
-        <div class="card ticket-card-detail">
-          <div class="card-body">
-            <h5 class="card-title">{{ ticket.subject }}</h5>
-            <p class="card-text">{{ ticket.description }}</p>
-            <p class="card-text text-muted">{{ ticket.body }}</p>
-          </div>
-        </div>
-
-        <!-- Responses -->
-        {% if responses %}
-          <h5 class="mt-4">Responses</h5>
-          {% for resp in responses %}
-            <div class="card mt-2 {% if resp.author.user_type == 'staff' %}border-primary{% else %}border-secondary{% endif %}">
-              <div class="card-body">
-                <div class="d-flex justify-content-between">
-                  <strong>{{ resp.author.full_name }}</strong>
-                  <small class="text-muted">{{ resp.created_at|date:"M j, Y, P" }}</small>
+    {% load static %}
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="ticket-header mt-2">
+                    <h1 class="mb-1">{{ ticket.title }}</h1>
+                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                        <span class="badge bg-secondary text-uppercase">{{ ticket.get_status_display }}</span>
+                        <span class="text-muted">Ticket #{{ ticket.pk }}</span>
+                        {% if user.user_type == "staff" and ticket.status != ticket.Status.CLOSED %}
+                            <span class="ms-auto  badge fs-1">
+                                {% autoescape off %}
+                                    {{ ticket.get_priority_icon }}
+                                {% endautoescape %}
+                            </span>
+                        {% endif %}
+                    </div>
+                    <!-- Display ticket tags for UI consistency with dashboard view -->
+                    <div class="mt-2">
+                        <span class="badge bg-light text-dark me-1">{{ ticket.get_faculty_display }}</span>
+                        <span class="badge bg-light text-dark me-1">{{ ticket.get_study_level_display }}</span>
+                        <span class="badge bg-light text-dark">{{ ticket.get_category_display }}</span>
+                    </div>
                 </div>
-                <span class="badge {% if resp.author.user_type == 'staff' %}bg-primary{% else %}bg-secondary{% endif %} mb-2">{{ resp.author.get_user_type_display }}</span>
-                <p class="card-text mb-0">{{ resp.body|linebreaksbr }}</p>
-              </div>
             </div>
-          {% endfor %}
-        {% endif %}
-
-        <!-- Reply form -->
-        {% if ticket.status != "closed" %}
-          <div class="card mt-4">
-            <div class="card-body">
-              <h5 class="card-title">Reply</h5>
-              <form method="post">
-                {% csrf_token %}
-                {{ form.body }}
-                {% if form.body.errors %}
-                  <div class="text-danger mt-1">{{ form.body.errors }}</div>
-                {% endif %}
-                <button type="submit" class="btn btn-primary mt-2">Send Response</button>
-              </form>
-            </div>
-          </div>
-        {% endif %}
-      </div>
-      <div class="col-12 col-lg-4 mt-3 mt-lg-0">
-        <div class="card ticket-card-detail">
-          <div class="card-body">
-            <h5 class="card-title">Details</h5>
-            <dl class="row mb-0">
-              <dt class="col-5">Created by</dt>
-              <dd class="col-7">
-                {{ ticket.student.full_name }}
-              </dd>
-              <dt class="col-5">Assigned to</dt>
-              <dd class="col-7">
-                {% if ticket.assigned_to %}
-                  {{ ticket.assigned_to.full_name }}
-                {% else %}
-                  Unassigned
-                {% endif %}
-              </dd>
-              <dt class="col-5">Created</dt>
-              <dd class="col-7">
-                {{ ticket.created_at|date:"M j, Y, P" }}
-              </dd>
-              <dt class="col-5">Updated</dt>
-              <dd class="col-7">
-                {{ ticket.updated_at|date:"M j, Y, P" }}
-              </dd>
-            </dl>
-            <!-- claiming -->
-            {% if user.user_type == "staff" %}
-              {% if ticket.assigned_to == user %}
-                <div class="d-flex justify-content-between align-items-start">
-                  <form method="post" action="{{ ticket.get_unclaim_url }}">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-sm btn-outline-danger">Unclaim</button>
-                  </form>
-                </div>
-              {% elif ticket.assigned_to %}
-                <div class="alert alert-warning d-flex align-items-center" role="alert">
-                  <span class="bi-flag me-2"></span>
-                  Claimed by {{ ticket.assigned_to.get_full_name|default:ticket.assigned_to.username }}
-                </div>
-              {% else %}
-                <div class="d-flex justify-content-between align-items-start">
-                  <form method="post" action="{{ ticket.get_claim_url }}">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-sm btn-outline-success">Claim</button>
-                  </form>
-                </div>
-              {% endif %}
-            {% endif %}
-          </div>
         </div>
-      </div>
+        <div class="row mt-4">
+            <div class="col-12 col-lg-8">
+                <div class="card ticket-card-detail">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ ticket.subject }}</h5>
+                        <p class="card-text">{{ ticket.description }}</p>
+                        <p class="card-text text-muted">{{ ticket.body }}</p>
+                        {% if ticket.attachments.all %}
+                            <div class="mt-2">
+                                <strong>Attachments:</strong>
+                                <ul class="mb-0">
+                                    {% for attachment in ticket.attachments.all %}
+                                        <li>
+                                            <a href="{{ attachment.file.url }}" target="_blank">{{ attachment.filename }}</a>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <!-- Comments -->
+                <div class="mt-4">
+                    <h5>Comments</h5>
+                    {% for comment in comments %}
+                        {% if comment.author.user_type == "student" %}
+                            <div class="card border-primary mb-2">
+                                <div class="card-header bg-primary text-white d-flex justify-content-between">
+                                    <span>{{ comment.author.full_name }}</span>
+                                    <small>{{ comment.created_at|date:"M j, Y, P" }}</small>
+                                </div>
+                                <div class="card-body">
+                                    <p class="card-text mb-0">{{ comment.body }}</p>
+                                    {% if comment.can_edit %}
+                                        <a href="{{ comment.get_absolute_url }}"
+                                           class="btn btn-sm btn-outline-secondary mt-2">Edit</a>
+                                    {% endif %}
+                                    {% if comment.attachments.all %}
+                                        <ul class="mt-1 mb-0">
+                                            {% for attachment in comment.attachments.all %}
+                                                <li>
+                                                    <a href="{{ attachment.file.url }}" target="_blank">{{ attachment.filename }}</a>
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="card border-danger mb-2">
+                                <div class="card-header bg-danger text-white d-flex justify-content-between">
+                                    <span>{{ comment.author.full_name }}</span>
+                                    <small>{{ comment.created_at|date:"M j, Y, P" }}</small>
+                                </div>
+                                <div class="card-body">
+                                    <p class="card-text mb-0">{{ comment.body }}</p>
+                                    {% if comment.can_edit %}
+                                        <a href="{{ comment.get_absolute_url }}"
+                                           class="btn btn-sm btn-outline-secondary mt-2">Edit</a>
+                                    {% endif %}
+                                    {% if comment.attachments.all %}
+                                        <ul class="mt-1 mb-0">
+                                            {% for attachment in comment.attachments.all %}
+                                                <li>
+                                                    <a href="{{ attachment.file.url }}" target="_blank">{{ attachment.filename }}</a>
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% empty %}
+                        <p class="text-muted">No comments yet.</p>
+                    {% endfor %}
+                </div>
+                <!-- Comment form -->
+                {% if user.user_type == "student" %}
+                    <div class="card mt-3">
+                        <div class="card-body">
+                            <h6 class="card-title">Add a comment</h6>
+                            <form method="post" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="add_comment">
+                                {{ form.body }}
+                                {% if form.body.errors %}<div class="text-danger mt-1">{{ form.body.errors }}</div>{% endif %}
+                                {{ form.attachments }}
+                                {% if form.attachments.errors %}<div class="text-danger mt-1">{{ form.attachments.errors }}</div>{% endif %}
+                                <button type="submit" class="btn btn-primary mt-2">Submit</button>
+                            </form>
+                        </div>
+                    </div>
+                {% elif user.user_type == "staff" and ticket.assigned_to == user and ticket.status != ticket.Status.CLOSED %}
+                    <div class="card mt-3">
+                        <div class="card-body">
+                            <h6 class="card-title">Add a comment</h6>
+                            <form method="post" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="add_comment">
+                                {{ form.body }}
+                                {% if form.body.errors %}<div class="text-danger mt-1">{{ form.body.errors }}</div>{% endif %}
+                                {{ form.attachments }}
+                                {% if form.attachments.errors %}<div class="text-danger mt-1">{{ form.attachments.errors }}</div>{% endif %}
+                                <button type="submit" class="btn btn-primary mt-2">Submit</button>
+                            </form>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="col-12 col-lg-4 mt-3 mt-lg-0">
+                <div class="card ticket-card-detail">
+                    <div class="card-body">
+                        <h5 class="card-title">Details</h5>
+                        <dl class="row mb-0">
+                            <dt class="col-5">Created by</dt>
+                            <dd class="col-7">
+                                {{ ticket.student.full_name }}
+                            </dd>
+                            <dt class="col-5">Assigned to</dt>
+                            <dd class="col-7">
+                                {% if ticket.assigned_to %}
+                                    {{ ticket.assigned_to.full_name }}
+                                {% else %}
+                                    Unassigned
+                                {% endif %}
+                            </dd>
+                            <dt class="col-5">Created</dt>
+                            <dd class="col-7">
+                                {{ ticket.created_at|date:"M j, Y, P" }}
+                            </dd>
+                            <dt class="col-5">Updated</dt>
+                            <dd class="col-7">
+                                {{ ticket.updated_at|date:"M j, Y, P" }}
+                            </dd>
+                        </dl>
+                        <div class="mb-3"></div>
+                        <!-- Claiming -->
+                        {% if user.user_type == "staff" %}
+                            {% if ticket.assigned_to == user %}
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <form method="post" action="{{ ticket.get_unclaim_url }}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Unclaim</button>
+                                    </form>
+                                </div>
+                            {% elif ticket.assigned_to %}
+                                <div class="alert alert-warning d-flex align-items-center mb-3"
+                                     role="alert">
+                                    <span class="bi-flag me-2"></span>
+                                    Claimed by {{ ticket.assigned_to.get_full_name|default:ticket.assigned_to.username }}
+                                </div>
+                            {% else %}
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <form method="post" action="{{ ticket.get_claim_url }}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-success">Claim</button>
+                                    </form>
+                                </div>
+                            {% endif %}
+                            <!-- Priority updating -->
+                            {% if ticket.status != ticket.Status.CLOSED %}
+                                <form id="priority-form" method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="set_priority">
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text">Priority</span>
+                                        {{ ticket_priority_form.priority }}
+                                        <button type="submit" form="priority-form" class="btn btn-outline-primary">Update</button>
+                                    </div>
+                                </form>
+                                {% if ticket.assigned_to == user %}
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="close_ticket">
+                                        <button type="submit" class="btn btn-success">Close</button>
+                                    </form>
+                                {% endif %}
+                            {% else %}
+                                {% if ticket.assigned_to == user %}
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="unclose_ticket">
+                                        <button type="submit" class="btn btn-danger">Unclose</button>
+                                    </form>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+                        <!-- Internal notes (staff only) -->
+                        {% if user.user_type == "staff" %}
+                            <div class="mt-4">
+                                <h5>Internal Notes</h5>
+                                {% for note in internal_notes %}
+                                    <div class="card border-warning mb-2">
+                                        <div class="card-header bg-warning d-flex justify-content-between">
+                                            <span>{{ note.author.full_name }}</span>
+                                            <small>{{ note.created_at|date:"M j, Y, P" }}</small>
+                                        </div>
+                                        <div class="card-body">
+                                            <p class="card-text mb-0">{{ note.body }}</p>
+                                        </div>
+                                    </div>
+                                {% empty %}
+                                    <p class="text-muted">No internal notes yet.</p>
+                                {% endfor %}
+                            </div>
+                            <div class="card mt-3">
+                                <div class="card-body">
+                                    <h6 class="card-title">Add an internal note</h6>
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="add_internal_note">
+                                        {{ internal_note_form.body }}
+                                        {% if internal_note_form.body.errors %}
+                                            <div class="text-danger mt-1">{{ internal_note_form.body.errors }}</div>
+                                        {% endif %}
+                                        <button type="submit" class="btn btn-warning mt-2">Add Note</button>
+                                    </form>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
 {% endblock %}

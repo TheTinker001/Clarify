@@ -1,7 +1,15 @@
 ### Helper function and classes go here.
-
+from django.core.exceptions import ValidationError
 from django.conf import settings
 from django.core.mail import send_mail
+from django.core.validators import FileExtensionValidator
+from django import forms
+
+
+def _validate_file_size(file):
+    max_size_mb = 5
+    if file.size > max_size_mb * 1024 * 1024:
+        raise ValidationError(f"File size cannot exceed {max_size_mb}MB")
 
 
 def _send_ticket_created_email(ticket):
@@ -14,7 +22,7 @@ def _send_ticket_created_email(ticket):
     subject_template = getattr(
         settings,
         "TICKET_CREATED_EMAIL_SUBJECT",
-        "Confirmation of Ticket Submission – Reference #{ticket_id}",
+        "Confirmation of Ticket Submission - Reference #{ticket_id}",
     )
     body_template = getattr(
         settings,
@@ -34,12 +42,12 @@ def _send_ticket_created_email(ticket):
     subject = subject_template.format(
         ticket_id=ticket.pk,
         subject=ticket.subject,
-        first_name=ticket.student.first_name or "there",
+        first_name=ticket.student.first_name or "student",
     )
     body = body_template.format(
         ticket_id=ticket.pk,
         subject=ticket.subject,
-        first_name=ticket.student.first_name or "there",
+        first_name=ticket.student.first_name or "student",
     )
     send_mail(
         subject=subject,
@@ -50,21 +58,20 @@ def _send_ticket_created_email(ticket):
     )
 
 
-def _send_staff_response_email(ticket, response):
-    """Send email to the student when staff responds to their ticket."""
+def _send_staff_comment_email(ticket, comment):
+    """Send email to the student when staff comments on their ticket."""
     if not settings.EMAIL_HOST_USER or not settings.EMAIL_HOST_PASSWORD:
         return
     if not ticket.student.email:
         return
 
-    # TODO: Update SITE_URL in .env for production (localhost works as a fallback for now)
     ticket_url = "{base}/ticket/{url_code}/".format(
         base=getattr(settings, "SITE_URL", "http://localhost:8000").rstrip("/"),
         url_code=ticket.url_code,
     )
 
-    first_name = ticket.student.first_name or "there"
-    subject = "Response to Your Support Ticket – {subject}".format(
+    first_name = ticket.student.first_name or "student"
+    subject = "Response to Your Support Ticket - {subject}".format(
         subject=ticket.subject
     )
     body = (
@@ -72,7 +79,7 @@ def _send_staff_response_email(ticket, response):
         "We are writing to inform you that a member of our academic staff has responded to your support request.\n\n"
         "Ticket Subject: {ticket_subject}\n\n"
         "Staff Response:\n"
-        "{response_body}\n\n"
+        "{comment_body}\n\n"
         "You may review the full discussion and provide any further clarification using the link below:\n"
         "{ticket_url}\n\n"
         "If you require additional assistance, please do not hesitate to reply through the ticket system.\n\n"
@@ -81,7 +88,7 @@ def _send_staff_response_email(ticket, response):
     ).format(
         first_name=first_name,
         ticket_subject=ticket.subject,
-        response_body=response.body,
+        comment_body=comment.body,
         ticket_url=ticket_url,
     )
 
@@ -92,3 +99,34 @@ def _send_staff_response_email(ticket, response):
         recipient_list=[ticket.student.email],
         fail_silently=False,
     )
+
+
+class MultipleFileInput(forms.ClearableFileInput):
+    allow_multiple_selected = True
+
+
+class MultipleFileField(forms.FileField):
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("widget", MultipleFileInput())
+        super().__init__(*args, **kwargs)
+
+    def clean(self, data, initial=None):
+        single_file_clean = super().clean
+        if isinstance(data, (list, tuple)):
+            result = []
+            for d in data:
+                f = single_file_clean(d, initial)
+                self._validate_single_file(f)
+                result.append(f)
+        else:
+            result = [single_file_clean(data, initial)]
+            self._validate_single_file(result[0])
+        return result
+
+    def _validate_single_file(self, f):
+        if f:
+            ext_validator = FileExtensionValidator(
+                allowed_extensions=settings.ALLOWED_EXTENSIONS
+            )
+            ext_validator(f)
+            _validate_file_size(f)

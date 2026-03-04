@@ -5,6 +5,8 @@ from django.contrib import messages
 from django.urls import reverse_lazy
 from tickets.models import Ticket
 from tickets.forms import TicketForm
+from tickets.helpers import _send_ticket_created_email
+from tickets.models.attachment import TicketAttachment
 
 
 class CreateTicketView(LoginRequiredMixin, CreateView):
@@ -22,5 +24,23 @@ class CreateTicketView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.student = self.request.user
+        files = self.request.FILES.getlist("attachments")
+        if len(files) > TicketAttachment.MAX_FILES_PER_TICKET:
+            form.add_error(
+                "attachments",
+                f"You can upload a maximum of {TicketAttachment.MAX_FILES_PER_TICKET} files.",
+            )
+            return self.form_invalid(form)
+
+        response = super().form_valid(form)
+
+        for f in files:
+            TicketAttachment.objects.create(ticket=self.object, file=f)
+
+        try:
+            _send_ticket_created_email(self.object)
+        except Exception:
+            pass
+
         messages.success(self.request, "Ticket created successfully!")
-        return super().form_valid(form)
+        return response

@@ -1,0 +1,76 @@
+from django.contrib.auth import get_user_model
+from django.core.validators import MaxLengthValidator
+from django.db import models
+from django.urls import reverse
+import secrets
+
+User = get_user_model()
+
+
+class Comment(models.Model):
+    """Model representing a comment on a ticket."""
+
+    BODY_MAX_LENGTH = 5000
+
+    ticket = models.ForeignKey(
+        "Ticket",
+        on_delete=models.CASCADE,
+        related_name="comments",
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="comments",
+    )
+    body = models.TextField(
+        max_length=BODY_MAX_LENGTH,
+        validators=[MaxLengthValidator(BODY_MAX_LENGTH)],
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    url_code = models.CharField(max_length=64, unique=True, blank=True, null=False)
+
+    def save(self, *args, **kwargs):
+        """
+        Override save to ensure each ticket comment has a unique URL code.
+
+        The URL code is generated using a cryptographically safe token and
+        checked against the database to avoid collisions.
+        """
+        if not self.url_code:
+            self.url_code = self.generate_unique_url_code()
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        """
+        Return the absolute URL for this ticket comment's detail view.
+
+        Returns:
+            str: A fully resolved URL for this ticket comment's detail page.
+        """
+        return reverse(
+            "edit_comment",
+            kwargs={
+                "ticket_url_code": self.ticket.url_code,
+                "comment_url_code": self.url_code,
+            },
+        )
+
+    def generate_unique_url_code(self):
+        """
+        Generate a unique URL-safe identifier for the ticket comment.
+
+        Returns:
+            str: A unique token usable as a ticket comment identifier.
+        """
+        code = secrets.token_urlsafe(7)
+        while Comment.objects.filter(url_code=code).exists():
+            code = secrets.token_urlsafe(7)
+        return code
+
+    def __str__(self):
+        return f"Comment by {self.author} on Ticket {self.ticket_id}"
+
+    class Meta:
+        ordering = ["created_at"]

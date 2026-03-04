@@ -155,3 +155,66 @@ h3.profile-title {
 .ticket-header h1 {
   font-size: 2.2rem;
 }
+
+/*
+ * Welcome / Landing page
+ */
+
+.welcome-page {
+    background-color: #f8f8f8;
+    min-height: 100vh;
+}
+
+.welcome-page .navbar {
+    margin-bottom: 0 !important;
+}
+
+.welcome-logo {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 50%;
+    margin-bottom: 20px;
+}
+
+.welcome-heading {
+    color: #b91c1c;
+}
+
+.welcome-subtext {
+    color: #991919;
+}
+
+.welcome-divider {
+    width: 1px;
+    height: 300px;
+    background-color: #e0e0e0;
+}
+
+.welcome-feature-icon {
+    color: #b91c1c;
+    font-size: 1.2rem;
+}
+
+.welcome-btn-primary {
+    background-color: #b91c1c;
+    border-color: #b91c1c;
+    color: white;
+}
+
+.welcome-btn-primary:hover {
+    background-color: #991b1b;
+    border-color: #991b1b;
+    color: white;
+}
+
+.welcome-btn-outline {
+    border: 1.5px solid #b91c1c;
+    color: #b91c1c;
+    background: white;
+}
+
+.welcome-btn-outline:hover {
+    background-color: #b91c1c;
+    color: white;
+}

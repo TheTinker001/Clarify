@@ -24,7 +24,7 @@ from tickets import views
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", views.HomeView.as_view(), name="home"),
-    path("dashboard/", views.dashboard, name="dashboard"),
+    path("dashboard/", views.DashboardView.as_view(), name="dashboard"),
     path("log_in/", views.LogInView.as_view(), name="log_in"),
     path("log_out/", views.log_out, name="log_out"),
     path("password/", views.PasswordView.as_view(), name="password"),
@@ -36,7 +36,9 @@ urlpatterns = [
     ),
     path("profile/edit/", views.ProfileUpdateView.as_view(), name="profile_edit"),
     path("sign_up/", views.SignUpView.as_view(), name="sign_up"),
-    path("ticket/<str:url_code>/", views.ticket_detail, name="ticket_detail"),
+    path(
+        "ticket/<str:url_code>/", views.TicketDetailView.as_view(), name="ticket_detail"
+    ),
     path("create_ticket/", views.CreateTicketView.as_view(), name="create_ticket"),
     path(
         "ticket/<str:url_code>/claim/",
@@ -47,6 +49,16 @@ urlpatterns = [
         "ticket/<str:url_code>/unclaim/",
         views.TicketUnclaimView.as_view(),
         name="ticket_unclaim",
+    ),
+    path(
+        "user/<str:username>/",
+        views.ProfileOtherUserView.as_view(),
+        name="profile_other_user",
+    ),
+    path(
+        "ticket/<str:ticket_url_code>/edit-comment/<str:comment_url_code>/",
+        views.EditCommentView.as_view(),
+        name="edit_comment",
     ),
 ]
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

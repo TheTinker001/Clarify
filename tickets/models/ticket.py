@@ -1,10 +1,12 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
-from django.core.validators import MaxLengthValidator
+from django.core.validators import MaxLengthValidator, FileExtensionValidator
 from django.utils import timezone
 from django.urls import reverse
+from tickets.helpers import _validate_file_size
 import secrets
+from clarify.settings import ALLOWED_EXTENSIONS
 
 User = get_user_model()
 
@@ -84,6 +86,12 @@ class Ticket(models.Model):
         ANSWERED = "answered", "Answered"
         INACTIVITY = "inactivity", "Inactivity"
 
+    class Priority(models.TextChoices):
+        PENDING_PRIORITY = "pending priority", "Pending Priority"
+        LOW = "low", "Low"
+        MEDIUM = "medium", "Medium"
+        HIGH = "high", "High"
+
     student = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -116,15 +124,29 @@ class Ticket(models.Model):
         max_length=BODY_MAX_LENGTH, validators=[MaxLengthValidator(BODY_MAX_LENGTH)]
     )
 
+    attachment = models.FileField(
+        upload_to="ticket_attachments/%Y/%m/%d/",
+        null=True,
+        blank=True,
+        validators=[
+            FileExtensionValidator(allowed_extensions=ALLOWED_EXTENSIONS),
+            _validate_file_size,
+        ],
+    )
     status = models.CharField(
         max_length=32, choices=Status.choices, default=Status.AWAITING_STAFF
     )
     closed_reason = models.CharField(
         max_length=32, choices=ClosedReason.choices, null=True, blank=True
     )
+    priority = models.CharField(
+        max_length=32, choices=Priority.choices, default=Priority.PENDING_PRIORITY
+    )
     closed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    awaiting_student_since = models.DateTimeField(null=True, blank=True, db_index=True)
+
     url_code = models.CharField(max_length=64, unique=True, blank=True, null=False)
 
     def clean(self):
@@ -199,6 +221,15 @@ class Ticket(models.Model):
         while Ticket.objects.filter(url_code=code).exists():
             code = secrets.token_urlsafe(7)
         return code
+
+    def get_priority_icon(self):
+        icons = {
+            "pending priority": '<i class="bi bi-hourglass text-secondary"></i>',
+            "low": '<i class="bi bi-hourglass-bottom text-success"></i>',
+            "medium": '<i class="bi bi-hourglass-split text-warning"></i>',
+            "high": '<i class="bi bi-hourglass-top text-danger"></i>',
+        }
+        return icons.get(self.priority, "")
 
     def __str__(self):
         """Return the ticket details for readable display."""

@@ -2,6 +2,14 @@ from django import forms
 from tickets.models import User, Ticket
 
 
+def _split_codes(value: str):
+    return [c.strip() for c in value.split(",") if c.strip()]
+
+
+def _no_empty(choices):
+    return [(v, label) for v, label in choices if v]
+
+
 class StaffPreferenceForm(forms.ModelForm):
     """
     Form enabling staff users to set their ticket handling preferences.
@@ -12,44 +20,30 @@ class StaffPreferenceForm(forms.ModelForm):
     """
 
     faculties = forms.MultipleChoiceField(
-        choices=Ticket.Faculty.choices,
+        choices=_no_empty(Ticket.Faculty.choices),
         required=False,
-        widget=forms.CheckboxSelectMultiple,
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "faculty-checkbox"}),
     )
     study_levels = forms.MultipleChoiceField(
-        choices=Ticket.StudyLevel.choices,
+        choices=_no_empty(Ticket.StudyLevel.choices),
         required=False,
-        widget=forms.CheckboxSelectMultiple,
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "study-level-checkbox"}),
     )
     categories = forms.MultipleChoiceField(
-        choices=Ticket.Category.choices,
+        choices=_no_empty(Ticket.Category.choices),
         required=False,
-        widget=forms.CheckboxSelectMultiple,
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "category-checkbox"}),
     )
-
-    class Meta:
-        """Form options."""
-
-        model = User
-        fields = ["faculties", "study_levels", "categories"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Convert comma-separated string to list for initial display.
-        # If a staff user has no preferences saved yet, default to all options selected.
-        all_faculties = [code for code, _ in Ticket.Faculty.choices if code]
-        all_study_levels = [code for code, _ in Ticket.StudyLevel.choices if code]
-        all_categories = [code for code, _ in Ticket.Category.choices if code]
 
-        self.fields["faculties"].initial = (
-            self.instance.faculties.split(",") if self.instance.faculties else all_faculties
-        )
-        self.fields["study_levels"].initial = (
-            self.instance.study_levels.split(",") if self.instance.study_levels else all_study_levels
-        )
-        self.fields["categories"].initial = (
-            self.instance.categories.split(",") if self.instance.categories else all_categories
-        )
+        if self.instance.faculties:
+            self.initial["faculties"] = _split_codes(self.instance.faculties)
+        if self.instance.study_levels:
+            self.initial["study_levels"] = _split_codes(self.instance.study_levels)
+        if self.instance.categories:
+            self.initial["categories"] = _split_codes(self.instance.categories)
 
     def clean(self):
         cleaned_data = super().clean()
@@ -65,3 +59,9 @@ class StaffPreferenceForm(forms.ModelForm):
 
     def clean_categories(self):
         return ",".join(self.cleaned_data["categories"])
+
+    class Meta:
+        """Form options."""
+
+        model = User
+        fields = ["faculties", "study_levels", "categories"]
