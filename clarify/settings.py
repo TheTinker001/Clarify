@@ -164,32 +164,6 @@ MESSAGE_TAGS = {
     messages.ERROR: "danger",
 }
 
-# Email (SMTP) configuration
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
-EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
-EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
-DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
-
-# Ticket email templates (override via env if needed)
-TICKET_CREATED_EMAIL_SUBJECT = os.getenv(
-    "TICKET_CREATED_EMAIL_SUBJECT",
-    "We received your query (Ticket #{ticket_id})",
-)
-TICKET_CREATED_EMAIL_BODY = os.getenv(
-    "TICKET_CREATED_EMAIL_BODY",
-    (
-        "Hi {first_name},\n\n"
-        "Your ticket has been received. We'll review it and get back to you.\n\n"
-        "Ticket ID: {ticket_id}\n"
-        "Subject: {subject}\n\n"
-        "Thanks,\n"
-        "Clarify Team"
-    ),
-)
-
 # Security settings
 if ENVIRONMENT == "production":
     SECURE_HSTS_SECONDS = 3600
@@ -202,5 +176,42 @@ if ENVIRONMENT == "production":
 # Pagination settings
 ITEMS_PER_PAGE = 20
 
+# File extensions settings
+ALLOWED_EXTENSIONS = ["pdf", "doc", "docx", "txt", "jpg", "jpeg", "png"]
+
 # Edit comment settings
 EDIT_TIME_LIMIT_MINUTES = 10
+
+# Base URL for links in emails
+SITE_URL = os.getenv("SITE_URL", "http://localhost:8000")
+
+# Email (SMTP) configuration
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
+
+if "test" in sys.argv:
+    EMAIL_HOST_USER = ""
+    EMAIL_HOST_PASSWORD = ""
+    DEFAULT_FROM_EMAIL = ""
+
+# Ticket email templates (override via env if needed)
+TICKET_CREATED_EMAIL_SUBJECT = os.getenv(
+    "TICKET_CREATED_EMAIL_SUBJECT",
+    "We received your query (Ticket #{ticket_id})",
+)
+TICKET_CREATED_EMAIL_BODY = os.getenv(
+    "TICKET_CREATED_EMAIL_BODY",
+    (
+        "Dear {first_name},\n\n"
+        "Your ticket has been received. We'll review it and get back to you.\n\n"
+        "Ticket ID: {ticket_id}\n"
+        "Subject: {subject}\n\n"
+        "Thanks,\n"
+        "Clarify Team"
+    ),
+)

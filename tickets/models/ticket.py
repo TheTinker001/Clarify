@@ -6,6 +6,7 @@ from django.utils import timezone
 from django.urls import reverse
 from tickets.helpers import _validate_file_size
 import secrets
+from clarify.settings import ALLOWED_EXTENSIONS
 
 User = get_user_model()
 
@@ -128,9 +129,7 @@ class Ticket(models.Model):
         null=True,
         blank=True,
         validators=[
-            FileExtensionValidator(
-                allowed_extensions=["pdf", "doc", "docx", "txt", "jpg", "jpeg", "png"]
-            ),
+            FileExtensionValidator(allowed_extensions=ALLOWED_EXTENSIONS),
             _validate_file_size,
         ],
     )

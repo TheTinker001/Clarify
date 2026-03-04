@@ -2,6 +2,7 @@ import os
 from django.db import models
 from django.core.validators import FileExtensionValidator
 from tickets.helpers import _validate_file_size
+from clarify.settings import ALLOWED_EXTENSIONS
 
 import os
 
@@ -28,9 +29,7 @@ class TicketAttachment(models.Model):
     file = models.FileField(
         upload_to="ticket_attachments/%Y/%m/%d/",
         validators=[
-            FileExtensionValidator(
-                allowed_extensions=["pdf", "doc", "docx", "txt", "jpg", "jpeg", "png"]
-            ),
+            FileExtensionValidator(allowed_extensions=ALLOWED_EXTENSIONS),
             _validate_file_size,
         ],
     )

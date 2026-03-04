@@ -59,7 +59,7 @@ class SignUpViewTestCase(TestCase, LogInTester):
         self.assertTrue(form.is_bound)
         self.assertFalse(self._is_logged_in())
 
-    def test_succesful_sign_up(self):
+    def test_succesful_sign_up_as_student(self):
         before_count = User.objects.count()
         response = self.client.post(self.url, self.form_input, follow=True)
         after_count = User.objects.count()
@@ -76,6 +76,23 @@ class SignUpViewTestCase(TestCase, LogInTester):
         self.assertEqual(user.user_type, User.USER_TYPE_STUDENT)
         is_password_correct = check_password("Password123", user.password)
         self.assertTrue(is_password_correct)
+        self.assertTrue(self._is_logged_in())
+
+    def test_succesful_sign_up_as_staff_redirects_to_staffedit(self):
+        self.form_input["user_type"] = User.USER_TYPE_STAFF
+        self.form_input["username"] = "@staffjimmy"
+        self.form_input["email"] = "staffjimmy@example.org"
+        before_count = User.objects.count()
+        response = self.client.post(self.url, self.form_input, follow=True)
+        after_count = User.objects.count()
+        self.assertEqual(after_count, before_count + 1)
+        response_url = reverse("profile_staff_edit")
+        self.assertRedirects(
+            response, response_url, status_code=302, target_status_code=200
+        )
+        self.assertTemplateUsed(response, "profile_staff_edit.html")
+        user = User.objects.get(username="@staffjimmy")
+        self.assertEqual(user.user_type, User.USER_TYPE_STAFF)
         self.assertTrue(self._is_logged_in())
 
     def test_post_sign_up_redirects_when_logged_in(self):

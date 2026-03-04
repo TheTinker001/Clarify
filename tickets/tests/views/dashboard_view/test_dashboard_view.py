@@ -1,7 +1,5 @@
 """Tests of dashboard view."""
 
-from datetime import timedelta
-from django.contrib.auth.hashers import check_password
 from django.test import TestCase
 from django.urls import reverse
 from clarify.settings import ITEMS_PER_PAGE
@@ -9,6 +7,7 @@ from tickets.models import User
 from tickets.models.ticket import Ticket
 from tickets.tests.helpers import LogInTester
 from django.utils import timezone
+from datetime import timedelta
 
 
 class DashboardViewTestCase(TestCase, LogInTester):
