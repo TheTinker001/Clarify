@@ -82,7 +82,8 @@ class Command(BaseCommand):
         faker (Faker): Locale-specific Faker instance used for random data.
     """
 
-    USER_COUNT = 200
+    STAFF_COUNT = 100
+    STUDENT_COUNT = 100
     DEFAULT_PASSWORD = "Password123"
     help = "Seeds the database with sample data"
 
@@ -98,39 +99,44 @@ class Command(BaseCommand):
         Runs the full seeding workflow and stores ``self.users`` for any
         post-processing or debugging (not required for operation).
         """
-        self.create_users()
-        self.create_tickets_for_fixture_users()
+        self.seed_for_random_users()
+        self.seed_for_fixture_users()
         self.users = User.objects.all()
 
-    def create_users(self):
+    def seed_for_random_users(self):
         """
-        Create fixture users and then generate random users up to USER_COUNT.
+        Generate random staff users up to STAFF_COUNT and random student users up to STUDENT_COUNT.
+
+        The process is idempotent in spirit: attempts that fail (e.g., due to
+        uniqueness constraints on username/email) are ignored and generation continues.
+        """
+        self.generate_random_users(self.STUDENT_COUNT, User.USER_TYPE_STUDENT)
+        self.generate_random_users(self.STAFF_COUNT, User.USER_TYPE_STAFF)
+
+    def generate_random_users(self, count, type):
+        """
+        Generate random users until the database contains "type"-COUNT users.
+
+        Prints a simple progress indicator to stdout during generation.
+        """
+        type_count = User.objects.filter(user_type=type).count()
+        while type_count < count:
+            print(f"Seeding {type} {type_count}/{count}", end="\r")
+            self.generate_user(type=type)
+            type_count = User.objects.filter(user_type=type).count()
+        print(f"{type.capitalize()} seeding complete.      ")
+
+    def seed_for_fixture_users(self):
+        """
+        Create predefined fixture users and generate tickets for them.
 
         The process is idempotent in spirit: attempts that fail (e.g., due to
         uniqueness constraints on username/email) are ignored and generation continues.
         """
         self.generate_user_fixtures()
-        self.generate_random_users()
+        self.create_tickets_for_fixture_users()
 
-    def generate_user_fixtures(self):
-        """Attempt to create each predefined fixture user."""
-        for data in user_fixtures:
-            self.try_create_user(data)
-
-    def generate_random_users(self):
-        """
-        Generate random users until the database contains USER_COUNT users.
-
-        Prints a simple progress indicator to stdout during generation.
-        """
-        user_count = User.objects.count()
-        while user_count < self.USER_COUNT:
-            print(f"Seeding user {user_count}/{self.USER_COUNT}", end="\r")
-            self.generate_user()
-            user_count = User.objects.count()
-        print("User seeding complete.      ")
-
-    def generate_user(self):
+    def generate_user(self, type=None):
         """
         Generate a single random user and attempt to insert it.
 
@@ -146,6 +152,12 @@ class Command(BaseCommand):
                 "email": email,
                 "first_name": first_name,
                 "last_name": last_name,
+                "user_type": (
+                    type
+                    if type
+                    else random.choice([User.USER_TYPE_STUDENT, User.USER_TYPE_STAFF])
+                ),
+                "is_staff": (True if type == User.USER_TYPE_STAFF else False),
             }
         )
 
@@ -180,6 +192,11 @@ class Command(BaseCommand):
             is_staff=data.get("is_staff", False),
             is_superuser=data.get("is_superuser", False),
         )
+
+    def generate_user_fixtures(self):
+        """Attempt to create each predefined fixture user."""
+        for data in user_fixtures:
+            self.try_create_user(data)
 
     def create_tickets_for_fixture_users(self):
 
