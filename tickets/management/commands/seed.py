@@ -8,13 +8,13 @@ is swallowed and generation continues.
 """
 
 from datetime import timedelta
-from itertools import count
 from faker import Faker
 import random
 from django.core.management.base import BaseCommand, CommandError
 from tickets.models import User
 
 from tickets.models import Ticket
+from tickets.models import Comment
 from django.utils import timezone
 
 
@@ -89,6 +89,8 @@ class Command(BaseCommand):
     STAFF_COUNT = 100
     STUDENT_COUNT = 100
     TICKET_COUNT = 1000
+    STAFF_COMMENT_COUNT = 250
+    STUDENT_COMMENT_COUNT = 250
     DEFAULT_PASSWORD = "Password123"
     help = "Seeds the database with sample data"
 
@@ -111,13 +113,58 @@ class Command(BaseCommand):
     def seed_for_random_users(self):
         """
         Generate random staff users up to STAFF_COUNT and random student users up to STUDENT_COUNT.
-
-        The process is idempotent in spirit: attempts that fail (e.g., due to
-        uniqueness constraints on username/email) are ignored and generation continues.
         """
         self.generate_random_users(self.STUDENT_COUNT, User.USER_TYPE_STUDENT)
         self.generate_random_users(self.STAFF_COUNT, User.USER_TYPE_STAFF)
         self.generate_random_tickets_for_random_users()
+        self.generate_random_comments_for_random_tickets()
+
+    def generate_random_comments_for_random_tickets(self):
+        comment_count = Comment.objects.filter(
+            author__user_type=User.USER_TYPE_STUDENT
+        ).count()
+        tickets = Ticket.objects.all()
+
+        while comment_count < self.STUDENT_COMMENT_COUNT:
+            print(
+                f"Seeding comments {comment_count}/{self.STUDENT_COMMENT_COUNT}",
+                end="\r",
+            )
+            try:
+                random_index = random.randint(0, tickets.count() - 1)
+                random_ticket = tickets.all()[random_index]
+                self.create_comment(random_ticket, random_ticket.student)
+            except:
+                print(
+                    f"Seeding comments {comment_count}/{self.STUDENT_COMMENT_COUNT} failed"
+                )
+            comment_count = Comment.objects.filter(
+                author__user_type=User.USER_TYPE_STUDENT
+            ).count()
+        print(f"Student comment seeding complete.      ")
+
+        comment_count = Comment.objects.filter(
+            author__user_type=User.USER_TYPE_STAFF
+        ).count()
+        tickets = Ticket.objects.filter(assigned_to__isnull=False)
+
+        while comment_count < self.STAFF_COMMENT_COUNT:
+            print(
+                f"Seeding comments {comment_count}/{self.STAFF_COMMENT_COUNT}",
+                end="\r",
+            )
+            try:
+                random_index = random.randint(0, tickets.count() - 1)
+                random_ticket = tickets.all()[random_index]
+                self.create_comment(random_ticket, random_ticket.assigned_to)
+            except:
+                print(
+                    f"Seeding comments {comment_count}/{self.STAFF_COMMENT_COUNT} failed"
+                )
+            comment_count = Comment.objects.filter(
+                author__user_type=User.USER_TYPE_STAFF
+            ).count()
+        print(f"Staff comment seeding complete.      ")
 
     def generate_random_tickets_for_random_users(self):
         """
@@ -184,22 +231,6 @@ class Command(BaseCommand):
                 pass  # Ignore any errors and continue
             existing_count = Ticket.objects.count()
         print(f"Ticket seeding complete.      ")
-
-    def create_ticket(self, student, **overrides):
-        data = {
-            "student": student,
-            "faculty": random.choice(self.FACULTIES),
-            "study_level": random.choice(self.STUDY_LEVELS),
-            "category": random.choice(self.CATEGORIES),
-            "subject": self.faker.sentence(nb_words=6),
-            "body": self.faker.paragraph(nb_sentences=random.randint(3, 8)),
-            "status": Ticket.Status.AWAITING_STAFF,
-            "assigned_to": None,
-            "priority": random.choice(self.PRIORITIES),
-        }
-
-        data.update(overrides)
-        return Ticket.objects.create(**data)
 
     def generate_random_users(self, count, type):
         """
@@ -280,6 +311,32 @@ class Command(BaseCommand):
             is_staff=data.get("is_staff", False),
             is_superuser=data.get("is_superuser", False),
         )
+
+    def create_ticket(self, student, **overrides):
+        data = {
+            "student": student,
+            "faculty": random.choice(self.FACULTIES),
+            "study_level": random.choice(self.STUDY_LEVELS),
+            "category": random.choice(self.CATEGORIES),
+            "subject": self.faker.sentence(nb_words=6),
+            "body": self.faker.paragraph(nb_sentences=random.randint(3, 8)),
+            "status": Ticket.Status.AWAITING_STAFF,
+            "assigned_to": None,
+            "priority": random.choice(self.PRIORITIES),
+        }
+
+        data.update(overrides)
+        return Ticket.objects.create(**data)
+
+    def create_comment(self, ticket, author, **overrides):
+        data = {
+            "ticket": ticket,
+            "author": author,
+            "body": self.faker.paragraph(nb_sentences=random.randint(1, 5)),
+        }
+
+        data.update(overrides)
+        return Comment.objects.create(**data)
 
     def generate_user_fixtures(self):
         """Attempt to create each predefined fixture user."""
