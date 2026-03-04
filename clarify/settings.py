@@ -204,3 +204,6 @@ ITEMS_PER_PAGE = 20
 
 # Edit comment settings
 EDIT_TIME_LIMIT_MINUTES = 10
+
+# CRON settings
+CRON_TOKEN = os.environ.get("CRON_TOKEN", "")
