@@ -8,6 +8,7 @@ is swallowed and generation continues.
 """
 
 from datetime import timedelta
+from itertools import count
 from faker import Faker
 import random
 from django.core.management.base import BaseCommand, CommandError
@@ -52,7 +53,6 @@ user_fixtures = [
         "first_name": "Staff",
         "last_name": "001",
         "user_type": "staff",
-        "is_staff": True,
         "is_superuser": True,
     },
     {
@@ -61,7 +61,6 @@ user_fixtures = [
         "first_name": "Staff",
         "last_name": "002",
         "user_type": "staff",
-        "is_staff": True,
         "is_superuser": True,
     },
 ]
@@ -82,8 +81,14 @@ class Command(BaseCommand):
         faker (Faker): Locale-specific Faker instance used for random data.
     """
 
+    FACULTIES = [choice for choice, _ in Ticket.Faculty.choices if choice]
+    STUDY_LEVELS = [choice for choice, _ in Ticket.StudyLevel.choices if choice]
+    CATEGORIES = [choice for choice, _ in Ticket.Category.choices if choice]
+    PRIORITIES = [choice for choice, _ in Ticket.Priority.choices if choice]
+
     STAFF_COUNT = 100
     STUDENT_COUNT = 100
+    TICKET_COUNT = 1000
     DEFAULT_PASSWORD = "Password123"
     help = "Seeds the database with sample data"
 
@@ -112,6 +117,89 @@ class Command(BaseCommand):
         """
         self.generate_random_users(self.STUDENT_COUNT, User.USER_TYPE_STUDENT)
         self.generate_random_users(self.STAFF_COUNT, User.USER_TYPE_STAFF)
+        self.generate_random_tickets_for_random_users()
+
+    def generate_random_tickets_for_random_users(self):
+        """
+        Generate random tickets for existing users until TICKET_COUNT total tickets exist.
+
+        The process is idempotent in spirit: attempts that fail (e.g., due to
+        any validation errors) are ignored and generation continues.
+        """
+        existing_count = Ticket.objects.count()
+        student_qs = User.objects.filter(user_type=User.USER_TYPE_STUDENT)
+        current_student_count = student_qs.count()
+        staff_qs = User.objects.filter(user_type=User.USER_TYPE_STAFF)
+        current_staff_count = staff_qs.count()
+        ticket_types = ["OPEN", "IN_PROGRESS", "NEED_RESPONSE", "OVERDUE", "CLOSED"]
+
+        while existing_count < self.TICKET_COUNT:
+            print(f"Seeding tickets {existing_count}/{self.TICKET_COUNT}", end="\r")
+            try:
+                random_index = random.randint(0, current_student_count - 1)
+                random_student = student_qs.all()[random_index]
+
+                random_ticket_type = random.choice(ticket_types)
+                match random_ticket_type:
+                    case "OPEN":
+                        self.create_ticket(
+                            random_student,
+                            status=Ticket.Status.AWAITING_STAFF,
+                            assigned_to=None,
+                        )
+                    case "IN_PROGRESS":
+                        random_index = random.randint(0, current_staff_count - 1)
+                        staff_user = staff_qs.all()[random_index]
+                        self.create_ticket(
+                            random_student,
+                            status=Ticket.Status.AWAITING_STAFF,
+                            assigned_to=staff_user,
+                        )
+                    case "NEED_RESPONSE":
+                        self.create_ticket(
+                            random_student,
+                            status=Ticket.Status.AWAITING_STUDENT,
+                            assigned_to=None,
+                        )
+                    case "OVERDUE":
+                        t = self.create_ticket(
+                            random_student,
+                            status=Ticket.Status.AWAITING_STAFF,
+                            assigned_to=None,
+                        )
+                        overdue_cutoff = timezone.now() - timedelta(days=5)
+                        Ticket.objects.filter(pk=t.pk).update(
+                            created_at=overdue_cutoff - timedelta(days=1)
+                        )
+                    case "CLOSED":
+                        self.create_ticket(
+                            random_student,
+                            status=Ticket.Status.CLOSED,
+                            assigned_to=None,
+                            closed_reason=Ticket.ClosedReason.ANSWERED,
+                            closed_at=timezone.now(),
+                        )
+
+            except:
+                pass  # Ignore any errors and continue
+            existing_count = Ticket.objects.count()
+        print(f"Ticket seeding complete.      ")
+
+    def create_ticket(self, student, **overrides):
+        data = {
+            "student": student,
+            "faculty": random.choice(self.FACULTIES),
+            "study_level": random.choice(self.STUDY_LEVELS),
+            "category": random.choice(self.CATEGORIES),
+            "subject": self.faker.sentence(nb_words=6),
+            "body": self.faker.paragraph(nb_sentences=random.randint(3, 8)),
+            "status": Ticket.Status.AWAITING_STAFF,
+            "assigned_to": None,
+            "priority": random.choice(self.PRIORITIES),
+        }
+
+        data.update(overrides)
+        return Ticket.objects.create(**data)
 
     def generate_random_users(self, count, type):
         """
