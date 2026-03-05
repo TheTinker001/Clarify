@@ -6,11 +6,19 @@ from tickets.models import Ticket
 
 
 class Command(BaseCommand):
+    """
+    Close tickets in AWAITING_STUDENT for more than 14 days (run on a schedule).
+
+    The ``.exclude(status=CLOSED)`` guard is redundant but prevents accidental
+    re-closure if data is ever in an inconsistent state.
+    """
+
     help = (
         "Close tickets that have been awaiting student response for more than 14 days."
     )
 
     def handle(self, *args, **options):
+        """Bulk-update all tickets past the inactivity threshold to CLOSED/INACTIVITY."""
         cutoff = timezone.now() - timedelta(days=14)
 
         qs = Ticket.objects.filter(

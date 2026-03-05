@@ -10,12 +10,19 @@ from tickets.models.attachment import TicketAttachment
 
 
 class CreateTicketView(LoginRequiredMixin, CreateView):
+    """
+    Let students submit a new ticket. Staff are redirected away.
+
+    Attachments are saved as ``TicketAttachment`` rows after the ticket is created.
+    """
+
     model = Ticket
     form_class = TicketForm
     template_name = "create_ticket.html"
     success_url = reverse_lazy("dashboard")
 
     def dispatch(self, request, *args, **kwargs):
+        """Redirect non-student users to the dashboard before any form processing."""
         if not request.user.is_authenticated:
             return super().dispatch(request, *args, **kwargs)
         if request.user.user_type != "student":
@@ -23,6 +30,7 @@ class CreateTicketView(LoginRequiredMixin, CreateView):
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
+        """Save the ticket and attachments, send a confirmation email (failures silently swallowed)."""
         form.instance.student = self.request.user
         files = self.request.FILES.getlist("attachments")
         if len(files) > TicketAttachment.MAX_FILES_PER_TICKET:

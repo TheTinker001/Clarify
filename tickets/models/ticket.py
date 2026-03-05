@@ -12,7 +12,12 @@ User = get_user_model()
 
 
 class Ticket(models.Model):
-    """Model representing a student ticket."""
+    """
+    A support request raised by a student and managed by staff.
+
+    Status lifecycle: AWAITING_STAFF → AWAITING_STUDENT → CLOSED. The ``url_code``
+    is a short cryptographically random token used in URLs instead of the numeric PK.
+    """
 
     class Faculty(models.TextChoices):
         EMPTY = "", "Select"
@@ -120,6 +125,9 @@ class Ticket(models.Model):
     subject = models.CharField(max_length=78)
 
     BODY_MAX_LENGTH = 50000
+    # max_length alone does not enforce the limit at the database level for
+    # TextField on SQLite; the explicit MaxLengthValidator ensures the cap is
+    # applied during form and model validation as well.
     body = models.TextField(
         max_length=BODY_MAX_LENGTH, validators=[MaxLengthValidator(BODY_MAX_LENGTH)]
     )
@@ -150,6 +158,7 @@ class Ticket(models.Model):
     url_code = models.CharField(max_length=64, unique=True, blank=True, null=False)
 
     def clean(self):
+        """Validate student/assigned_to types, require closed_reason when CLOSED, and clear closure fields otherwise."""
         super().clean()
 
         if self.student_id and self.student.user_type != User.USER_TYPE_STUDENT:
@@ -172,57 +181,33 @@ class Ticket(models.Model):
             self.closed_reason = None
 
     def save(self, *args, **kwargs):
-        """
-        Override save to ensure each ticket has a unique URL code.
-
-        The URL code is generated using a cryptographically safe token and
-        checked against the database to avoid collisions.
-        """
+        """Generate a unique ``url_code`` on first save, then call ``full_clean`` before saving."""
         if not self.url_code:
             self.url_code = self.generate_unique_url_code()
         self.full_clean()
         return super().save(*args, **kwargs)
 
     def get_absolute_url(self):
-        """
-        Return the absolute URL for this ticket's detail view.
-
-        Returns:
-            str: A fully resolved URL for this ticket's detail page.
-        """
+        """Return the URL for this ticket's detail page."""
         return reverse("ticket_detail", kwargs={"url_code": self.url_code})
 
     def get_claim_url(self):
-        """
-        Return the absolute URL for this ticket's claim view.
-
-        Returns:
-            str: A fully resolved URL for this ticket's claim page.
-        """
+        """Return the URL for this ticket's claim action."""
         return reverse("ticket_claim", kwargs={"url_code": self.url_code})
 
     def get_unclaim_url(self):
-        """
-        Return the absolute URL for this ticket's unclaim view.
-
-        Returns:
-            str: A fully resolved URL for this ticket's unclaim page.
-        """
+        """Return the URL for this ticket's unclaim action."""
         return reverse("ticket_unclaim", kwargs={"url_code": self.url_code})
 
     def generate_unique_url_code(self):
-        """
-        Generate a unique URL-safe identifier for the ticket.
-
-        Returns:
-            str: A unique token usable as a ticket identifier.
-        """
+        """Return a collision-free ``secrets.token_urlsafe`` code for use in URLs."""
         code = secrets.token_urlsafe(7)
         while Ticket.objects.filter(url_code=code).exists():
             code = secrets.token_urlsafe(7)
         return code
 
     def get_priority_icon(self):
+        """Return a Bootstrap Icons ``<i>`` element for the ticket's priority, or '' if unrecognised."""
         icons = {
             "pending priority": '<i class="bi bi-hourglass text-secondary"></i>',
             "low": '<i class="bi bi-hourglass-bottom text-success"></i>',
@@ -236,6 +221,4 @@ class Ticket(models.Model):
         return f"Ticket {self.pk} | {self.subject}"
 
     class Meta:
-        """Model settings controlling ordering and behaviours."""
-
         ordering = ["-created_at"]

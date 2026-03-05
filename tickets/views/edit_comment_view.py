@@ -13,9 +13,15 @@ from clarify.settings import EDIT_TIME_LIMIT_MINUTES
 
 
 class EditCommentView(LoginRequiredMixin, View):
-    """Allow a comment author to edit their comment within 10 minutes."""
+    """Let the comment author edit their comment within ``EDIT_TIME_LIMIT_MINUTES``."""
 
     def _get_comment_or_404(self, request, ticket_url_code, comment_url_code):
+        """
+        Return the comment, raising Http404 if the user is not the author or the edit window has expired.
+
+        Both URL codes are used in the lookup so a user can't edit a comment on a different ticket
+        by guessing the comment's URL code.
+        """
         comment = get_object_or_404(
             Comment.objects.select_related("ticket"),
             url_code=comment_url_code,
@@ -32,6 +38,7 @@ class EditCommentView(LoginRequiredMixin, View):
         return comment
 
     def get(self, request, ticket_url_code, comment_url_code):
+        """Display the edit form pre-populated with the comment's current body."""
         comment = self._get_comment_or_404(request, ticket_url_code, comment_url_code)
         form = CommentForm(instance=comment)
         return render(
@@ -44,6 +51,7 @@ class EditCommentView(LoginRequiredMixin, View):
         )
 
     def post(self, request, ticket_url_code, comment_url_code):
+        """Save the edited comment; re-render with errors if the form is invalid."""
         comment = self._get_comment_or_404(request, ticket_url_code, comment_url_code)
         form = CommentForm(request.POST, instance=comment)
 

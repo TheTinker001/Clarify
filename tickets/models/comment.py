@@ -32,10 +32,7 @@ class Comment(models.Model):
 
     def save(self, *args, **kwargs):
         """
-        Override save to ensure each ticket comment has a unique URL code.
-
-        The URL code is generated using a cryptographically safe token and
-        checked against the database to avoid collisions.
+        Auto-generate a unique URL code using a cryptographically safe token before saving.
         """
         if not self.url_code:
             self.url_code = self.generate_unique_url_code()
@@ -44,10 +41,7 @@ class Comment(models.Model):
 
     def get_absolute_url(self):
         """
-        Return the absolute URL for this ticket comment's detail view.
-
-        Returns:
-            str: A fully resolved URL for this ticket comment's detail page.
+        Return the absolute URL for this comment's edit view.
         """
         return reverse(
             "edit_comment",
@@ -59,10 +53,7 @@ class Comment(models.Model):
 
     def generate_unique_url_code(self):
         """
-        Generate a unique URL-safe identifier for the ticket comment.
-
-        Returns:
-            str: A unique token usable as a ticket comment identifier.
+        Generate a unique URL-safe token, retrying on collision.
         """
         code = secrets.token_urlsafe(7)
         while Comment.objects.filter(url_code=code).exists():
@@ -70,6 +61,7 @@ class Comment(models.Model):
         return code
 
     def __str__(self):
+        """Return a human-readable summary identifying the comment's author and ticket."""
         return f"Comment by {self.author} on Ticket {self.ticket_id}"
 
     class Meta:

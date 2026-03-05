@@ -8,9 +8,13 @@ from django.views.generic import DetailView
 
 
 class UserProfileContext:
+    """Mixin that converts a user's CSV preference fields into labels and 'all selected' flags for templates."""
+
     def get_profile_context(self, user):
+        """Return context with preference codes, human-readable labels, and 'all selected' flags."""
 
         def get_labels(codes, choices):
+            """Map choice codes to labels, silently skipping any stale codes not in the enum."""
             return [
                 choices(code).label for code in codes if code and code in choices.values
             ]
@@ -34,6 +38,7 @@ class UserProfileContext:
         return {
             "faculty_list": faculty_codes,
             "faculty_labels": get_labels(faculty_codes, Ticket.Faculty),
+            # Subtract 1 to exclude the EMPTY sentinel entry from the choices count.
             "all_faculties_selected": len(faculty_codes)
             == len(Ticket.Faculty.choices) - 1,
             "study_level_list": study_level_codes,
@@ -51,19 +56,24 @@ class UserProfileContext:
 
 
 class ProfileView(LoginRequiredMixin, UserProfileContext, UpdateView):
+    """Edit the current user's own profile. ``get_object`` always returns the request user to prevent URL manipulation."""
+
     model = User
     template_name = "profile.html"
     context_object_name = "profile_user"
     form_class = UserForm
 
     def get_context_data(self, **kwargs):
+        """Add preference labels and 'all selected' flags to the template context."""
         context = super().get_context_data(**kwargs)
         context.update(self.get_profile_context(self.request.user))
         return context
 
     def get_object(self, queryset=None):
+        """Always return the request user, preventing access to other profiles via URL."""
         return self.request.user
 
     def get_success_url(self):
+        """Flash a success message and redirect to the dashboard."""
         messages.add_message(self.request, messages.SUCCESS, "Profile updated!")
         return reverse("dashboard")

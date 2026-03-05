@@ -6,7 +6,7 @@ User = get_user_model()
 
 
 class InternalNote(models.Model):
-    """Model representing a staff-only internal note on a ticket."""
+    """A staff-only note on a ticket, never visible to students."""
 
     BODY_MAX_LENGTH = 5000
 
@@ -27,6 +27,7 @@ class InternalNote(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
+        """Return a human-readable summary identifying the note's author and ticket."""
         return f"Internal note by {self.author} on Ticket {self.ticket_id}"
 
     class Meta:

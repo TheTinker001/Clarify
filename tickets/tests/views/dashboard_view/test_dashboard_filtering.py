@@ -78,7 +78,8 @@ class DashboardFilteringTestCase(TestCase, LogInTester):
         self.assertEqual(response.status_code, 200)
         tickets = response.context["page_obj"].object_list
         self.assertEqual(len(tickets), 4)
-        # student shouldnt be able to use filters, so all 4 tickets should be returned
+
+    # Students cannot apply dashboard filters; therefore all tickets are returned
 
     def test_filtering_with_invalid_inputs(self):
         self.client.login(username="@janedoe", password="Password123")
