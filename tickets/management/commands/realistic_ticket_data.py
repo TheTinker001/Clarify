@@ -900,11 +900,11 @@ def generate_standalone_student_comment(category):
     return random.choice(comments)
 
 
-def generate_comment_and_response_by_category(category):
+def generate_comment_and_response_by_category(category, probability_of_response=0.33):
     comment_and_reply = random.choice(COMMENT_AND_REPLY_BY_CATEGORY.get(category, []))
     staff_comment = comment_and_reply.get("staff", "").strip()
-    # 1/3 chance of no student reply
-    if random.random() < 1 / 3:
+    # default of 1/3 chance of no student reply
+    if random.random() < probability_of_response:
         student_comment = ""
     else:
         student_comment = comment_and_reply.get("student", "").strip()
