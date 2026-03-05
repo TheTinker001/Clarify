@@ -182,6 +182,9 @@ ALLOWED_EXTENSIONS = ["pdf", "doc", "docx", "txt", "jpg", "jpeg", "png"]
 # Edit comment settings
 EDIT_TIME_LIMIT_MINUTES = 10
 
+# CRON settings
+CRON_TOKEN = os.environ.get("CRON_TOKEN", "")
+
 # Base URL for links in emails
 SITE_URL = os.getenv("SITE_URL", "http://localhost:8000")
 
