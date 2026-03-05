@@ -111,7 +111,7 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
             raise Http404
 
         comment_form = CommentForm(request.POST, request.FILES)
-        if not comment_form.is_valid():
+        if comment_form.is_valid():
             files = comment_form.cleaned_data.get("attachments") or []
             if len(files) > TicketAttachment.MAX_FILES_PER_TICKET:
                 comment_form.add_error(
@@ -169,6 +169,7 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
             messages.success(request, "Comment added.")
             return redirect("ticket_detail", url_code=kwargs.get("url_code"))
 
+        # If form is not valid, re-render with errors
         return self.render_to_response(self.get_context_data(form=comment_form))
 
     def post_action_add_internal_note(self, request, *args, **kwargs):

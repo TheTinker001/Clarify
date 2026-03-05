@@ -124,3 +124,8 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
         self.ticket.refresh_from_db()
         self.assertEqual(response.status_code, 302)
         self.assertEqual(self.ticket.faculty, Ticket.Faculty.KBS)
+
+    def test_fields_form_not_in_context_for_non_staff(self):
+        self.client.login(username=self.student.username, password="Password123")
+        response = self.client.get(self.url)
+        self.assertIsNone(response.context.get("ticket_fields_form"))
