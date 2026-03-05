@@ -1,0 +1,126 @@
+"""Tests for the ticket detail view."""
+
+from django.test import TestCase
+from tickets.forms import TicketPriorityForm, TicketFieldsForm
+from tickets.models import Ticket, User
+from tickets.tests.helpers import (
+    MenuTesterMixin,
+    _reverse_with_next,
+    _valid_comment_post_data,
+)
+
+from datetime import timedelta
+from django.utils import timezone
+
+
+class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
+    """Test suite for the ticket detail view."""
+
+    fixtures = [
+        "tickets/tests/fixtures/default_user.json",
+        "tickets/tests/fixtures/other_users.json",
+    ]
+
+    def setUp(self):
+        self.student = User.objects.get(username="@johndoe")
+        self.student2 = User.objects.get(username="@petrapickles")
+        self.staff = User.objects.get(username="@janedoe")
+        self.ticket = Ticket.objects.create(
+            student=self.student,
+            assigned_to=self.staff,
+            faculty="nmes",
+            study_level="undergraduate",
+            category="other",
+            subject="Update card access",
+            body="Card access not working for lab.",
+        )
+        self.url = self.ticket.get_absolute_url()
+
+    def test_fields_form_in_context_for_staff(self):
+        self.client.login(username=self.staff.username, password="Password123")
+        response = self.client.get(self.url)
+        self.assertIn("ticket_fields_form", response.context)
+        self.assertIsInstance(response.context["ticket_fields_form"], TicketFieldsForm)
+
+    def test_fields_form_not_in_context_for_non_staff(self):
+        self.client.login(username=self.student.username, password="Password123")
+        response = self.client.get(self.url)
+        self.assertIsNone(response.context.get("ticket_fields_form"))
+
+    def test_post_set_fields_as_non_staff(self):
+        self.client.login(username=self.student.username, password="Password123")
+        response = self.client.post(
+            self.url,
+            data={
+                "action": "set_ticket_fields",
+                "faculty": Ticket.Faculty.KBS,
+                "study_level": Ticket.StudyLevel.POSTGRADUATE_RESEARCH,
+                "category": Ticket.Category.WELFARE,
+            },
+        )
+        self.ticket.refresh_from_db()
+        self.assertEqual(response.status_code, 404)
+
+    def test_post_invalid_fields(self):
+        self.client.login(username=self.staff.username, password="Password123")
+        initial_faculty = self.ticket.faculty
+        initial_study_level = self.ticket.study_level
+        initial_category = self.ticket.category
+        response = self.client.post(
+            self.url,
+            data={
+                "action": "set_ticket_fields",
+                "faculty": "invalid_faculty",
+                "study_level": "invalid_study_level",
+                "category": "invalid_category",
+            },
+        )
+        self.ticket.refresh_from_db()
+        self.assertEqual(self.ticket.faculty, initial_faculty)
+        self.assertEqual(self.ticket.study_level, initial_study_level)
+        self.assertEqual(self.ticket.category, initial_category)
+        self.assertEqual(response.status_code, 302)
+
+    def test_edit_fields_as_unassigned_staff_raises_404(self):
+        assigned_staff = User.objects.create_user(
+            username="@assignedstaff",
+            email="assignedstaff@example.org",  # Unique email
+            password="Password123",
+            user_type=User.USER_TYPE_STAFF,
+        )
+        other_staff = User.objects.create_user(
+            username="@otherstaff",
+            email="otherstaff@example.org",  # Unique email
+            password="Password123",
+            user_type=User.USER_TYPE_STAFF,
+        )
+        self.ticket.assigned_to = assigned_staff
+        self.ticket.save()
+        self.client.login(username=other_staff.username, password="Password123")
+        response = self.client.post(
+            self.ticket.get_absolute_url(),
+            data={
+                "action": "set_ticket_fields",
+                "faculty": Ticket.Faculty.KBS,
+                "study_level": Ticket.StudyLevel.POSTGRADUATE_RESEARCH,
+                "category": Ticket.Category.WELFARE,
+            },
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_edit_fields_as_assigned_staff_success(self):
+        self.client.login(
+            username=self.ticket.assigned_to.username, password="Password123"
+        )
+        response = self.client.post(
+            self.ticket.get_absolute_url(),
+            data={
+                "action": "set_ticket_fields",
+                "faculty": Ticket.Faculty.KBS,
+                "study_level": Ticket.StudyLevel.POSTGRADUATE_RESEARCH,
+                "category": Ticket.Category.WELFARE,
+            },
+        )
+        self.ticket.refresh_from_db()
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(self.ticket.faculty, Ticket.Faculty.KBS)

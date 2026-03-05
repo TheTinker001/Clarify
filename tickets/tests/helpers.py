@@ -1,9 +1,6 @@
 from django.urls import reverse
 from with_asserts.mixin import AssertHTMLMixin
 
-from django.test import TestCase, override_settings
-from unittest.mock import patch
-from tickets.models import Ticket
 from tickets.forms import CommentForm
 from tickets.helpers import _send_ticket_created_email
 
