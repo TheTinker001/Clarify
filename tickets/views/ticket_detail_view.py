@@ -1,15 +1,21 @@
+from datetime import timedelta
+
+from django.contrib import messages
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
-from django.contrib import messages
+from django.utils import timezone
+from django.views.generic import TemplateView
+from django.contrib.auth.mixins import LoginRequiredMixin
 
-from tickets.forms import CommentForm, TicketPriorityForm, InternalNoteForm
+from clarify.settings import EDIT_TIME_LIMIT_MINUTES
+from tickets.forms import (
+    CommentForm,
+    TicketPriorityForm,
+    InternalNoteForm,
+)
+from tickets.helpers import _send_staff_comment_email
 from tickets.models import Ticket, User
 from tickets.models.attachment import TicketAttachment
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import TemplateView
-from datetime import timedelta
-from django.utils import timezone
-from clarify.settings import EDIT_TIME_LIMIT_MINUTES
 
 
 class TicketDetailView(LoginRequiredMixin, TemplateView):
@@ -35,16 +41,16 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
 
         return super().dispatch(request, *args, **kwargs)
 
+    # GET helpers
     def get_priority_form(self):
-        # Default forms for GET
         if self.is_staff_user:
             return TicketPriorityForm(instance=self.ticket)
         return None
 
     def get_comment_form(self):
-        # Default forms for GET
         return CommentForm()
 
+    # POST function
     def post(self, request, *args, **kwargs):
         action = request.POST.get("action")
 
@@ -69,9 +75,9 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
             return self.post_action_unclose_ticket(request, *args, **kwargs)
 
         # Unknown action
-        else:
-            raise Http404
+        raise Http404
 
+    # Actions
     def post_action_set_priority(self, request, *args, **kwargs):
         if not self.is_staff_user or self.ticket.status == Ticket.Status.CLOSED:
             raise Http404
@@ -90,78 +96,83 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
             raise Http404
 
         comment_form = CommentForm(request.POST, request.FILES)
+        if not comment_form.is_valid():
+            return self.render_to_response(self.get_context_data(form=comment_form))
 
-        if comment_form.is_valid():
-            files = comment_form.cleaned_data.get("attachments") or []
-            if len(files) > TicketAttachment.MAX_FILES_PER_TICKET:
-                comment_form.add_error(
-                    "attachments",
-                    f"You can upload a maximum of {TicketAttachment.MAX_FILES_PER_TICKET} files.",
-                )
-                return self.render_to_response(self.get_context_data(form=comment_form))
+        files = comment_form.cleaned_data.get("attachments") or []
+        if len(files) > TicketAttachment.MAX_FILES_PER_TICKET:
+            comment_form.add_error(
+                "attachments",
+                f"You can upload a maximum of {TicketAttachment.MAX_FILES_PER_TICKET} files.",
+            )
+            return self.render_to_response(self.get_context_data(form=comment_form))
 
-            comment = comment_form.save(commit=False)
-            comment.ticket = self.ticket
-            comment.author = request.user
-            comment.save()
+        comment = comment_form.save(commit=False)
+        comment.ticket = self.ticket
+        comment.author = request.user
+        comment.save()
 
-            # Save attachments
-            for f in files:
-                TicketAttachment.objects.create(comment=comment, file=f)
+        # Save attachments
+        for f in files:
+            TicketAttachment.objects.create(comment=comment, file=f)
 
-            # Update ticket status based on commenter
-            now = timezone.now()
+        if self.is_staff_user:
+            try:
+                _send_staff_comment_email(self.ticket, comment)
+            except Exception:
+                pass
 
-            if self.ticket.status == Ticket.Status.CLOSED:
-                # Student comment reopens the ticket
-                if not self.is_staff_user:
-                    self.ticket.status = Ticket.Status.AWAITING_STAFF
-                    self.ticket.closed_reason = None
-                    self.ticket.closed_at = None
-                    self.ticket.awaiting_student_since = None
-                    self.ticket.save(
-                        update_fields=[
-                            "status",
-                            "closed_reason",
-                            "closed_at",
-                            "awaiting_student_since",
-                            "updated_at",
-                        ]
-                    )
-            else:
-                if self.is_staff_user:
-                    self.ticket.status = Ticket.Status.AWAITING_STUDENT
-                    self.ticket.awaiting_student_since = now
-                else:
-                    self.ticket.status = Ticket.Status.AWAITING_STAFF
-                    self.ticket.awaiting_student_since = None
+        # Update ticket status based on commenter
+        now = timezone.now()
 
+        if self.ticket.status == Ticket.Status.CLOSED:
+            # Student comment reopens the ticket
+            if not self.is_staff_user:
+                self.ticket.status = Ticket.Status.AWAITING_STAFF
+                self.ticket.closed_reason = None
+                self.ticket.closed_at = None
+                self.ticket.awaiting_student_since = None
                 self.ticket.save(
-                    update_fields=["status", "awaiting_student_since", "updated_at"]
+                    update_fields=[
+                        "status",
+                        "closed_reason",
+                        "closed_at",
+                        "awaiting_student_since",
+                        "updated_at",
+                    ]
                 )
+        else:
+            if self.is_staff_user:
+                self.ticket.status = Ticket.Status.AWAITING_STUDENT
+                self.ticket.awaiting_student_since = now
+            else:
+                self.ticket.status = Ticket.Status.AWAITING_STAFF
+                self.ticket.awaiting_student_since = None
 
-            messages.success(request, "Comment added.")
-            return redirect("ticket_detail", url_code=kwargs.get("url_code"))
+            self.ticket.save(
+                update_fields=["status", "awaiting_student_since", "updated_at"]
+            )
 
-        return self.render_to_response(self.get_context_data(form=comment_form))
+        messages.success(request, "Comment added.")
+        return redirect("ticket_detail", url_code=kwargs.get("url_code"))
 
     def post_action_add_internal_note(self, request, *args, **kwargs):
         if not self.is_staff_user:
             raise Http404
 
         note_form = InternalNoteForm(request.POST)
+        if not note_form.is_valid():
+            return self.render_to_response(
+                self.get_context_data(internal_note_form=note_form)
+            )
 
-        if note_form.is_valid():
-            note = note_form.save(commit=False)
-            note.ticket = self.ticket
-            note.author = request.user
-            note.save()
-            messages.success(request, "Internal note added.")
-            return redirect("ticket_detail", url_code=kwargs.get("url_code"))
+        note = note_form.save(commit=False)
+        note.ticket = self.ticket
+        note.author = request.user
+        note.save()
 
-        return self.render_to_response(
-            self.get_context_data(internal_note_form=note_form)
-        )
+        messages.success(request, "Internal note added.")
+        return redirect("ticket_detail", url_code=kwargs.get("url_code"))
 
     def post_action_close_ticket(self, request, *args, **kwargs):
         if not self.is_staff_user:
@@ -219,15 +230,17 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         messages.success(request, "Ticket opened as unsolved.")
         return redirect("ticket_detail", url_code=kwargs.get("url_code"))
 
+    # Context
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["ticket"] = self.ticket
         context["ticket_priority_form"] = self.get_priority_form()
-        context["form"] = kwargs.get("form") or self.get_comment_form()
+        context["form"] = (
+            kwargs.get("form") or kwargs.get("comment_form") or self.get_comment_form()
+        )
 
         now = timezone.now()
         limit = timedelta(minutes=EDIT_TIME_LIMIT_MINUTES)
-
         comments = list(self.ticket.comments.select_related("author").all())
         for c in comments:
             c.can_edit = (c.author_id == self.request.user.id) and (

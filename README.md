@@ -54,3 +54,6 @@ The packages used by this application are specified in `requirements.txt`
 We used the following website as a reference: https://self-service.kcl.ac.uk
 
 We also used the KEATS Recipify template code as the basis for this project.
+
+## More information
+This project uses 'clarifyticketing@gmail.com' for email management.
