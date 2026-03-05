@@ -1,16 +1,10 @@
 """Tests for the ticket detail view."""
 
 from django.test import TestCase
-from tickets.forms import TicketPriorityForm, TicketFieldsForm
+from tickets.forms import TicketFieldsForm
 from tickets.models import Ticket, User
-from tickets.tests.helpers import (
-    MenuTesterMixin,
-    _reverse_with_next,
-    _valid_comment_post_data,
-)
+from tickets.tests.helpers import MenuTesterMixin
 from tickets.views import TicketDetailView
-from datetime import timedelta
-from django.utils import timezone
 
 
 class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
