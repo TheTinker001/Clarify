@@ -17,6 +17,13 @@ from tickets.models import Ticket
 from tickets.models import Comment
 from django.utils import timezone
 
+from tickets.management.commands.realistic_ticket_data import generate_subject_and_body
+from tickets.management.commands.realistic_ticket_data import (
+    generate_standalone_student_comment,
+)
+from tickets.management.commands.realistic_ticket_data import (
+    generate_comment_and_response_by_category,
+)
 
 user_fixtures = [
     {
@@ -89,6 +96,7 @@ class Command(BaseCommand):
     STAFF_COUNT = 100
     STUDENT_COUNT = 100
     TICKET_COUNT = 1000
+    FIXTURE_TICKET_COUNT = 10
     STAFF_COMMENT_COUNT = 250
     STUDENT_COMMENT_COUNT = 250
     DEFAULT_PASSWORD = "Password123"
@@ -127,16 +135,20 @@ class Command(BaseCommand):
 
         while comment_count < self.STUDENT_COMMENT_COUNT:
             print(
-                f"Seeding comments {comment_count}/{self.STUDENT_COMMENT_COUNT}",
+                f"Seeding student comments {comment_count}/{self.STUDENT_COMMENT_COUNT}",
                 end="\r",
             )
             try:
                 random_index = random.randint(0, tickets.count() - 1)
                 random_ticket = tickets.all()[random_index]
-                self.create_comment(random_ticket, random_ticket.student)
+                self.create_comment(
+                    random_ticket,
+                    random_ticket.student,
+                    body=generate_standalone_student_comment(random_ticket.category),
+                )
             except:
                 print(
-                    f"Seeding comments {comment_count}/{self.STUDENT_COMMENT_COUNT} failed"
+                    f"Seeding student comments {comment_count}/{self.STUDENT_COMMENT_COUNT} failed"
                 )
             comment_count = Comment.objects.filter(
                 author__user_type=User.USER_TYPE_STUDENT
@@ -150,16 +162,25 @@ class Command(BaseCommand):
 
         while comment_count < self.STAFF_COMMENT_COUNT:
             print(
-                f"Seeding comments {comment_count}/{self.STAFF_COMMENT_COUNT}",
+                f"Seeding staff comments + reply {comment_count}/{self.STAFF_COMMENT_COUNT}",
                 end="\r",
             )
             try:
                 random_index = random.randint(0, tickets.count() - 1)
                 random_ticket = tickets.all()[random_index]
-                self.create_comment(random_ticket, random_ticket.assigned_to)
+                staff_comment, student_comment = (
+                    generate_comment_and_response_by_category(random_ticket.category)
+                )
+                self.create_comment(
+                    random_ticket, random_ticket.assigned_to, body=staff_comment
+                )
+                if student_comment:
+                    self.create_comment(
+                        random_ticket, random_ticket.student, body=student_comment
+                    )
             except:
                 print(
-                    f"Seeding comments {comment_count}/{self.STAFF_COMMENT_COUNT} failed"
+                    f"Seeding staff comments {comment_count}/{self.STAFF_COMMENT_COUNT} failed"
                 )
             comment_count = Comment.objects.filter(
                 author__user_type=User.USER_TYPE_STAFF
@@ -313,13 +334,21 @@ class Command(BaseCommand):
         )
 
     def create_ticket(self, student, **overrides):
+        random_faculty = random.choice(self.FACULTIES)
+        random_study_level = random.choice(self.STUDY_LEVELS)
+        random_category = random.choice(self.CATEGORIES)
+        generated_subject, generated_body = generate_subject_and_body(
+            faculty=random_faculty,
+            study_level=random_study_level,
+            category=random_category,
+        )
         data = {
             "student": student,
-            "faculty": random.choice(self.FACULTIES),
-            "study_level": random.choice(self.STUDY_LEVELS),
-            "category": random.choice(self.CATEGORIES),
-            "subject": self.faker.sentence(nb_words=6),
-            "body": self.faker.paragraph(nb_sentences=random.randint(3, 8)),
+            "faculty": random_faculty,
+            "study_level": random_study_level,
+            "category": random_category,
+            "subject": generated_subject,
+            "body": generated_body,
             "status": Ticket.Status.AWAITING_STAFF,
             "assigned_to": None,
             "priority": random.choice(self.PRIORITIES),
@@ -328,14 +357,12 @@ class Command(BaseCommand):
         data.update(overrides)
         return Ticket.objects.create(**data)
 
-    def create_comment(self, ticket, author, **overrides):
+    def create_comment(self, ticket, author, body):
         data = {
             "ticket": ticket,
             "author": author,
-            "body": self.faker.paragraph(nb_sentences=random.randint(1, 5)),
+            "body": body,
         }
-
-        data.update(overrides)
         return Comment.objects.create(**data)
 
     def generate_user_fixtures(self):
@@ -344,23 +371,11 @@ class Command(BaseCommand):
             self.try_create_user(data)
 
     def create_tickets_for_fixture_users(self):
-
-        FACULTIES = [choice for choice, _ in Ticket.Faculty.choices if choice]
-        STUDY_LEVELS = [choice for choice, _ in Ticket.StudyLevel.choices if choice]
-        CATEGORIES = [choice for choice, _ in Ticket.Category.choices if choice]
-        PRIORITIES = [choice for choice, _ in Ticket.Priority.choices if choice]
-
-        staff_user = User.objects.create_user(
-            first_name="Staff",
-            last_name="User",
-            username="@staffuser",
-            email="staffuser@example.org",
-            user_type=User.USER_TYPE_STAFF,
-            is_staff=True,
-            is_superuser=True,
-            password="Password123",
-        )
         overdue_cutoff = timezone.now() - timedelta(days=5)
+        fixture_staff = [
+            User.objects.get(username="@staff001"),
+            User.objects.get(username="@staff002"),
+        ]
 
         for data in user_fixtures:
             try:
@@ -372,108 +387,59 @@ class Command(BaseCommand):
             if user.user_type != User.USER_TYPE_STUDENT:
                 continue
 
-            existing = Ticket.objects.filter(student=user).count()
-            if existing >= 2:
-                continue
+            ticket_types = ["OPEN", "IN_PROGRESS", "NEED_RESPONSE", "OVERDUE", "CLOSED"]
 
-            remaining = 20 - existing
-            if remaining <= 0:
-                continue
-
-            # Define mix (adjust numbers if you want)
-            open_count = min(7, remaining)
-            remaining -= open_count
-
-            in_progress_count = min(2, remaining) if staff_user else 0
-            remaining -= in_progress_count
-
-            need_response_count = min(2, remaining)
-            remaining -= need_response_count
-
-            overdue_count = min(1, remaining)
-            remaining -= overdue_count
-
-            closed_count = min(2, remaining)
-            remaining -= closed_count
-
-            # Anything left -> open tickets
-            open_count += remaining
-
-            # OPEN tickets
-            for _ in range(open_count):
-                Ticket.objects.create(
-                    student=user,
-                    faculty=random.choice(FACULTIES),
-                    study_level=random.choice(STUDY_LEVELS),
-                    category=random.choice(CATEGORIES),
-                    subject=self.faker.sentence(nb_words=6),
-                    body=self.faker.paragraph(nb_sentences=random.randint(3, 8)),
-                    status=Ticket.Status.AWAITING_STAFF,
-                    assigned_to=None,
-                    priority=random.choice(PRIORITIES),
+            created_count = 0
+            while created_count < self.FIXTURE_TICKET_COUNT:
+                print(
+                    f"Seeding ticket {created_count}/{self.FIXTURE_TICKET_COUNT} for {user.username}",
+                    end="\r",
                 )
+                try:
+                    random_ticket_type = random.choice(ticket_types)
+                    match random_ticket_type:
+                        case "OPEN":
+                            self.create_ticket(
+                                user,
+                                status=Ticket.Status.AWAITING_STAFF,
+                                assigned_to=None,
+                            )
+                        case "IN_PROGRESS":
+                            random_staff = random.choice(fixture_staff)
+                            self.create_ticket(
+                                user,
+                                status=Ticket.Status.AWAITING_STAFF,
+                                assigned_to=random_staff,
+                            )
+                        case "NEED_RESPONSE":
+                            self.create_ticket(
+                                user,
+                                status=Ticket.Status.AWAITING_STUDENT,
+                                assigned_to=None,
+                            )
+                        case "OVERDUE":
+                            t = self.create_ticket(
+                                user,
+                                status=Ticket.Status.AWAITING_STAFF,
+                                assigned_to=None,
+                            )
+                            overdue_cutoff = timezone.now() - timedelta(days=5)
+                            Ticket.objects.filter(pk=t.pk).update(
+                                created_at=overdue_cutoff - timedelta(days=1)
+                            )
+                        case "CLOSED":
+                            self.create_ticket(
+                                user,
+                                status=Ticket.Status.CLOSED,
+                                assigned_to=None,
+                                closed_reason=Ticket.ClosedReason.ANSWERED,
+                                closed_at=timezone.now(),
+                            )
 
-            # IN PROGRESS tickets
-            for _ in range(in_progress_count):
-                Ticket.objects.create(
-                    student=user,
-                    faculty=random.choice(FACULTIES),
-                    study_level=random.choice(STUDY_LEVELS),
-                    category=random.choice(CATEGORIES),
-                    subject=self.faker.sentence(nb_words=6),
-                    body=self.faker.paragraph(nb_sentences=random.randint(3, 8)),
-                    status=Ticket.Status.AWAITING_STAFF,
-                    assigned_to=staff_user,
-                    priority=random.choice(PRIORITIES),
-                )
-
-            # NEED RESPONSE tickets
-            for _ in range(need_response_count):
-                Ticket.objects.create(
-                    student=user,
-                    faculty=random.choice(FACULTIES),
-                    study_level=random.choice(STUDY_LEVELS),
-                    category=random.choice(CATEGORIES),
-                    subject=self.faker.sentence(nb_words=6),
-                    body=self.faker.paragraph(nb_sentences=random.randint(3, 8)),
-                    status=Ticket.Status.AWAITING_STUDENT,
-                    assigned_to=None,
-                    priority=random.choice(PRIORITIES),
-                )
-
-            # OVERDUE tickets
-            for _ in range(overdue_count):
-                t = Ticket.objects.create(
-                    student=user,
-                    faculty=random.choice(FACULTIES),
-                    study_level=random.choice(STUDY_LEVELS),
-                    category=random.choice(CATEGORIES),
-                    subject=self.faker.sentence(nb_words=6),
-                    body=self.faker.paragraph(nb_sentences=random.randint(3, 8)),
-                    status=Ticket.Status.AWAITING_STAFF,
-                    assigned_to=None,
-                    priority=random.choice(PRIORITIES),
-                )
-                Ticket.objects.filter(pk=t.pk).update(
-                    created_at=overdue_cutoff - timedelta(days=1)
-                )
-
-            # CLOSED tickets
-            for _ in range(closed_count):
-                Ticket.objects.create(
-                    student=user,
-                    faculty=random.choice(FACULTIES),
-                    study_level=random.choice(STUDY_LEVELS),
-                    category=random.choice(CATEGORIES),
-                    subject=self.faker.sentence(nb_words=6),
-                    body=self.faker.paragraph(nb_sentences=random.randint(3, 8)),
-                    status=Ticket.Status.CLOSED,
-                    closed_reason=Ticket.ClosedReason.ANSWERED,
-                    closed_at=timezone.now(),
-                    priority=random.choice(
-                        PRIORITIES
-                    ),  # shouldnt be displayed even if it has a value
-                )
+                except:
+                    pass  # Ignore any errors and continue
+                created_count = Ticket.objects.filter(student=user).count()
+            print(f"Fixture ticket seeding for {user.username} complete.      ")
 
 
 def create_username(first_name, last_name):
