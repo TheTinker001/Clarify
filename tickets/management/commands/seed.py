@@ -171,8 +171,7 @@ class Command(BaseCommand):
         comment_count = Comment.objects.filter(
             author__user_type=User.USER_TYPE_STUDENT
         ).count()
-        tickets = Ticket.objects.all()
-
+        tickets = Ticket.objects.exclude(status=Ticket.Status.AWAITING_STUDENT)
         while comment_count < self.STUDENT_COMMENT_COUNT:
             print(
                 f"Seeding student comments {comment_count}/{self.STUDENT_COMMENT_COUNT}",
@@ -225,8 +224,7 @@ class Command(BaseCommand):
             comment_count = Comment.objects.filter(
                 author__user_type=User.USER_TYPE_STAFF
             ).count()
-        print()
-        print("Staff comment seeding complete.      ")
+        print("Staff comment seeding complete.         ")
 
     def seed_for_fixture_users(self):
         """
@@ -269,10 +267,62 @@ class Command(BaseCommand):
                 )
                 try:
                     random_ticket_type = random.choice(ticket_types)
-                    self.create_random_ticket(random_ticket_type, user, fixture_staff)
+                    t = self.create_random_ticket(
+                        random_ticket_type, user, fixture_staff
+                    )
+                    match random_ticket_type:
+                        case "OPEN":
+                            if random.random() < 0.5:
+                                self.create_comment(
+                                    t,
+                                    user,
+                                    body=generate_standalone_student_comment(
+                                        t.category
+                                    ),
+                                )
+                        case "IN_PROGRESS":
+                            if random.random() < 0.5:
+                                staff_comment, student_comment = (
+                                    generate_comment_and_response_by_category(
+                                        t.category
+                                    )
+                                )
+                                self.create_comment(
+                                    t, t.assigned_to, body=staff_comment
+                                )
+                                if student_comment:
+                                    self.create_comment(t, user, body=student_comment)
+                        case "OVERDUE":
+                            STUDENT_PLEAS = [
+                                "Any updates on this ticket?",
+                                "I just wanted to check in on this ticket.",
+                                "Is there any update on this ticket?",
+                                "I haven't heard back on this ticket in a while, just wanted to check in.",
+                                "Could I please get an update on this ticket?",
+                            ]
+                            if random.random() < 0.5:
+                                self.create_comment(
+                                    t,
+                                    user,
+                                    body=random.choice(STUDENT_PLEAS),
+                                )
+                        case "CLOSED":
+                            GENERIC_CLOSING_COMMENTS = [
+                                "Please refer to the King's website for more information.",
+                                "This ticket has been closed. If you have further questions, please open a new ticket referencing this one.",
+                                "Closing this ticket now, but feel free to open a new one if you have any more questions!",
+                                "This ticket is now closed. If you have any more questions, please open a new ticket and reference this one.",
+                                "Closing this ticket. If you have any more questions, please open a new ticket and reference this one. Thanks!",
+                            ]
+                            self.create_comment(
+                                t,
+                                random.choice(fixture_staff),
+                                body=random.choice(GENERIC_CLOSING_COMMENTS),
+                            )
+
                 except:
                     pass  # Ignore any errors and continue
-                created_count = Ticket.objects.filter(student=user).count()
+                created_count += 1
             print(f"Fixture ticket seeding for {user.username} complete.      ")
 
     def generate_user(self, type=None):
@@ -291,11 +341,7 @@ class Command(BaseCommand):
                 "email": email,
                 "first_name": first_name,
                 "last_name": last_name,
-                "user_type": (
-                    type
-                    if type
-                    else random.choice([User.USER_TYPE_STUDENT, User.USER_TYPE_STAFF])
-                ),
+                "user_type": (type if type else User.USER_TYPE_STUDENT),
                 "is_staff": (True if type == User.USER_TYPE_STAFF else False),
             }
         )
@@ -353,6 +399,14 @@ class Command(BaseCommand):
                     student,
                     status=Ticket.Status.AWAITING_STUDENT,
                     assigned_to=None,
+                )
+                staff_comment, student_comment = (
+                    generate_comment_and_response_by_category(t.category)
+                )  # student_comment is not used
+                self.create_comment(
+                    t,
+                    random.choice(staff_qs),
+                    body=staff_comment,
                 )
             case "OVERDUE":
                 t = self.create_ticket(
