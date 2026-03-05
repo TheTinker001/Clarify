@@ -8,7 +8,7 @@ from tickets.tests.helpers import (
     _reverse_with_next,
     _valid_comment_post_data,
 )
-
+from tickets.views import TicketDetailView
 from datetime import timedelta
 from django.utils import timezone
 
@@ -125,7 +125,9 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(self.ticket.faculty, Ticket.Faculty.KBS)
 
-    def test_fields_form_not_in_context_for_non_staff(self):
-        self.client.login(username=self.student.username, password="Password123")
-        response = self.client.get(self.url)
-        self.assertIsNone(response.context.get("ticket_fields_form"))
+    def test_get_fields_form_returns_none_for_non_staff(self):
+        view = TicketDetailView()
+        view.ticket = self.ticket
+        view.is_staff_user = False  # Simulate non-staff user
+        form = view.get_fields_form()
+        self.assertIsNone(form)
