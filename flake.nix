@@ -110,7 +110,7 @@
         commonEnv = ''
           export PYTHONUNBUFFERED=1
           export DJANGO_SETTINGS_MODULE=clarify.settings
-          export PYTHONPATH="${withAssertsSrc}:$PYTHONPATH"
+          export PYTHONPATH="${withAssertsSrc}:${PYTHONPATH:-}"
         '';
 
         initScript = pkgs.writeShellApplication {
@@ -154,6 +154,10 @@
           '';
         };
 
+        # Updated to match the module-lead style:
+        # - Uses .coveragerc if present
+        # - Produces HTML report at ./coverage_html/index.html
+        # - Keeps coverage data in ./.coverage
         testsScript = pkgs.writeShellApplication {
           name = "clarify-tests";
           runtimeInputs = [ pkgs.coreutils pythonEnv ];
@@ -162,28 +166,20 @@
             ${findRoot}
             ${commonEnv}
 
-            REPORT_DIR="$PWD/.coverage-reports"
-            rm -rf "$REPORT_DIR"
-            mkdir -p "$REPORT_DIR"
+            rm -rf coverage_html .coverage
 
-            echo "==> Running tests with coverage"
-            export COVERAGE_FILE="$REPORT_DIR/.coverage"
-            coverage run manage.py test
+            COV_RC_ARGS=()
+            if [ -f .coveragerc ]; then
+              COV_RC_ARGS+=(--rcfile=.coveragerc)
+            fi
 
-            echo
-            echo "==> Coverage summary"
-            coverage report -m
+            echo "== Run tests under coverage =="
+            coverage run "''${COV_RC_ARGS[@]}" --branch manage.py test
 
-            echo
-            echo "==> Writing coverage reports"
-            coverage html -d "$REPORT_DIR/html"
-            coverage xml -o "$REPORT_DIR/coverage.xml"
+            echo "== Generate HTML coverage report =="
+            coverage html "''${COV_RC_ARGS[@]}" -d coverage_html
 
-            echo
-            echo "Coverage output written to:"
-            echo "- HTML report:  $REPORT_DIR/html/index.html"
-            echo "- XML report:   $REPORT_DIR/coverage.xml"
-            echo "- Data file:    $REPORT_DIR/.coverage"
+            echo "OK: HTML coverage report generated at: ./coverage_html/index.html"
           '';
         };
 
@@ -234,9 +230,7 @@
         };
 
         devShells.default = pkgs.mkShell {
-          packages = [
-            pythonEnv
-          ];
+          packages = [ pythonEnv ];
 
           shellHook = ''
             ${commonEnv}
@@ -247,7 +241,7 @@
             echo "Available entrypoints:"
             echo "  nix run .#init    - migrate DB + seed demo data"
             echo "  nix run .#run     - start Django dev server on http://localhost:8000"
-            echo "  nix run .#tests   - run test suite + write coverage to ./.coverage-reports/"
+            echo "  nix run .#tests   - run test suite + write HTML coverage to ./coverage_html/"
             echo "  nix run .#seed    - seed demo data (safe to re-run)"
             echo "  nix run .#unseed  - flush DB (removes all data)"
             echo
