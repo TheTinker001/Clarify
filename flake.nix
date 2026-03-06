@@ -1,5 +1,5 @@
 {
-  description = "Clarify (Django) - dev flake with venv + requirements.txt + init/run/tests/seed/unseed";
+  description = "Clarify (Django) - development flake with run/test/seed entrypoints";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -13,30 +13,33 @@
 
         python = pkgs.python312;
 
-        # Native deps commonly needed to build wheels for requirements (e.g. lxml, Pillow)
-        nativeLibs = [
-          pkgs.stdenv.cc
-          pkgs.pkg-config
-          pkgs.zlib.dev
-          pkgs.openssl.dev
-          pkgs.libffi.dev
-          pkgs.libxml2.dev
-          pkgs.libxslt.dev
-        ];
-
-        # In-flake shim for `with_asserts` (kept as a fallback; harmless if pip installs the real thing)
+        # A tiny in-flake shim for the (very small) `with_asserts` dependency
+        # used by the project's tests.
+        #
+        # The upstream PyPI package name in requirements.txt is `django-with-asserts`,
+        # which provides the `with_asserts` module.
         withAssertsSrc = pkgs.runCommand "with-asserts-src" { } ''
           mkdir -p $out/with_asserts
           cat > $out/with_asserts/__init__.py <<'PY'
+          """Minimal compatibility shim for the `with_asserts` test helper.
+
+          The project test-suite only relies on AssertHTMLMixin.assertHTML (as a
+          context-manager) and AssertHTMLMixin.assertNotHTML.
+          """
           from .mixin import AssertHTMLMixin  # noqa: F401
           PY
 
           cat > $out/with_asserts/mixin.py <<'PY'
           from __future__ import annotations
+
           from contextlib import contextmanager
+
           from lxml import html
 
+
           class AssertHTMLMixin:
+              """Mixin providing simple CSS-selector assertions for Django responses."""
+
               def _parse_response(self, response):
                   content = getattr(response, "content", response)
                   if isinstance(content, bytes):
@@ -50,9 +53,11 @@
                   return html.fromstring(text)
 
               def _select(self, tree, selector: str):
+                  # The expected API is CSS selectors (used across the test-suite).
                   try:
                       return tree.cssselect(selector)
                   except Exception:
+                      # Fallback: allow XPath in case a caller passes it.
                       return tree.xpath(selector)
 
               @contextmanager
@@ -71,6 +76,21 @@
           PY
         '';
 
+        # Core Python environment for running the app + tests.
+        pythonEnv = python.withPackages (ps: [
+          ps.django
+          ps.coverage
+          ps.faker
+          ps.lxml
+          ps.cssselect
+          ps.pillow
+          ps."python-dotenv"
+          ps."django-widget-tweaks"
+          ps.libgravatar
+        ]);
+
+        # Helper used by all entrypoint scripts: locate project root (works when
+        # called from subdirectories).
         findRoot = ''
           find_root() {
             local dir="$PWD"
@@ -81,107 +101,70 @@
               fi
               dir="$(dirname "$dir")"
             done
-            echo "ERROR: could not locate project root (manage.py not found)." >&2
+            echo "Error: could not locate project root (manage.py not found in parent dirs)." >&2
             exit 1
           }
           cd "$(find_root)"
-        '';
-
-        requireProjectRoot = ''
-          if [ ! -f manage.py ]; then
-            echo "ERROR: manage.py not found. Run from the Django project root." >&2
-            exit 1
-          fi
-          if [ ! -f requirements.txt ]; then
-            echo "ERROR: requirements.txt not found in project root." >&2
-            exit 1
-          fi
         '';
 
         commonEnv = ''
           export PYTHONUNBUFFERED=1
           export DJANGO_SETTINGS_MODULE=clarify.settings
           export PYTHONPATH="${withAssertsSrc}:${PYTHONPATH:-}"
-          export PIP_DISABLE_PIP_VERSION_CHECK=1
-        '';
-
-        ensureVenv = ''
-          if [ ! -d .venv ]; then
-            echo "== Create venv (.venv) =="
-            ${python}/bin/python -m venv .venv
-          fi
-
-          echo "== Upgrade pip tooling =="
-          ./.venv/bin/python -m pip install --upgrade pip setuptools wheel
-
-          echo "== Install Python deps from requirements.txt =="
-          ./.venv/bin/python -m pip install -r requirements.txt
-
-          # Ensure coverage is present (in case it's not in requirements.txt)
-          ./.venv/bin/python -m pip install --upgrade coverage
         '';
 
         initScript = pkgs.writeShellApplication {
           name = "clarify-init";
-          runtimeInputs = [ pkgs.coreutils python pkgs.git pkgs.sqlite ] ++ nativeLibs;
+          runtimeInputs = [ pkgs.coreutils pythonEnv ];
           text = ''
             set -euo pipefail
             ${findRoot}
-            ${requireProjectRoot}
             ${commonEnv}
 
-            ${ensureVenv}
+            echo "==> Applying database migrations"
+            python manage.py migrate --noinput
 
-            echo "== Django migrate =="
-            ./.venv/bin/python manage.py migrate --noinput
-
-            echo "== Seed database =="
-            # Make seeding idempotent: seed always creates @staffuser, so delete it first if it exists
-            ./.venv/bin/python manage.py shell -c "from tickets.models import User; User.objects.filter(username='@staffuser').delete()" >/dev/null 2>&1 || true
-            ./.venv/bin/python manage.py seed
+            echo "==> Seeding the database"
+            # Make seeding idempotent: the project's seed command always creates
+            # a '@staffuser' account, so remove it first if it exists.
+            python manage.py shell -c "from tickets.models import User; User.objects.filter(username='@staffuser').delete()" >/dev/null 2>&1 || true
+            python manage.py seed
 
             echo
             echo "Initialisation complete."
-            echo "  nix run .#run     - start server on http://localhost:8000"
-            echo "  nix run .#tests   - run tests + HTML coverage to ./coverage_html/"
+            echo "- Run the app:     nix run .#run"
+            echo "- Run tests:       nix run .#tests"
+            echo "- Unseed database: nix run .#unseed"
           '';
         };
 
         runScript = pkgs.writeShellApplication {
           name = "clarify-run";
-          runtimeInputs = [ pkgs.coreutils python pkgs.git pkgs.sqlite ] ++ nativeLibs;
+          runtimeInputs = [ pkgs.coreutils pythonEnv ];
           text = ''
             set -euo pipefail
             ${findRoot}
-            ${requireProjectRoot}
             ${commonEnv}
 
-            if [ ! -x ./.venv/bin/python ]; then
-              echo "ERROR: .venv not found. Run: nix run .#init" >&2
-              exit 1
-            fi
-
-            echo "== Django migrate =="
-            ./.venv/bin/python manage.py migrate --noinput
+            # Ensure the local sqlite database schema is up to date.
+            python manage.py migrate --noinput
 
             echo "Starting Django development server at http://localhost:8000"
-            exec ./.venv/bin/python manage.py runserver 0.0.0.0:8000
+            exec python manage.py runserver 0.0.0.0:8000
           '';
         };
 
+        # Updated to match the module-lead style:
+        # - Uses .coveragerc if present
+        # - Produces HTML report at ./coverage_html/index.html
+        # - Keeps coverage data in ./.coverage
         testsScript = pkgs.writeShellApplication {
           name = "clarify-tests";
-          runtimeInputs = [ pkgs.coreutils python pkgs.git pkgs.sqlite ] ++ nativeLibs;
+          runtimeInputs = [ pkgs.coreutils pythonEnv ];
           text = ''
             set -euo pipefail
             ${findRoot}
-            ${requireProjectRoot}
             ${commonEnv}
-
-            if [ ! -x ./.venv/bin/python ]; then
-              echo "ERROR: .venv not found. Run: nix run .#init" >&2
-              exit 1
-            fi
 
             rm -rf coverage_html .coverage
 
@@ -191,10 +174,10 @@
             fi
 
             echo "== Run tests under coverage =="
-            ./.venv/bin/coverage run "''${COV_RC_ARGS[@]}" --branch manage.py test
+            coverage run "''${COV_RC_ARGS[@]}" --branch manage.py test
 
             echo "== Generate HTML coverage report =="
-            ./.venv/bin/coverage html "''${COV_RC_ARGS[@]}" -d coverage_html
+            coverage html "''${COV_RC_ARGS[@]}" -d coverage_html
 
             echo "OK: HTML coverage report generated at: ./coverage_html/index.html"
           '';
@@ -202,42 +185,37 @@
 
         seedScript = pkgs.writeShellApplication {
           name = "clarify-seed";
-          runtimeInputs = [ pkgs.coreutils python pkgs.git pkgs.sqlite ] ++ nativeLibs;
+          runtimeInputs = [ pkgs.coreutils pythonEnv ];
           text = ''
             set -euo pipefail
             ${findRoot}
-            ${requireProjectRoot}
             ${commonEnv}
 
-            if [ ! -x ./.venv/bin/python ]; then
-              echo "ERROR: .venv not found. Run: nix run .#init" >&2
-              exit 1
-            fi
+            python manage.py migrate --noinput
 
-            ./.venv/bin/python manage.py migrate --noinput
-            ./.venv/bin/python manage.py shell -c "from tickets.models import User; User.objects.filter(username='@staffuser').delete()" >/dev/null 2>&1 || true
-            ./.venv/bin/python manage.py seed || true
+            # Make seeding robust if run multiple times.
+            python manage.py shell -c "from tickets.models import User; User.objects.filter(username='@staffuser').delete()" >/dev/null 2>&1 || true
 
-            echo "Database seeded (safe to re-run)."
+            python manage.py seed || {
+              echo "Seed command failed; attempting a second run after cleanup..." >&2
+              python manage.py shell -c "from tickets.models import User; User.objects.filter(username='@staffuser').delete()" >/dev/null 2>&1 || true
+              python manage.py seed
+            }
+
+            echo "Database seeded (idempotent)."
           '';
         };
 
         unseedScript = pkgs.writeShellApplication {
           name = "clarify-unseed";
-          runtimeInputs = [ pkgs.coreutils python pkgs.git pkgs.sqlite ] ++ nativeLibs;
+          runtimeInputs = [ pkgs.coreutils pythonEnv ];
           text = ''
             set -euo pipefail
             ${findRoot}
-            ${requireProjectRoot}
             ${commonEnv}
 
-            if [ ! -x ./.venv/bin/python ]; then
-              echo "ERROR: .venv not found. Run: nix run .#init" >&2
-              exit 1
-            fi
-
-            ./.venv/bin/python manage.py unseed
-            echo "Database unseeded. Reseed with: nix run .#seed"
+            python manage.py unseed
+            echo "Database unseeded. You can reseed with: nix run .#seed"
           '';
         };
 
@@ -252,16 +230,20 @@
         };
 
         devShells.default = pkgs.mkShell {
-          packages = [ python pkgs.git pkgs.sqlite ] ++ nativeLibs;
+          packages = [ pythonEnv ];
+
           shellHook = ''
             ${commonEnv}
+
             echo
             echo "Clarify Django dev shell"
-            echo "  nix run .#init    - create .venv, pip install -r requirements.txt, migrate, seed"
-            echo "  nix run .#run     - start server on http://localhost:8000"
-            echo "  nix run .#tests   - tests + HTML coverage to ./coverage_html/"
+            echo
+            echo "Available entrypoints:"
+            echo "  nix run .#init    - migrate DB + seed demo data"
+            echo "  nix run .#run     - start Django dev server on http://localhost:8000"
+            echo "  nix run .#tests   - run test suite + write HTML coverage to ./coverage_html/"
             echo "  nix run .#seed    - seed demo data (safe to re-run)"
-            echo "  nix run .#unseed  - remove all data"
+            echo "  nix run .#unseed  - flush DB (removes all data)"
             echo
           '';
         };
