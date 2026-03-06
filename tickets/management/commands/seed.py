@@ -239,7 +239,14 @@ class Command(BaseCommand):
     def generate_user_fixtures(self):
         """Attempt to create each predefined fixture user."""
         for data in user_fixtures:
-            self.try_create_user(data)
+            user_data = data.copy()  # don't modify the fixture
+
+            if user_data.get("user_type") == User.USER_TYPE_STAFF:
+                user_data["faculties"] = ",".join(self.FACULTIES)
+                user_data["study_levels"] = ",".join(self.STUDY_LEVELS)
+                user_data["categories"] = ",".join(self.CATEGORIES)
+
+            self.try_create_user(user_data)
 
     def create_tickets_for_fixture_users(self):
         fixture_staff = [
@@ -343,6 +350,15 @@ class Command(BaseCommand):
                 "last_name": last_name,
                 "user_type": (type if type else User.USER_TYPE_STUDENT),
                 "is_staff": (True if type == User.USER_TYPE_STAFF else False),
+                "faculties": (
+                    ",".join(self.FACULTIES) if type == User.USER_TYPE_STAFF else ""
+                ),
+                "study_levels": (
+                    ",".join(self.STUDY_LEVELS) if type == User.USER_TYPE_STAFF else ""
+                ),
+                "categories": (
+                    ",".join(self.CATEGORIES) if type == User.USER_TYPE_STAFF else ""
+                ),
             }
         )
 
@@ -376,6 +392,9 @@ class Command(BaseCommand):
             user_type=data.get("user_type", User.USER_TYPE_STUDENT),
             is_staff=data.get("is_staff", False),
             is_superuser=data.get("is_superuser", False),
+            faculties=data.get("faculties", ""),
+            study_levels=data.get("study_levels", ""),
+            categories=data.get("categories", ""),
         )
 
     def create_random_ticket(self, random_ticket_type, student, staff_qs):
