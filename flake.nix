@@ -153,8 +153,7 @@
             exec python manage.py runserver 0.0.0.0:8000
           '';
         };
-
-        # Updated to match the module-lead style:
+        
         # - Uses .coveragerc if present
         # - Produces HTML report at ./coverage_html/index.html
         # - Keeps coverage data in ./.coverage
