@@ -1,26 +1,18 @@
-from datetime import timedelta
-
 from django.contrib import messages
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
-from django.utils import timezone
-from django.views.generic import TemplateView
+from tickets.helpers import _send_staff_comment_email
+from tickets.models import User, Ticket, TicketAttachment
 from django.contrib.auth.mixins import LoginRequiredMixin
-
-from clarify.settings import EDIT_TIME_LIMIT_MINUTES
+from django.views.generic import TemplateView
+from datetime import timedelta
+from django.utils import timezone
 from tickets.forms import (
     CommentForm,
     TicketPriorityForm,
     InternalNoteForm,
     TicketFieldsForm,
 )
-from tickets.helpers import _send_staff_comment_email
-from tickets.models import Ticket, User
-from tickets.models.attachment import TicketAttachment
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import TemplateView
-from datetime import timedelta
-from django.utils import timezone
 from clarify.settings import EDIT_TIME_LIMIT_MINUTES
 
 
@@ -295,7 +287,9 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         context["ticket"] = self.ticket
         context["ticket_priority_form"] = self.get_priority_form()
-        context["form"] = kwargs.get("form") or self.get_comment_form()
+        context["form"] = (
+            kwargs.get("form") or kwargs.get("comment_form") or self.get_comment_form()
+        )
 
         now = timezone.now()
         limit = timedelta(minutes=EDIT_TIME_LIMIT_MINUTES)
@@ -315,4 +309,5 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
                 kwargs.get("internal_note_form") or InternalNoteForm()
             )
             context["ticket_fields_form"] = self.get_fields_form()
+
         return context

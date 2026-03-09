@@ -125,3 +125,11 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
         view.is_staff_user = False  # Simulate non-staff user
         form = view.get_fields_form()
         self.assertIsNone(form)
+
+    def test_edit_ticket_fields_as_staff(self):
+        self.client.login(username=self.staff.username, password="Password123")
+        response = self.client.get(self.url)
+        self.assertIn("ticket_fields_form", response.context)
+        form = response.context["ticket_fields_form"]
+        self.assertIsInstance(form, TicketFieldsForm)
+        self.assertEqual(form.instance, self.ticket)

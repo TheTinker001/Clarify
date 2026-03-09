@@ -15,8 +15,6 @@ class Ticket(models.Model):
     """Model representing a student ticket."""
 
     class Meta:
-        """Model settings controlling ordering and behaviours."""
-
         ordering = ["-created_at"]
 
     class Faculty(models.TextChoices):
