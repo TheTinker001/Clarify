@@ -60,6 +60,11 @@ urlpatterns = [
         views.EditCommentView.as_view(),
         name="edit_comment",
     ),
+    path(
+        "tasks/close-inactive/",
+        views.CloseInactiveTicketsTaskView.as_view(),
+        name="close_inactive_task",
+    ),
 ]
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

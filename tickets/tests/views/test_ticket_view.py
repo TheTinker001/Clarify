@@ -147,6 +147,9 @@ class CreateTicketViewTest(TestCase):
             self.assertEqual(len(message_list), 1)
             self.assertIn("successfully", str(message_list[0]))
 
+    @override_settings(
+        EMAIL_HOST_USER="", EMAIL_HOST_PASSWORD="", DEFAULT_FROM_EMAIL=""
+    )
     def test_no_email_sent_without_email_settings(self):
         self.client.login(username="student1", password="testpass123")
         with patch("tickets.helpers.send_mail") as mock_send:
