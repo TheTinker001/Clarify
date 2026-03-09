@@ -1,4 +1,5 @@
 """Shared file validation helpers, email utilities, and multi-file upload field for the tickets app."""
+
 from django.core.exceptions import ValidationError
 from django.conf import settings
 from django.core.mail import send_mail
@@ -142,7 +143,8 @@ class MultipleFileField(forms.FileField):
         Normalise data to a list and validate each file individually.
 
         Some parsers pass a bare file object instead of a one-element list when
-        only one file is selected; both cases are handled so callers always get a list.
+        only one file is selected.
+        Both cases are handled so callers always get a list.
         """
         single_file_clean = super().clean
         if isinstance(data, (list, tuple)):

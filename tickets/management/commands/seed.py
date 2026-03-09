@@ -61,7 +61,7 @@ user_fixtures = [
 
 
 class Command(BaseCommand):
-    """Seed the DB with fixture users and Faker-generated users up to ``USER_COUNT``."""
+    """Seed the DB with fixture users and Faker-generated users up to 'USER_COUNT'."""
 
     USER_COUNT = 200
     DEFAULT_PASSWORD = "Password123"
@@ -73,7 +73,6 @@ class Command(BaseCommand):
         self.faker = Faker("en_GB")
 
     def handle(self, *args, **options):
-
         self.create_users()
         self.create_tickets_for_fixture_users()
         self.users = User.objects.all()
@@ -134,8 +133,8 @@ class Command(BaseCommand):
         """
         Seed up to 20 tickets per fixture student across five states.
 
-        States per student: 7 open, 2 in-progress (assigned to ``@staffuser``),
-        2 need-response, 1 overdue (backdated), 2 closed. Students with ≥2
+        States per student: 7 open, 2 in-progress (assigned to '@staffuser'),
+        2 need-response, 1 overdue (backdated), 2 closed. Students with >=2
         existing tickets are skipped to keep repeat runs fast.
         """
         FACULTIES = [choice for choice, _ in Ticket.Faculty.choices if choice]
@@ -268,10 +267,10 @@ class Command(BaseCommand):
 
 
 def create_username(first_name, last_name):
-    """Return ``@{firstname}{lastname}`` (lowercased)."""
+    """Return '@{firstname}{lastname}' (lowercased)."""
     return "@" + first_name.lower() + last_name.lower()
 
 
 def create_email(first_name, last_name):
-    """Return ``{firstname}.{lastname}@example.org``."""
+    """Return '{firstname}.{lastname}@example.org'."""
     return first_name + "." + last_name + "@example.org"

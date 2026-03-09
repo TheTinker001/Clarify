@@ -45,7 +45,7 @@ class NewPasswordMixin(forms.Form):
     )
 
     def clean(self):
-        """Add an error to `password_confirmation` if it does not match `new_password`."""
+        """Add an error to 'password_confirmation' if it does not match 'new_password'."""
         super().clean()
         new_password = self.cleaned_data.get("new_password")
         password_confirmation = self.cleaned_data.get("password_confirmation")
@@ -61,7 +61,7 @@ class PasswordForm(NewPasswordMixin):
     password = forms.CharField(label="Current password", widget=forms.PasswordInput())
 
     def __init__(self, user=None, **kwargs):
-        """Store the current user instance for use in `clean`."""
+        """Store the current user instance for use in 'clean'."""
 
         super().__init__(**kwargs)
         self.user = user
@@ -89,7 +89,7 @@ class PasswordForm(NewPasswordMixin):
 
 
 class SignUpForm(NewPasswordMixin, forms.ModelForm):
-    """Registration form that creates a new `User` with a hashed password via `create_user()`."""
+    """Registration form that creates a new 'User' with a hashed password via 'create_user()'."""
 
     class Meta:
         """Form options."""
@@ -109,7 +109,7 @@ class SignUpForm(NewPasswordMixin, forms.ModelForm):
     )
 
     def save(self):
-        """Create and return the new user via `create_user` so the password is hashed correctly."""
+        """Create and return the new user via 'create_user' so the password is hashed correctly."""
 
         super().save(commit=False)
         user = User.objects.create_user(

@@ -13,7 +13,7 @@ from clarify.settings import EDIT_TIME_LIMIT_MINUTES
 
 
 class EditCommentView(LoginRequiredMixin, View):
-    """Let the comment author edit their comment within ``EDIT_TIME_LIMIT_MINUTES``."""
+    """Let the comment author edit their comment within 'EDIT_TIME_LIMIT_MINUTES'."""
 
     def _get_comment_or_404(self, request, ticket_url_code, comment_url_code):
         """
@@ -51,7 +51,8 @@ class EditCommentView(LoginRequiredMixin, View):
         )
 
     def post(self, request, ticket_url_code, comment_url_code):
-        """Save the edited comment; re-render with errors if the form is invalid."""
+        """Save the edited comment.
+        Re-render with errors if the form is invalid."""
         comment = self._get_comment_or_404(request, ticket_url_code, comment_url_code)
         form = CommentForm(request.POST, instance=comment)
 

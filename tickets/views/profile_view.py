@@ -4,7 +4,6 @@ from django.views.generic.edit import UpdateView
 from django.urls import reverse
 from tickets.forms import UserForm
 from tickets.models import User, Ticket
-from django.views.generic import DetailView
 
 
 class UserProfileContext:
@@ -56,7 +55,7 @@ class UserProfileContext:
 
 
 class ProfileView(LoginRequiredMixin, UserProfileContext, UpdateView):
-    """Edit the current user's own profile. ``get_object`` always returns the request user to prevent URL manipulation."""
+    """Edit the current user's own profile. 'get_object' always returns the request user to prevent URL manipulation."""
 
     model = User
     template_name = "profile.html"

@@ -13,7 +13,7 @@ class CreateTicketView(LoginRequiredMixin, CreateView):
     """
     Let students submit a new ticket. Staff are redirected away.
 
-    Attachments are saved as ``TicketAttachment`` rows after the ticket is created.
+    Attachments are saved as 'TicketAttachment' rows after the ticket is created.
     """
 
     model = Ticket

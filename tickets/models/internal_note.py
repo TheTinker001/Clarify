@@ -6,7 +6,7 @@ User = get_user_model()
 
 
 class InternalNote(models.Model):
-    """A staff-only note on a ticket, never visible to students."""
+    """Model representing a staff-only internal note on a ticket."""
 
     BODY_MAX_LENGTH = 5000
 

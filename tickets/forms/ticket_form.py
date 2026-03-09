@@ -4,12 +4,7 @@ from tickets.helpers import MultipleFileInput, MultipleFileField
 
 
 class TicketForm(forms.ModelForm):
-    """
-    Form for creating a support ticket.
-
-    ``attachments`` is a non-model field; the view saves files as ``TicketAttachment``
-    rows after the ticket is created.
-    """
+    """Form for creating a support ticket"""
 
     class Meta:
         model = Ticket
@@ -43,5 +38,5 @@ class TicketForm(forms.ModelForm):
         self.fields["body"].widget.attrs["placeholder"] = "Write your body here..."
 
     def clean_attachments(self):
-        """Return the validated attachments list (per-file validation is handled by MultipleFileField)."""
+        """Return the validated attachments list"""
         return self.cleaned_data.get("attachments")

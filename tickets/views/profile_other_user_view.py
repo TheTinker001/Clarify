@@ -5,7 +5,7 @@ from tickets.views.profile_view import UserProfileContext
 
 
 class ProfileOtherUserView(LoginRequiredMixin, UserProfileContext, DetailView):
-    """Read-only profile view for other users, looked up by ``username`` slug."""
+    """Read-only profile view for other users, looked up by 'username' slug."""
 
     model = User
     template_name = "profile_other_user.html"

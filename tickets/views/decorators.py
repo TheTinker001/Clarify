@@ -4,13 +4,14 @@ from django.shortcuts import redirect
 
 
 def login_prohibited(view_function):
-    """Redirect authenticated users to ``REDIRECT_URL_WHEN_LOGGED_IN``; otherwise call the original view."""
-    
+    """Redirect authenticated users to 'REDIRECT_URL_WHEN_LOGGED_IN'; otherwise call the original view."""
+
     def modified_view_function(request):
         if request.user.is_authenticated:
             return redirect(settings.REDIRECT_URL_WHEN_LOGGED_IN)
         else:
             return view_function(request)
+
     return modified_view_function
 
 
@@ -20,7 +21,7 @@ class LoginProhibitedMixin:
     redirect_when_logged_in_url = None
 
     def dispatch(self, *args, **kwargs):
-        """Redirect authenticated users via ``handle_already_logged_in``."""
+        """Redirect authenticated users via 'handle_already_logged_in'."""
         if self.request.user.is_authenticated:
             return self.handle_already_logged_in(*args, **kwargs)
         return super().dispatch(*args, **kwargs)
@@ -31,7 +32,7 @@ class LoginProhibitedMixin:
         return redirect(url)
 
     def get_redirect_when_logged_in_url(self):
-        """Return ``redirect_when_logged_in_url``, raising ``ImproperlyConfigured`` if it is unset."""
+        """Return 'redirect_when_logged_in_url', raising 'ImproperlyConfigured' if it is unset."""
         if self.redirect_when_logged_in_url is None:
             raise ImproperlyConfigured(
                 "LoginProhibitedMixin requires either a value for "

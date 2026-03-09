@@ -7,16 +7,17 @@ from tickets.forms import PasswordForm
 
 
 class PasswordView(LoginRequiredMixin, FormView):
-    """Allow authenticated users to change their password; re-authenticates after a successful update."""
+    """Allow authenticated users to change their password.
+    Re-authenticates after a successful update."""
 
-    template_name = 'password.html'
+    template_name = "password.html"
     form_class = PasswordForm
 
     def get_form_kwargs(self, **kwargs):
-        """Pass the current user to `PasswordForm` so it can validate the old password."""
+        """Pass the current user to 'PasswordForm' so it can validate the old password."""
 
         kwargs = super().get_form_kwargs(**kwargs)
-        kwargs.update({'user': self.request.user})
+        kwargs.update({"user": self.request.user})
         return kwargs
 
     def form_valid(self, form):
@@ -30,4 +31,4 @@ class PasswordView(LoginRequiredMixin, FormView):
         """Flash a success message and redirect to the dashboard."""
 
         messages.add_message(self.request, messages.SUCCESS, "Password updated!")
-        return reverse('dashboard')
+        return reverse("dashboard")

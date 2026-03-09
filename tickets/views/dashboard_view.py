@@ -27,7 +27,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
     default_sorting = "-created_at"
 
     def get_tab(self):
-        """Return the active tab key from the query string, falling back to ``open_tickets``."""
+        """Return the active tab key from the query string, falling back to 'open_tickets'."""
         tab = self.request.GET.get("tab", "open_tickets")
         if tab not in self.TAB_LABELS:
             tab = "open_tickets"
@@ -37,11 +37,11 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         """
         Return per-tab querysets filtered by the user's role.
 
-        Staff tabs: ``open_tickets`` (unassigned, ≤5 days), ``assigned_tickets``,
-        ``overdue_tickets`` (unassigned, >5 days), ``closed_tickets``.
+        Staff tabs: 'open_tickets' (unassigned <= 5 days), 'assigned_tickets',
+        'overdue_tickets' (unassigned > 5 days), 'closed_tickets'.
 
-        Student tabs: ``open_tickets`` (unassigned), ``in_progress_tickets`` (assigned),
-        ``need_response_tickets`` (AWAITING_STUDENT), ``closed_tickets``.
+        Student tabs: 'open_tickets' (unassigned), 'in_progress_tickets' (assigned),
+        'need_response_tickets' (AWAITING_STUDENT), 'closed_tickets'.
         """
         if current_user.user_type == User.USER_TYPE_STAFF:
 
@@ -52,8 +52,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             study_levels = split_codes(current_user.study_levels)
             categories = split_codes(current_user.categories)
 
-            # Restrict to tickets that fall within all three of the staff member's
-            # preference dimensions simultaneously (AND, not OR).
+            # Restrict to tickets that fall within a staff member's field preferences
             tickets = (
                 Ticket.objects.all()
                 .order_by("-created_at")
@@ -75,7 +74,6 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                     ],
                     created_at__gte=overdue_cutoff,
                 ),
-                # Only includes tickets assigned to *this* staff member.
                 "assigned_tickets": tickets.filter(
                     assigned_to=current_user,
                     status__in=[
@@ -111,13 +109,14 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 ),
             }
         else:
-            # Guard against future user types or data corruption; returns an empty queryset.
+            # Guard against future user types or data corruption.
+            # Returns an empty queryset.
             tickets = Ticket.objects.none()
             groups = {"open_tickets": tickets}
         return groups
 
     def get_queryset_for_tab_by_filters(self, groups, tab, current_user):
-        """Apply staff-only URL filter params (priority, faculty, study_level, category) to the active tab's queryset."""
+        """Apply staff-only URL filter paramaters (priority, faculty, study_level, category) to the active tab's queryset."""
         if tab not in groups:
             tab = "open_tickets"
 
@@ -169,8 +168,9 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         """
         Return the search term, persisting it in the session across tab changes.
 
-        If ``searchTerm`` is in the query string, save it; if only ``tab`` is present,
-        return the session-stored value; otherwise clear the session key and return ''.
+        If 'searchTerm' is in the query string, save it.
+        If only 'tab' is present, return the session-stored value.
+        Otherwise clear the session key and return ''.
         """
         term = self.request.GET.get("searchTerm", None)
 
@@ -189,8 +189,8 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         """
         Build the dashboard template context.
 
-        ``querystring`` preserves filters for pagination; ``carry_querystring`` omits
-        ``tab`` so tab links can append their own value while keeping filters intact.
+        'querystring' preserves filters for pagination.
+        'carry_querystring' omits 'tab' so tab links can append their own value while keeping filters intact.
         """
         context = super().get_context_data(**kwargs)
 
@@ -210,8 +210,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         params = self.request.GET.copy()
         params.pop("page", None)
 
-        # Normalise the search term in the query string using the session value
-        # so pagination links include the term even when the form was not re-submitted.
+        # Ensure searchTerm is present in the URL if session has it
         if search_term:
             params["searchTerm"] = search_term
         else:
@@ -219,8 +218,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
 
         querystring = params.urlencode()
 
-        # ``carry_querystring`` omits ``tab`` so tab links can append their own
-        # value while still carrying filters and the search term.
+        # For tab links: keep everything except tab + page
         carry_params = params.copy()
         carry_params.pop("tab", None)
         carry_querystring = carry_params.urlencode()

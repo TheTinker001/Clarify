@@ -12,7 +12,7 @@ class TicketClaimView(View):
     """
     Let staff assign themselves to an unassigned ticket.
 
-    Uses a filtered ``.update(assigned_to__isnull=True)`` to avoid race conditions.
+    Uses a filtered '.update(assigned_to__isnull=True)' to avoid race conditions.
     If zero rows are updated, the DB is re-read to determine who claimed it first.
     """
 
@@ -36,8 +36,8 @@ class TicketClaimView(View):
             messages.success(request, "You have claimed this ticket.")
             return redirect(ticket.get_absolute_url())
 
-        # update() returned 0 — another request claimed it first. Re-read the DB
-        # to find out who now owns it and show the appropriate message.
+        # If update() returned 0 => another request claimed it first.
+        # Re-read the DB to find out who now owns it and show the appropriate message.
         ticket.refresh_from_db(fields=["assigned_to"])
         if ticket.assigned_to_id == request.user.id:
             messages.success(request, "You have claimed this ticket.")

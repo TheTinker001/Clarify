@@ -12,12 +12,7 @@ User = get_user_model()
 
 
 class Ticket(models.Model):
-    """
-    A support request raised by a student and managed by staff.
-
-    Status lifecycle: AWAITING_STAFF → AWAITING_STUDENT → CLOSED. The ``url_code``
-    is a short cryptographically random token used in URLs instead of the numeric PK.
-    """
+    """Model representing a student ticket."""
 
     class Faculty(models.TextChoices):
         EMPTY = "", "Select"
@@ -125,9 +120,6 @@ class Ticket(models.Model):
     subject = models.CharField(max_length=78)
 
     BODY_MAX_LENGTH = 50000
-    # max_length alone does not enforce the limit at the database level for
-    # TextField on SQLite; the explicit MaxLengthValidator ensures the cap is
-    # applied during form and model validation as well.
     body = models.TextField(
         max_length=BODY_MAX_LENGTH, validators=[MaxLengthValidator(BODY_MAX_LENGTH)]
     )
@@ -181,7 +173,7 @@ class Ticket(models.Model):
             self.closed_reason = None
 
     def save(self, *args, **kwargs):
-        """Generate a unique ``url_code`` on first save, then call ``full_clean`` before saving."""
+        """Generate a unique 'url_code' on first save, then call 'full_clean' before saving."""
         if not self.url_code:
             self.url_code = self.generate_unique_url_code()
         self.full_clean()
@@ -200,14 +192,14 @@ class Ticket(models.Model):
         return reverse("ticket_unclaim", kwargs={"url_code": self.url_code})
 
     def generate_unique_url_code(self):
-        """Return a collision-free ``secrets.token_urlsafe`` code for use in URLs."""
+        """Return a collision-free 'secrets.token_urlsafe' code for use in URLs."""
         code = secrets.token_urlsafe(7)
         while Ticket.objects.filter(url_code=code).exists():
             code = secrets.token_urlsafe(7)
         return code
 
     def get_priority_icon(self):
-        """Return a Bootstrap Icons ``<i>`` element for the ticket's priority, or '' if unrecognised."""
+        """Return a Bootstrap Icons '<i>' element for the ticket's priority, or '' if unrecognised."""
         icons = {
             "pending priority": '<i class="bi bi-hourglass text-secondary"></i>',
             "low": '<i class="bi bi-hourglass-bottom text-success"></i>',

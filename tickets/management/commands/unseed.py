@@ -9,7 +9,13 @@ from django.core.management import call_command
 
 
 class Command(BaseCommand):
-    """Management command to flush all data from the database."""
+    """
+    Management command to remove (unseed) all data from the database.
+
+    Attributes:
+        help (str): Short description displayed when running
+            `python manage.py help unseed`.
+    """
 
     help = "Unseeds all data from the database"
 

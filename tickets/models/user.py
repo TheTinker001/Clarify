@@ -8,7 +8,7 @@ class User(AbstractUser):
     """
     Custom user model for students and staff.
 
-    Preference fields (``faculties``, ``study_levels``, ``categories``) store
+    Preference fields ('faculties', 'study_levels', 'categories') store
     comma-separated choice codes for simple filtering without extra joins.
     """
 
@@ -51,9 +51,6 @@ class User(AbstractUser):
         blank=True, help_text="Comma-separated category codes"
     )
 
-    class Meta:
-        ordering = ["last_name", "first_name"]
-
     def full_name(self):
         """Return a string containing the user's full name."""
 
@@ -74,3 +71,6 @@ class User(AbstractUser):
     def get_initials(self):
         """Return the user's initials as a two-character uppercase string (e.g. 'JD')."""
         return self.first_name[0].upper() + self.last_name[0].upper()
+
+    class Meta:
+        ordering = ["last_name", "first_name"]

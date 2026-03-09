@@ -22,16 +22,16 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
     """
     Display a ticket and handle all in-page form submissions.
 
-    POST is dispatched via an ``action`` field: ``set_priority``, ``add_comment``,
-    ``add_internal_note``, ``close_ticket``, ``unclose_ticket``.
+    POST is dispatched via an 'action' field: 'set_priority', 'add_comment',
+    'add_internal_note', 'close_ticket', 'unclose_ticket'.
 
-    ``dispatch`` sets ``self.ticket``, ``self.is_staff_user``, and ``self.is_owner``.
+    'dispatch' sets 'self.ticket', 'self.is_staff_user', and 'self.is_owner'.
     """
 
     template_name = "ticket_detail.html"
 
     def dispatch(self, request, *args, **kwargs):
-        """Fetch the ticket with ``select_related`` and enforce owner-or-staff access."""
+        """Fetch the ticket with 'select_related' and enforce owner-or-staff access."""
         if not request.user.is_authenticated:
             return super().dispatch(request, *args, **kwargs)
 
@@ -62,17 +62,22 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
 
     # POST dispatcher
     def post(self, request, *args, **kwargs):
-        """Dispatch to the correct action handler; raises Http404 for unrecognised action values."""
+        """Dispatch to the correct action handler.
+        Raises Http404 for unrecognised action values."""
         action = request.POST.get("action")
 
         if action == "set_priority":
             return self.post_action_set_priority(request, *args, **kwargs)
+
         elif action == "add_comment":
             return self.post_action_add_comment(request, *args, **kwargs)
+
         elif action == "add_internal_note":
             return self.post_action_add_internal_note(request, *args, **kwargs)
+
         elif action == "close_ticket":
             return self.post_action_close_ticket(request, *args, **kwargs)
+
         elif action == "unclose_ticket":
             return self.post_action_unclose_ticket(request, *args, **kwargs)
 
@@ -80,7 +85,8 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
 
     # Action handlers
     def post_action_set_priority(self, request, *args, **kwargs):
-        """Update the ticket's priority; staff only, raises Http404 on closed tickets."""
+        """Update the ticket's priority for staff.
+        Raises Http404 on closed tickets."""
         if not self.is_staff_user or self.ticket.status == Ticket.Status.CLOSED:
             raise Http404
 
@@ -97,7 +103,8 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         """
         Save a public comment and advance the ticket's status.
 
-        Staff → AWAITING_STUDENT; student → AWAITING_STAFF (reopens if closed).
+        Staff comment sets the ticket's status to AWAITING_STUDENT
+        Student comment sets the ticket's status to AWAITING_STAFF (reopens the ticket if closed).
         Staff may only comment on tickets assigned to them.
         """
         if self.is_staff_user and self.ticket.assigned_to_id != request.user.id:
@@ -132,8 +139,8 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         now = timezone.now()
 
         if self.ticket.status == Ticket.Status.CLOSED:
-            # Only a student comment can reopen a closed ticket; staff cannot
-            # comment on closed tickets (guarded by the assigned_to check above).
+            # Only a student comment can reopen a closed ticket.
+            # Staff cannot comment on closed tickets (guarded by the 'assigned_to' check above).
             if not self.is_staff_user:
                 self.ticket.status = Ticket.Status.AWAITING_STAFF
                 self.ticket.closed_reason = None
@@ -154,7 +161,6 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
                 self.ticket.awaiting_student_since = now
             else:
                 self.ticket.status = Ticket.Status.AWAITING_STAFF
-                # Clear the timestamp because the ball is no longer in the student's court.
                 self.ticket.awaiting_student_since = None
 
             self.ticket.save(
@@ -165,7 +171,9 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         return redirect("ticket_detail", url_code=kwargs.get("url_code"))
 
     def post_action_add_internal_note(self, request, *args, **kwargs):
-        """Save a staff-only internal note; raises Http404 for students."""
+        """Save a staff-only internal note.
+        Raises Http404 for students.
+        """
         if not self.is_staff_user:
             raise Http404
 
@@ -185,9 +193,8 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
 
     def post_action_close_ticket(self, request, *args, **kwargs):
         """
-        Mark the ticket CLOSED/ANSWERED; no-op if already closed.
-
-        ``update_fields`` bypasses ``clean()``, so closure fields must be set explicitly here.
+        Mark the ticket CLOSED/ANSWERED.
+        'update_fields' bypasses 'clean()', so closure fields must be set explicitly here.
         """
         if not self.is_staff_user:
             raise Http404
@@ -217,7 +224,7 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         return redirect("ticket_detail", url_code=kwargs.get("url_code"))
 
     def post_action_unclose_ticket(self, request, *args, **kwargs):
-        """Reopen a closed ticket to AWAITING_STAFF; no-op if not currently closed."""
+        """Reopen a closed ticket to AWAITING_STAFF."""
         if not self.is_staff_user:
             raise Http404
 
@@ -250,8 +257,9 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         """
         Build the template context.
 
-        Preserves an invalid comment form from kwargs. Annotates each comment with
-        ``can_edit`` (author + within time window). Internal notes only added for staff.
+        Preserves an invalid comment form from kwargs.
+        Annotates each comment with 'can_edit' (author + within time window).
+        Internal notes only added for staff.
         """
         context = super().get_context_data(**kwargs)
         context["ticket"] = self.ticket
