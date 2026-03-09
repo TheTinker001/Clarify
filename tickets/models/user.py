@@ -5,7 +5,12 @@ from libgravatar import Gravatar
 
 
 class User(AbstractUser):
-    """Model used for user authentication, and team member related information."""
+    """
+    Custom user model for students and staff.
+
+    Preference fields ('faculties', 'study_levels', 'categories') store
+    comma-separated choice codes for simple filtering without extra joins.
+    """
 
     USER_TYPE_STUDENT = "student"
     USER_TYPE_STAFF = "staff"
@@ -46,19 +51,13 @@ class User(AbstractUser):
         blank=True, help_text="Comma-separated category codes"
     )
 
-    class Meta:
-        """Model options."""
-
-        ordering = ["last_name", "first_name"]
-
     def full_name(self):
         """Return a string containing the user's full name."""
 
         return f"{self.first_name} {self.last_name}"
 
     def gravatar(self, size=120):
-        """Return a URL to the user's gravatar."""
-
+        """Return a Gravatar URL for the user's email, falling back to the 'mp' placeholder."""
         gravatar_object = Gravatar(self.email)
         gravatar_url = gravatar_object.get_image(size=size, default="mp")
         return gravatar_url
@@ -70,4 +69,8 @@ class User(AbstractUser):
 
     @property
     def get_initials(self):
+        """Return the user's initials as a two-character uppercase string (e.g. 'JD')."""
         return self.first_name[0].upper() + self.last_name[0].upper()
+
+    class Meta:
+        ordering = ["last_name", "first_name"]
