@@ -8,6 +8,9 @@ User = get_user_model()
 class InternalNote(models.Model):
     """Model representing a staff-only internal note on a ticket."""
 
+    class Meta:
+        ordering = ["created_at"]
+
     BODY_MAX_LENGTH = 5000
 
     ticket = models.ForeignKey(
@@ -28,6 +31,3 @@ class InternalNote(models.Model):
 
     def __str__(self):
         return f"Internal note by {self.author} on Ticket {self.ticket_id}"
-
-    class Meta:
-        ordering = ["created_at"]

@@ -19,6 +19,12 @@ class StaffPreferenceForm(forms.ModelForm):
     used in a staff profile or settings page.
     """
 
+    class Meta:
+        """Form options."""
+
+        model = User
+        fields = ["faculties", "study_levels", "categories"]
+
     faculties = forms.MultipleChoiceField(
         choices=_no_empty(Ticket.Faculty.choices),
         required=False,
@@ -59,9 +65,3 @@ class StaffPreferenceForm(forms.ModelForm):
 
     def clean_categories(self):
         return ",".join(self.cleaned_data["categories"])
-
-    class Meta:
-        """Form options."""
-
-        model = User
-        fields = ["faculties", "study_levels", "categories"]

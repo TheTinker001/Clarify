@@ -2,20 +2,11 @@ from django import forms
 
 from tickets.models import Comment
 from tickets.helpers import MultipleFileInput, MultipleFileField
+from clarify.settings import ALLOWED_EXTENSIONS_ACCEPT, ALLOWED_EXTENSIONS_LABEL
 
 
 class CommentForm(forms.ModelForm):
     """Form for submitting a comment on a ticket."""
-
-    attachments = MultipleFileField(
-        widget=MultipleFileInput(
-            attrs={
-                "accept": ".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png",
-            }
-        ),
-        required=False,
-        label="Attachments (max 5 files, 5MB each — pdf, doc, docx, txt, jpg, jpeg, png)",
-    )
 
     class Meta:
         model = Comment
@@ -28,3 +19,13 @@ class CommentForm(forms.ModelForm):
         labels = {
             "body": "",
         }
+
+    attachments = MultipleFileField(
+        widget=MultipleFileInput(
+            attrs={
+                "accept": ALLOWED_EXTENSIONS_ACCEPT,
+            }
+        ),
+        required=False,
+        label=ALLOWED_EXTENSIONS_LABEL,
+    )

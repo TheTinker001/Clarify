@@ -1,6 +1,7 @@
 from django import forms
 from tickets.models import Ticket
 from tickets.helpers import MultipleFileInput, MultipleFileField
+from clarify.settings import ALLOWED_EXTENSIONS_ACCEPT, ALLOWED_EXTENSIONS_LABEL
 
 
 class TicketForm(forms.ModelForm):
@@ -15,11 +16,11 @@ class TicketForm(forms.ModelForm):
     attachments = MultipleFileField(
         widget=MultipleFileInput(
             attrs={
-                "accept": ".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png",
+                "accept": ALLOWED_EXTENSIONS_ACCEPT,
             }
         ),
         required=False,
-        label="Attachments (max 5 files, 5MB each — pdf, doc, docx, txt, jpg, jpeg, png)",
+        label=ALLOWED_EXTENSIONS_LABEL,
     )
 
     def __init__(self, *args, **kwargs):
@@ -37,5 +38,4 @@ class TicketForm(forms.ModelForm):
         self.fields["body"].widget.attrs["placeholder"] = "Write your body here..."
 
     def clean_attachments(self):
-
         return self.cleaned_data.get("attachments")

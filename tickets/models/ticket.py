@@ -14,6 +14,11 @@ User = get_user_model()
 class Ticket(models.Model):
     """Model representing a student ticket."""
 
+    class Meta:
+        """Model settings controlling ordering and behaviours."""
+
+        ordering = ["-created_at"]
+
     class Faculty(models.TextChoices):
         EMPTY = "", "Select"
         FOLSM = "folsm", "Faculty of Life Sciences & Medicine (FoLSM)"
@@ -234,8 +239,3 @@ class Ticket(models.Model):
     def __str__(self):
         """Return the ticket details for readable display."""
         return f"Ticket {self.pk} | {self.subject}"
-
-    class Meta:
-        """Model settings controlling ordering and behaviours."""
-
-        ordering = ["-created_at"]
