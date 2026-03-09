@@ -5,6 +5,7 @@ from clarify.settings import ALLOWED_EXTENSIONS_ACCEPT, ALLOWED_EXTENSIONS_LABEL
 
 
 class TicketForm(forms.ModelForm):
+    """Form for creating a support ticket"""
 
     class Meta:
         model = Ticket
@@ -38,4 +39,5 @@ class TicketForm(forms.ModelForm):
         self.fields["body"].widget.attrs["placeholder"] = "Write your body here..."
 
     def clean_attachments(self):
+        """Return the validated attachments list"""
         return self.cleaned_data.get("attachments")

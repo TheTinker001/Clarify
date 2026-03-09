@@ -3,21 +3,17 @@ from tickets.models import User, Ticket
 
 
 def _split_codes(value: str):
+    """Split a comma-separated preference string into a stripped, non-empty list."""
     return [c.strip() for c in value.split(",") if c.strip()]
 
 
 def _no_empty(choices):
+    """Strip the EMPTY sentinel entry from a TextChoices list before use as checkbox options."""
     return [(v, label) for v, label in choices if v]
 
 
 class StaffPreferenceForm(forms.ModelForm):
-    """
-    Form enabling staff users to set their ticket handling preferences.
-
-    This form allows staff members to select the faculties, study levels,
-    and categories of tickets they are willing to handle. It is typically
-    used in a staff profile or settings page.
-    """
+    """Let staff select the faculties, study levels, and categories of tickets they handle."""
 
     class Meta:
         """Form options."""
@@ -42,6 +38,7 @@ class StaffPreferenceForm(forms.ModelForm):
     )
 
     def __init__(self, *args, **kwargs):
+        """Pre-populate checkbox selections by splitting the stored CSV preference strings."""
         super().__init__(*args, **kwargs)
 
         if self.instance.faculties:
@@ -52,16 +49,20 @@ class StaffPreferenceForm(forms.ModelForm):
             self.initial["categories"] = _split_codes(self.instance.categories)
 
     def clean(self):
+        """Reject the form if the bound user is not a staff member."""
         cleaned_data = super().clean()
         if self.instance.user_type != User.USER_TYPE_STAFF:
             raise forms.ValidationError("Only staff can edit preferences.")
         return cleaned_data
 
     def clean_faculties(self):
+        """Re-join the validated list of faculty codes into a comma-separated string for storage."""
         return ",".join(self.cleaned_data["faculties"])
 
     def clean_study_levels(self):
+        """Re-join the validated list of study-level codes into a comma-separated string for storage."""
         return ",".join(self.cleaned_data["study_levels"])
 
     def clean_categories(self):
+        """Re-join the validated list of category codes into a comma-separated string for storage."""
         return ",".join(self.cleaned_data["categories"])

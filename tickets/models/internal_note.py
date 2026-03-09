@@ -30,4 +30,5 @@ class InternalNote(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
+        """Return a human-readable summary identifying the note's author and ticket."""
         return f"Internal note by {self.author} on Ticket {self.ticket_id}"
