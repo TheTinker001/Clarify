@@ -66,6 +66,29 @@ class ExtractBodyTest(TestCase):
         self.assertEqual(_extract_body(outer), "Plain text body")
 
 
+class ExtractBodyEdgeCasesTest(TestCase):
+    def test_multipart_with_no_plain_text(self):
+        from email.mime.multipart import MIMEMultipart
+        outer = MIMEMultipart()
+        outer["From"] = "a@b.com"
+        outer["Subject"] = "Test"
+        html_part = MIMEText("<p>HTML only</p>", "html")
+        outer.attach(html_part)
+        self.assertEqual(_extract_body(outer), "")
+
+    def test_multipart_with_none_payload(self):
+        from email.mime.multipart import MIMEMultipart
+        from email.mime.base import MIMEBase
+        outer = MIMEMultipart()
+        outer["From"] = "a@b.com"
+        outer["Subject"] = "Test"
+        attachment = MIMEBase("application", "octet-stream")
+        attachment.set_payload(b"binary data")
+        attachment.add_header("Content-Disposition", "attachment", filename="file.bin")
+        outer.attach(attachment)
+        self.assertEqual(_extract_body(outer), "")
+
+
 class ProcessEmailTest(TestCase):
     def setUp(self):
         self.student = User.objects.create_user(
@@ -267,6 +290,33 @@ class CheckInboxCommandTest(TestCase):
         call_command("check_inbox", stdout=out)
         self.assertIn("no subject", out.getvalue())
         self.assertEqual(Ticket.objects.count(), 0)
+
+    @patch("tickets.management.commands.check_inbox.imaplib.IMAP4_SSL")
+    def test_processes_multiple_emails(self, mock_imap_class):
+        msg1 = _make_email(
+            "cmdstudent@test.com",
+            "Assessment question undergraduate engineering",
+            "Computer science exam help.",
+        )
+        msg2 = _make_email(
+            "stranger@test.com", "Help", "Need help.",
+        )
+        mock_mail = MagicMock()
+        mock_imap_class.return_value = mock_mail
+        mock_mail.select.return_value = ("OK", [b"1"])
+        mock_mail.search.return_value = ("OK", [b"1 2"])
+        mock_mail.fetch.side_effect = [
+            ("OK", [(b"1", msg1.as_bytes())]),
+            ("OK", [(b"2", msg2.as_bytes())]),
+        ]
+
+        out = StringIO()
+        call_command("check_inbox", stdout=out)
+        output = out.getvalue()
+        self.assertIn("Ticket created", output)
+        self.assertIn("not a student", output)
+        self.assertIn("Done", output)
+        self.assertEqual(Ticket.objects.count(), 1)
 
     @patch("tickets.management.commands.check_inbox.imaplib.IMAP4_SSL")
     def test_ignores_non_student_email(self, mock_imap_class):
