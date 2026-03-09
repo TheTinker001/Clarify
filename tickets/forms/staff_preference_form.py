@@ -38,12 +38,19 @@ class StaffPreferenceForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        if self.instance.faculties:
-            self.initial["faculties"] = _split_codes(self.instance.faculties)
-        if self.instance.study_levels:
-            self.initial["study_levels"] = _split_codes(self.instance.study_levels)
-        if self.instance.categories:
-            self.initial["categories"] = _split_codes(self.instance.categories)
+        all_faculties = [code for code, _ in _no_empty(Ticket.Faculty.choices)]
+        all_study_levels = [code for code, _ in _no_empty(Ticket.StudyLevel.choices)]
+        all_categories = [code for code, _ in _no_empty(Ticket.Category.choices)]
+
+        self.initial["faculties"] = (
+            _split_codes(self.instance.faculties) if self.instance.faculties else all_faculties
+        )
+        self.initial["study_levels"] = (
+            _split_codes(self.instance.study_levels) if self.instance.study_levels else all_study_levels
+        )
+        self.initial["categories"] = (
+            _split_codes(self.instance.categories) if self.instance.categories else all_categories
+        )
 
     def clean(self):
         cleaned_data = super().clean()
