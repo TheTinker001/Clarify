@@ -1,21 +1,19 @@
-from datetime import timedelta
-
 from django.contrib import messages
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
-from django.utils import timezone
-from django.views.generic import TemplateView
+from tickets.helpers import _send_staff_comment_email
+from tickets.models import User, Ticket, TicketAttachment
 from django.contrib.auth.mixins import LoginRequiredMixin
-
-from clarify.settings import EDIT_TIME_LIMIT_MINUTES
+from django.views.generic import TemplateView
+from datetime import timedelta
+from django.utils import timezone
 from tickets.forms import (
     CommentForm,
     TicketPriorityForm,
     InternalNoteForm,
+    TicketFieldsForm,
 )
-from tickets.helpers import _send_staff_comment_email
-from tickets.models import Ticket, User
-from tickets.models.attachment import TicketAttachment
+from clarify.settings import EDIT_TIME_LIMIT_MINUTES
 
 
 class TicketDetailView(LoginRequiredMixin, TemplateView):
@@ -60,6 +58,11 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         """Return a blank comment form."""
         return CommentForm()
 
+    def get_fields_form(self):
+        if self.is_staff_user:
+            return TicketFieldsForm(instance=self.ticket)
+        return None
+
     # POST dispatcher
     def post(self, request, *args, **kwargs):
         """Dispatch to the correct action handler.
@@ -80,6 +83,9 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
 
         elif action == "unclose_ticket":
             return self.post_action_unclose_ticket(request, *args, **kwargs)
+
+        elif action == "set_ticket_fields":
+            return self.post_action_edit_ticket_fields(request, *args, **kwargs)
 
         raise Http404
 
@@ -155,6 +161,7 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
                         "updated_at",
                     ]
                 )
+
         else:
             if self.is_staff_user:
                 self.ticket.status = Ticket.Status.AWAITING_STUDENT
@@ -252,6 +259,22 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         messages.success(request, "Ticket opened as unsolved.")
         return redirect("ticket_detail", url_code=kwargs.get("url_code"))
 
+    def post_action_edit_ticket_fields(self, request, *args, **kwargs):
+        if not self.is_staff_user or self.ticket.status == Ticket.Status.CLOSED:
+            raise Http404
+
+        if self.ticket.assigned_to_id and self.ticket.assigned_to_id != request.user.id:
+            raise Http404
+
+        fields_form = TicketFieldsForm(request.POST, instance=self.ticket)
+        if fields_form.is_valid():
+            fields_form.save()
+            messages.success(request, "Ticket fields updated.")
+        else:
+            messages.error(request, "Invalid input for ticket fields.")
+
+        return redirect("ticket_detail", url_code=kwargs.get("url_code"))
+
     # Context builder
     def get_context_data(self, **kwargs):
         """
@@ -285,5 +308,6 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
             context["internal_note_form"] = (
                 kwargs.get("internal_note_form") or InternalNoteForm()
             )
+            context["ticket_fields_form"] = self.get_fields_form()
 
         return context

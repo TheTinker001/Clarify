@@ -10,6 +10,9 @@ User = get_user_model()
 class Comment(models.Model):
     """Model representing a comment on a ticket."""
 
+    class Meta:
+        ordering = ["created_at"]
+
     BODY_MAX_LENGTH = 5000
 
     ticket = models.ForeignKey(
@@ -63,6 +66,3 @@ class Comment(models.Model):
     def __str__(self):
         """Return a human-readable summary identifying the comment's author and ticket."""
         return f"Comment by {self.author} on Ticket {self.ticket_id}"
-
-    class Meta:
-        ordering = ["created_at"]

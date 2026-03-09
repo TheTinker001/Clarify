@@ -12,6 +12,9 @@ class User(AbstractUser):
     comma-separated choice codes for simple filtering without extra joins.
     """
 
+    class Meta:
+        ordering = ["last_name", "first_name"]
+
     USER_TYPE_STUDENT = "student"
     USER_TYPE_STAFF = "staff"
     USER_TYPE_CHOICES = [
@@ -71,6 +74,3 @@ class User(AbstractUser):
     def get_initials(self):
         """Return the user's initials as a two-character uppercase string (e.g. 'JD')."""
         return self.first_name[0].upper() + self.last_name[0].upper()
-
-    class Meta:
-        ordering = ["last_name", "first_name"]

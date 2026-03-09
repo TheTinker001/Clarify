@@ -15,6 +15,12 @@ def _no_empty(choices):
 class StaffPreferenceForm(forms.ModelForm):
     """Let staff select the faculties, study levels, and categories of tickets they handle."""
 
+    class Meta:
+        """Form options."""
+
+        model = User
+        fields = ["faculties", "study_levels", "categories"]
+
     faculties = forms.MultipleChoiceField(
         choices=_no_empty(Ticket.Faculty.choices),
         required=False,
@@ -60,9 +66,3 @@ class StaffPreferenceForm(forms.ModelForm):
     def clean_categories(self):
         """Re-join the validated list of category codes into a comma-separated string for storage."""
         return ",".join(self.cleaned_data["categories"])
-
-    class Meta:
-        """Form options."""
-
-        model = User
-        fields = ["faculties", "study_levels", "categories"]

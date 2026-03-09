@@ -1,7 +1,7 @@
 """Tests for the ticket detail view."""
 
 from django.test import TestCase
-from tickets.forms.ticket_priority_form import TicketPriorityForm
+from tickets.forms import TicketPriorityForm, TicketFieldsForm
 from tickets.models import Ticket, User
 from tickets.tests.helpers import (
     MenuTesterMixin,
