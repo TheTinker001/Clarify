@@ -33,6 +33,11 @@ class DecodeHeaderValueTest(TestCase):
     def test_none_returns_empty(self):
         self.assertEqual(_decode_header_value(None), "")
 
+    def test_encoded_bytes_header(self):
+        encoded = "=?utf-8?b?w5xuw69jw7Zkw6kgU8O8YmplY3Q=?="
+        result = _decode_header_value(encoded)
+        self.assertEqual(result, "Ünïcödé Sübject")
+
 
 class ExtractSenderEmailTest(TestCase):
     def test_with_angle_brackets(self):
@@ -230,6 +235,38 @@ class CheckInboxCommandTest(TestCase):
         call_command("check_inbox", stdout=out)
         self.assertEqual(Ticket.objects.count(), 0)
         mock_mail.logout.assert_called_once()
+
+    @patch("tickets.management.commands.check_inbox.imaplib.IMAP4_SSL")
+    def test_missing_fields_output(self, mock_imap_class):
+        msg = _make_email("cmdstudent@test.com", "Hello", "Just a generic question.")
+        raw = msg.as_bytes()
+
+        mock_mail = MagicMock()
+        mock_imap_class.return_value = mock_mail
+        mock_mail.select.return_value = ("OK", [b"1"])
+        mock_mail.search.return_value = ("OK", [b"1"])
+        mock_mail.fetch.return_value = ("OK", [(b"1", raw)])
+
+        out = StringIO()
+        call_command("check_inbox", stdout=out)
+        self.assertIn("Missing fields", out.getvalue())
+        self.assertEqual(Ticket.objects.count(), 0)
+
+    @patch("tickets.management.commands.check_inbox.imaplib.IMAP4_SSL")
+    def test_ignored_no_subject_output(self, mock_imap_class):
+        msg = _make_email("cmdstudent@test.com", "", "Some body.")
+        raw = msg.as_bytes()
+
+        mock_mail = MagicMock()
+        mock_imap_class.return_value = mock_mail
+        mock_mail.select.return_value = ("OK", [b"1"])
+        mock_mail.search.return_value = ("OK", [b"1"])
+        mock_mail.fetch.return_value = ("OK", [(b"1", raw)])
+
+        out = StringIO()
+        call_command("check_inbox", stdout=out)
+        self.assertIn("no subject", out.getvalue())
+        self.assertEqual(Ticket.objects.count(), 0)
 
     @patch("tickets.management.commands.check_inbox.imaplib.IMAP4_SSL")
     def test_ignores_non_student_email(self, mock_imap_class):
