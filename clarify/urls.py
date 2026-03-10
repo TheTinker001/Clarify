@@ -65,6 +65,11 @@ urlpatterns = [
         views.CloseInactiveTicketsTaskView.as_view(),
         name="close_inactive_task",
     ),
+    path(
+        "tasks/check-inbox/",
+        views.CheckInboxTaskView.as_view(),
+        name="check_inbox_task",
+    ),
 ]
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

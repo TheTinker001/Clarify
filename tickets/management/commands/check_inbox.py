@@ -102,7 +102,8 @@ def process_email(msg):
 
     classification = classify_email(subject, body)
     missing = [
-        field for field in ("faculty", "study_level", "category")
+        field
+        for field in ("faculty", "study_level", "category")
         if classification[field] is None
     ]
 

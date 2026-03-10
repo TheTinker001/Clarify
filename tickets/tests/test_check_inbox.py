@@ -1,4 +1,5 @@
 """Tests for the check_inbox management command."""
+
 from email.mime.text import MIMEText
 from io import StringIO
 from unittest.mock import patch, MagicMock
@@ -56,6 +57,7 @@ class ExtractBodyTest(TestCase):
 
     def test_multipart(self):
         from email.mime.multipart import MIMEMultipart
+
         outer = MIMEMultipart()
         outer["From"] = "a@b.com"
         outer["Subject"] = "Test"
@@ -69,6 +71,7 @@ class ExtractBodyTest(TestCase):
 class ExtractBodyEdgeCasesTest(TestCase):
     def test_multipart_with_no_plain_text(self):
         from email.mime.multipart import MIMEMultipart
+
         outer = MIMEMultipart()
         outer["From"] = "a@b.com"
         outer["Subject"] = "Test"
@@ -79,6 +82,7 @@ class ExtractBodyEdgeCasesTest(TestCase):
     def test_multipart_with_none_payload(self):
         from email.mime.multipart import MIMEMultipart
         from email.mime.base import MIMEBase
+
         outer = MIMEMultipart()
         outer["From"] = "a@b.com"
         outer["Subject"] = "Test"
@@ -123,8 +127,10 @@ class ProcessEmailTest(TestCase):
 
     def test_ignored_when_sender_is_staff(self):
         User.objects.create_user(
-            username="@stafftest", email="staff@test.com",
-            password="Password123", user_type="staff",
+            username="@stafftest",
+            email="staff@test.com",
+            password="Password123",
+            user_type="staff",
         )
         msg = _make_email("staff@test.com", "Help", "I need help.")
         action, detail = process_email(msg)
@@ -299,7 +305,9 @@ class CheckInboxCommandTest(TestCase):
             "Computer science exam help.",
         )
         msg2 = _make_email(
-            "stranger@test.com", "Help", "Need help.",
+            "stranger@test.com",
+            "Help",
+            "Need help.",
         )
         mock_mail = MagicMock()
         mock_imap_class.return_value = mock_mail
