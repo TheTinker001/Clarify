@@ -178,6 +178,10 @@ ITEMS_PER_PAGE = 20
 
 # File extensions settings
 ALLOWED_EXTENSIONS = ["pdf", "doc", "docx", "txt", "jpg", "jpeg", "png"]
+ALLOWED_EXTENSIONS_ACCEPT = ",".join(f".{e}" for e in ALLOWED_EXTENSIONS)
+ALLOWED_EXTENSIONS_LABEL = (
+    "Attachments (max 5 files, 5MB each — pdf, doc, docx, txt, jpg, jpeg, png)"
+)
 
 # Edit comment settings
 EDIT_TIME_LIMIT_MINUTES = 10

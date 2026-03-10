@@ -9,7 +9,15 @@ from tickets.models import Ticket, User
 
 @method_decorator([login_required, require_POST], name="dispatch")
 class TicketClaimView(View):
+    """
+    Let staff assign themselves to an unassigned ticket.
+
+    Uses a filtered '.update(assigned_to__isnull=True)' to avoid race conditions.
+    If zero rows are updated, the DB is re-read to determine who claimed it first.
+    """
+
     def post(self, request, url_code):
+        """Process the claim request and redirect back to the ticket detail page."""
         ticket = get_object_or_404(
             Ticket.objects.select_related("assigned_to"),
             url_code=url_code,
@@ -19,6 +27,7 @@ class TicketClaimView(View):
             messages.error(request, "You are not a staff member!")
             return redirect(ticket.get_absolute_url())
 
+        # Atomic conditional update: only claims the ticket if it is still unassigned.
         updated = Ticket.objects.filter(
             url_code=url_code, assigned_to__isnull=True
         ).update(assigned_to=request.user)
@@ -27,6 +36,8 @@ class TicketClaimView(View):
             messages.success(request, "You have claimed this ticket.")
             return redirect(ticket.get_absolute_url())
 
+        # If update() returned 0 => another request claimed it first.
+        # Re-read the DB to find out who now owns it and show the appropriate message.
         ticket.refresh_from_db(fields=["assigned_to"])
         if ticket.assigned_to_id == request.user.id:
             messages.success(request, "You have claimed this ticket.")

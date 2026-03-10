@@ -7,7 +7,7 @@ class LogInForm(forms.Form):
     Form enabling registered users to log in.
 
     This simple login form collects a username and password and attempts
-    to authenticate the user against Django’s authentication backend.
+    to authenticate the user against Django's authentication backend.
     It does not handle the actual login process (session creation), which
     is typically done in a view using `django.contrib.auth.login()`.
 
@@ -25,7 +25,7 @@ class LogInForm(forms.Form):
 
         This method should be called after form validation (`is_valid()`).
         It retrieves the cleaned username and password from the form data
-        and uses Django’s built-in `authenticate()` function to verify them.
+        and uses Django's built-in `authenticate()` function to verify them.
         """
 
         user = None

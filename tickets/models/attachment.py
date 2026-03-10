@@ -4,11 +4,9 @@ from django.core.validators import FileExtensionValidator
 from tickets.helpers import _validate_file_size
 from clarify.settings import ALLOWED_EXTENSIONS
 
-import os
-
 
 class TicketAttachment(models.Model):
-    """A single file attachment, linked to either a ticket or a comment."""
+    """A file attached to either a ticket or a comment (exactly one FK should be set)."""
 
     MAX_FILES_PER_TICKET = 5
 
@@ -35,7 +33,9 @@ class TicketAttachment(models.Model):
     )
 
     def filename(self):
+        """Return the bare filename, stripping the upload-path prefix stored in the DB."""
         return os.path.basename(self.file.name)
 
     def __str__(self):
+        """Return the bare filename as the string representation."""
         return self.filename()

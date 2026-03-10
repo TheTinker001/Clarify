@@ -1,11 +1,4 @@
-"""
-Management command to seed the database with demo data.
-
-This command creates a small set of named fixture users and then fills up
-to ``USER_COUNT`` total users using Faker-generated data. Existing records
-are left untouched—if a create fails (e.g., due to duplicates), the error
-is swallowed and generation continues.
-"""
+"""Seed the database with fixture users and demo tickets. Duplicate-creation errors are swallowed."""
 
 from datetime import timedelta
 from faker import Faker
@@ -68,19 +61,7 @@ user_fixtures = [
 
 
 class Command(BaseCommand):
-    """
-    Build automation command to seed the database with data.
-
-    This command inserts a small set of known users (``user_fixtures``) and then
-    repeatedly generates additional random users until ``USER_COUNT`` total users
-    exist in the database. Each generated user receives the same default password.
-
-    Attributes:
-        USER_COUNT (int): Target total number of users in the database.
-        DEFAULT_PASSWORD (str): Default password assigned to all created users.
-        help (str): Short description shown in ``manage.py help``.
-        faker (Faker): Locale-specific Faker instance used for random data.
-    """
+    """Seed the DB with fixture users and Faker-generated users up to 'USER_COUNT'."""
 
     USER_COUNT = 200
     DEFAULT_PASSWORD = "Password123"
@@ -92,23 +73,11 @@ class Command(BaseCommand):
         self.faker = Faker("en_GB")
 
     def handle(self, *args, **options):
-        """
-        Django entrypoint for the command.
-
-        Runs the full seeding workflow and stores ``self.users`` for any
-        post-processing or debugging (not required for operation).
-        """
         self.create_users()
         self.create_tickets_for_fixture_users()
         self.users = User.objects.all()
 
     def create_users(self):
-        """
-        Create fixture users and then generate random users up to USER_COUNT.
-
-        The process is idempotent in spirit: attempts that fail (e.g., due to
-        uniqueness constraints on username/email) are ignored and generation continues.
-        """
         self.generate_user_fixtures()
         self.generate_random_users()
 
@@ -118,11 +87,7 @@ class Command(BaseCommand):
             self.try_create_user(data)
 
     def generate_random_users(self):
-        """
-        Generate random users until the database contains USER_COUNT users.
-
-        Prints a simple progress indicator to stdout during generation.
-        """
+        """Generate Faker users until the DB reaches USER_COUNT, printing progress."""
         user_count = User.objects.count()
         while user_count < self.USER_COUNT:
             print(f"Seeding user {user_count}/{self.USER_COUNT}", end="\r")
@@ -131,11 +96,6 @@ class Command(BaseCommand):
         print("User seeding complete.      ")
 
     def generate_user(self):
-        """
-        Generate a single random user and attempt to insert it.
-
-        Uses Faker for first/last names, then derives a simple username/email.
-        """
         first_name = self.faker.first_name()
         last_name = self.faker.last_name()
         email = create_email(first_name, last_name)
@@ -150,26 +110,14 @@ class Command(BaseCommand):
         )
 
     def try_create_user(self, data):
-        """
-        Attempt to create a user and ignore any errors.
-
-        Args:
-            data (dict): Mapping with keys ``username``, ``email``,
-                ``first_name``, and ``last_name``.
-        """
+        """Attempt to create a user, silently ignoring any errors."""
         try:
             self.create_user(data)
         except:
             pass
 
     def create_user(self, data):
-        """
-        Create a user with the default password.
-
-        Args:
-            data (dict): Mapping with keys ``username``, ``email``,
-                ``first_name``, and ``last_name``.
-        """
+        """Create a user with the default password."""
         User.objects.create_user(
             username=data["username"],
             email=data["email"],
@@ -182,7 +130,13 @@ class Command(BaseCommand):
         )
 
     def create_tickets_for_fixture_users(self):
+        """
+        Seed up to 20 tickets per fixture student across five states.
 
+        States per student: 7 open, 2 in-progress (assigned to '@staffuser'),
+        2 need-response, 1 overdue (backdated), 2 closed. Students with >=2
+        existing tickets are skipped to keep repeat runs fast.
+        """
         FACULTIES = [choice for choice, _ in Ticket.Faculty.choices if choice]
         STUDY_LEVELS = [choice for choice, _ in Ticket.StudyLevel.choices if choice]
         CATEGORIES = [choice for choice, _ in Ticket.Category.choices if choice]
@@ -206,7 +160,6 @@ class Command(BaseCommand):
             except User.DoesNotExist:
                 continue
 
-            # Only seed students
             if user.user_type != User.USER_TYPE_STUDENT:
                 continue
 
@@ -218,7 +171,7 @@ class Command(BaseCommand):
             if remaining <= 0:
                 continue
 
-            # Define mix (adjust numbers if you want)
+            # Allocate the available slots across the five ticket states.
             open_count = min(7, remaining)
             remaining -= open_count
 
@@ -234,7 +187,7 @@ class Command(BaseCommand):
             closed_count = min(2, remaining)
             remaining -= closed_count
 
-            # Anything left -> open tickets
+            # Any slots not consumed by the other states become additional open tickets.
             open_count += remaining
 
             # OPEN tickets
@@ -251,7 +204,7 @@ class Command(BaseCommand):
                     priority=random.choice(PRIORITIES),
                 )
 
-            # IN PROGRESS tickets
+            # IN PROGRESS tickets (assigned to the seed staff user)
             for _ in range(in_progress_count):
                 Ticket.objects.create(
                     student=user,
@@ -279,7 +232,8 @@ class Command(BaseCommand):
                     priority=random.choice(PRIORITIES),
                 )
 
-            # OVERDUE tickets
+            # OVERDUE tickets: created normally then backdated via a raw UPDATE
+            # because auto_now_add prevents setting created_at through the ORM.
             for _ in range(overdue_count):
                 t = Ticket.objects.create(
                     student=user,
@@ -296,7 +250,7 @@ class Command(BaseCommand):
                     created_at=overdue_cutoff - timedelta(days=1)
                 )
 
-            # CLOSED tickets
+            # CLOSED tickets (priority stored but not surfaced in the UI for closed tickets)
             for _ in range(closed_count):
                 Ticket.objects.create(
                     student=user,
@@ -308,35 +262,15 @@ class Command(BaseCommand):
                     status=Ticket.Status.CLOSED,
                     closed_reason=Ticket.ClosedReason.ANSWERED,
                     closed_at=timezone.now(),
-                    priority=random.choice(
-                        PRIORITIES
-                    ),  # shouldnt be displayed even if it has a value
+                    priority=random.choice(PRIORITIES),
                 )
 
 
 def create_username(first_name, last_name):
-    """
-    Construct a simple username from first and last names.
-
-    Args:
-        first_name (str): Given name.
-        last_name (str): Family name.
-
-    Returns:
-        str: A username in the form ``@{firstname}{lastname}`` (lowercased).
-    """
+    """Return '@{firstname}{lastname}' (lowercased)."""
     return "@" + first_name.lower() + last_name.lower()
 
 
 def create_email(first_name, last_name):
-    """
-    Construct a simple example email address.
-
-    Args:
-        first_name (str): Given name.
-        last_name (str): Family name.
-
-    Returns:
-        str: An email in the form ``{firstname}.{lastname}@example.org``.
-    """
+    """Return '{firstname}.{lastname}@example.org'."""
     return first_name + "." + last_name + "@example.org"
