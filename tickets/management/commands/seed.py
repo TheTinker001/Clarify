@@ -1,11 +1,4 @@
-"""
-Management command to seed the database with demo data.
-
-This command creates a small set of named fixture users and then fills up
-to ``USER_COUNT`` total users using Faker-generated data. Existing records
-are left untouched—if a create fails (e.g., due to duplicates), the error
-is swallowed and generation continues.
-"""
+"""Seed the database with fixture users and demo tickets. Duplicate-creation errors are swallowed."""
 
 from datetime import timedelta
 from faker import Faker
@@ -74,19 +67,7 @@ user_fixtures = [
 
 
 class Command(BaseCommand):
-    """
-    Build automation command to seed the database with data.
-
-    This command inserts a small set of known users (``user_fixtures``) and then
-    repeatedly generates additional random users until ``USER_COUNT`` total users
-    exist in the database. Each generated user receives the same default password.
-
-    Attributes:
-        USER_COUNT (int): Target total number of users in the database.
-        DEFAULT_PASSWORD (str): Default password assigned to all created users.
-        help (str): Short description shown in ``manage.py help``.
-        faker (Faker): Locale-specific Faker instance used for random data.
-    """
+    """Seed the DB with fixture users and Faker-generated users up to 'USER_COUNT'."""
 
     FACULTIES = [choice for choice, _ in Ticket.Faculty.choices if choice]
     STUDY_LEVELS = [choice for choice, _ in Ticket.StudyLevel.choices if choice]
@@ -363,26 +344,14 @@ class Command(BaseCommand):
         )
 
     def try_create_user(self, data):
-        """
-        Attempt to create a user and ignore any errors.
-
-        Args:
-            data (dict): Mapping with keys ``username``, ``email``,
-                ``first_name``, and ``last_name``.
-        """
+        """Attempt to create a user, silently ignoring any errors."""
         try:
             self.create_user(data)
         except:
             pass
 
     def create_user(self, data):
-        """
-        Create a user with the default password.
-
-        Args:
-            data (dict): Mapping with keys ``username``, ``email``,
-                ``first_name``, and ``last_name``.
-        """
+        """Create a user with the default password."""
         User.objects.create_user(
             username=data["username"],
             email=data["email"],
@@ -481,28 +450,10 @@ class Command(BaseCommand):
 
 
 def create_username(first_name, last_name):
-    """
-    Construct a simple username from first and last names.
-
-    Args:
-        first_name (str): Given name.
-        last_name (str): Family name.
-
-    Returns:
-        str: A username in the form ``@{firstname}{lastname}`` (lowercased).
-    """
+    """Return '@{firstname}{lastname}' (lowercased)."""
     return "@" + first_name.lower() + last_name.lower()
 
 
 def create_email(first_name, last_name):
-    """
-    Construct a simple example email address.
-
-    Args:
-        first_name (str): Given name.
-        last_name (str): Family name.
-
-    Returns:
-        str: An email in the form ``{firstname}.{lastname}@example.org``.
-    """
+    """Return '{firstname}.{lastname}@example.org'."""
     return first_name + "." + last_name + "@example.org"
