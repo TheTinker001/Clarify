@@ -2,9 +2,6 @@ from django.core.management.base import BaseCommand
 import os
 import django
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "clarify.settings")
-django.setup()
-
 from django.core.management import call_command
 
 
