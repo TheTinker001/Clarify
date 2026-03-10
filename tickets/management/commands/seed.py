@@ -3,11 +3,8 @@
 from datetime import timedelta
 from faker import Faker
 import random
-from django.core.management.base import BaseCommand, CommandError
-from tickets.models import User
-
-from tickets.models import Ticket
-from tickets.models import Comment
+from django.core.management.base import BaseCommand
+from tickets.models import User, Ticket, Comment
 from django.utils import timezone
 
 from tickets.management.commands.realistic_ticket_data import generate_subject_and_body
