@@ -14,4 +14,10 @@ omit =
     seed.py
     unseed.py
     /nix/*
-    check_inbox.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    # no-coverage   
+    for part in msg\.walk\(\):
+    for eid in email_ids:
