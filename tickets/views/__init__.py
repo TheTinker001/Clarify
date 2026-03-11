@@ -18,3 +18,4 @@ from .check_inbox_task_view import *
 from .issue_group_view import *
 from .create_issue_group_view import *
 from .issue_group_detail_view import *
+from .issue_group_edit_view import *

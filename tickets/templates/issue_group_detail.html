@@ -1,13 +1,19 @@
 {% extends 'base_content.html' %}
 {% block content %}
-    <div class="container">
-        <h1>{{ issue_group.name }}</h1>
-        <p>
-            <strong>Created At:</strong> {{ issue_group.created_at }}
-        </p>
-        <p>
-            <strong>Number of Tickets:</strong> {{ issue_group.tickets.count }}
-        </p>
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1 class="mb-0">{{ issue_group.name }}</h1>
+            <a href="{% url 'edit_issue_group' slug=issue_group.slug %}"
+               class="btn btn-outline-secondary btn-sm">Edit</a>
+        </div>
+        <div class="mb-4">
+            <p class="mb-1">
+                <strong>Created:</strong> {{ issue_group.created_at }}
+            </p>
+            <p class="mb-0">
+                <strong>Tickets:</strong> {{ issue_group.tickets.count }}
+            </p>
+        </div>
         {% for ticket in issue_group.tickets.all %}
             {% include "partials/ticket_card.html" with ticket=ticket %}
         {% empty %}
