@@ -7,6 +7,7 @@ from django.urls import reverse
 from tickets.helpers import _validate_file_size
 import secrets
 from clarify.settings import ALLOWED_EXTENSIONS
+from tickets.models.issue_group import IssueGroup
 
 User = get_user_model()
 
@@ -151,6 +152,14 @@ class Ticket(models.Model):
     awaiting_student_since = models.DateTimeField(null=True, blank=True, db_index=True)
 
     url_code = models.CharField(max_length=64, unique=True, blank=True, null=False)
+
+    issue_group = models.ForeignKey(
+        IssueGroup,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="tickets",
+    )
 
     def clean(self):
         """Validate student/assigned_to types, require closed_reason when CLOSED, and clear closure fields otherwise."""

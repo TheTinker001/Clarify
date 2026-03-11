@@ -21,7 +21,7 @@ user_fixtures = [
         "email": "john.doe@example.org",
         "first_name": "John",
         "last_name": "Doe",
-        "user_type": "student",
+        "user_type": User.USER_TYPE_STUDENT,
     },
     {
         "username": "@janedoe",
@@ -51,6 +51,7 @@ user_fixtures = [
         "last_name": "001",
         "user_type": "staff",
         "is_superuser": True,
+        "is_staff": True,
     },
     {
         "username": "@staff002",
@@ -59,6 +60,7 @@ user_fixtures = [
         "last_name": "002",
         "user_type": "staff",
         "is_superuser": True,
+        "is_staff": True,
     },
 ]
 
