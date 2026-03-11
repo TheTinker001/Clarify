@@ -76,6 +76,11 @@ urlpatterns = [
         views.CreateIssueGroupView.as_view(),
         name="create_issue_group",
     ),
+    path(
+        "issues/<slug:slug>/",
+        views.IssueGroupDetailView.as_view(),
+        name="issue_group_detail",
+    ),
 ]
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
