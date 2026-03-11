@@ -25,3 +25,6 @@ class IssueGroup(models.Model):
 
     def get_absolute_url(self):
         return reverse("issue_group_detail", kwargs={"slug": self.slug})
+
+    def __str__(self):
+        return self.name
