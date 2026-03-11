@@ -2,7 +2,7 @@ name: Check inbox
 
 on:
   schedule:
-    - cron: "*/10 * * * *"  # every 10 minutes
+    - cron: "*/10 * * * *" # every 10 minutes
   workflow_dispatch:
 
 jobs:
@@ -11,6 +11,8 @@ jobs:
     steps:
       - name: Call Django endpoint
         run: |
-          curl -fsS -X POST \
+          resp=$(curl -sS -X POST \
             -H "X-CRON-TOKEN: ${{ secrets.CRON_TOKEN }}" \
-            https://clarify.pythonanywhere.com/tasks/check-inbox/
+            https://clarify.pythonanywhere.com/tasks/check-inbox/)
+
+          echo "$resp" | jq -r '.output'
