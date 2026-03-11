@@ -1,6 +1,15 @@
 {% extends 'base_content.html' %}
 {% block content %}
     <div class="container mt-3">
-        <p>Issue Group</p>
+        <h1>Issue Group</h1>
+        <a href="{% url 'create_issue_group' %}" class="btn btn-primary mb-3">Create New Issue Group</a>
+        {% for i in issue_groups %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">{{ i.name }}</h5>
+                </div>
+                <a href="" class="stretched-link"></a>
+            </div>
+        {% endfor %}
     </div>
 {% endblock %}

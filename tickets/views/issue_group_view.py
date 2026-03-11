@@ -1,7 +1,7 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
 from django.views.generic import TemplateView
-from tickets.models import Ticket, User
+from tickets.models import Ticket, User, IssueGroup
 
 
 class IssueGroupView(LoginRequiredMixin, TemplateView):
@@ -15,4 +15,5 @@ class IssueGroupView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context["issue_groups"] = IssueGroup.objects.all().order_by("name")
         return context
