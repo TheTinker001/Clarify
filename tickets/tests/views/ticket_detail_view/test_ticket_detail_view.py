@@ -329,3 +329,53 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
         self.assertIsNone(self.ticket.closed_reason)
         self.assertIsNone(self.ticket.closed_at)
         self.assertIsNone(self.ticket.awaiting_student_since)
+
+    def test_post_reassign_ticket_with_invalid_user(self):
+        self.client.login(username=self.staff.username, password="Password123")
+        response = self.client.post(
+            self.url,
+            data={"action": "reassign_ticket", "reassign": ""},
+            follow=True,
+        )
+        self.ticket.refresh_from_db()
+        self.assertEqual(self.ticket.assigned_to, self.staff)
+        self.assertRedirects(response, self.url)
+
+    def test_post_reassign_ticket_as_staff_reassigns_ticket(self):
+        # Create another staff user to reassign to
+        new_staff = User.objects.create_user(
+            username="@newstaff",
+            email="newstaff@example.org",
+            password="Password123",
+            first_name="New",
+            last_name="Staff",
+            user_type=User.USER_TYPE_STAFF,
+        )
+        self.client.login(username=self.staff.username, password="Password123")
+        response = self.client.post(
+            self.url,
+            data={"action": "reassign_ticket", "reassign": new_staff.id},
+            follow=True,
+        )
+        self.assertRedirects(response, self.url)
+        self.ticket.refresh_from_db()
+        self.assertEqual(self.ticket.assigned_to, new_staff)
+
+    def test_post_reassign_ticket_as_non_staff_returns_404(self):
+        self.client.login(username=self.student.username, password="Password123")
+        response = self.client.post(
+            self.url,
+            data={"action": "reassign_ticket", "reassign": self.staff.id},
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_post_reassign_ticket_with_nonexistent_user(self):
+        self.client.login(username=self.staff.username, password="Password123")
+        response = self.client.post(
+            self.url,
+            data={"action": "reassign_ticket", "reassign": 99999},
+            follow=True,
+        )
+        self.ticket.refresh_from_db()
+        self.assertEqual(self.ticket.assigned_to, self.staff)
+        self.assertRedirects(response, self.url)

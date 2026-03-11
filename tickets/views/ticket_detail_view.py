@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
-from tickets.helpers import _send_staff_comment_email, _send_reassigned_email
+from tickets.helpers import _send_staff_comment_email
 from tickets.models import User, Ticket, TicketAttachment
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
@@ -280,10 +280,6 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
                 messages.success(
                     request, f"Ticket forwarded to {reassign.get_full_name()}."
                 )
-
-        self.ticket.assigned_to = reassign
-        self.ticket.save(update_fields=["assigned_to", "updated_at"])
-        _send_reassigned_email(self.ticket, reassign)
         return redirect("ticket_detail", url_code=kwargs.get("url_code"))
 
     def post_action_edit_ticket_fields(self, request, *args, **kwargs):
@@ -336,5 +332,5 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
                 kwargs.get("internal_note_form") or InternalNoteForm()
             )
             context["ticket_fields_form"] = self.get_fields_form()
-            context["reassign_ticket_form"] = ReassignTicketForm()
+            context["reassign_ticket_form"] = self.get_reassign_form()
         return context
