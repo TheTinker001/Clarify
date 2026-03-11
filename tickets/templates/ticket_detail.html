@@ -217,6 +217,15 @@
                                 {% if ticket.assigned_to == user %}
                                     <form method="post">
                                         {% csrf_token %}
+                                        <input type="hidden" name="action" value="reassign_ticket">
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text">{{ reassign_ticket_form.reassign.label_tag }}</span>
+                                            {{ reassign_ticket_form.reassign }}
+                                            <button type="submit" class="btn btn-outline-primary">Switch</button>
+                                        </div>
+                                    </form>
+                                    <form method="post">
+                                        {% csrf_token %}
                                         <input type="hidden" name="action" value="close_ticket">
                                         <button type="submit" class="btn btn-success">Close</button>
                                     </form>

@@ -13,8 +13,9 @@ from tickets.forms import (
     TicketPriorityForm,
     InternalNoteForm,
     TicketFieldsForm,
+    ReassignTicketForm,
 )
-from tickets.helpers import _send_staff_comment_email
+from tickets.helpers import _send_staff_comment_email, _send_reassigned_email
 from tickets.models import Ticket, User
 from tickets.models.attachment import TicketAttachment
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -61,6 +62,11 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
             return TicketFieldsForm(instance=self.ticket)
         return None
 
+    def get_reassign_form(self):
+        if self.is_staff_user and self.ticket.assigned_to_id == self.request.user.id:
+            return ReassignTicketForm()
+        return None
+
     # POST function
     def post(self, request, *args, **kwargs):
         action = request.POST.get("action")
@@ -88,6 +94,9 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         # Edit ticket tags and fields
         elif action == "set_ticket_fields":
             return self.post_action_edit_ticket_fields(request, *args, **kwargs)
+        # Reassign ticket to another staff member
+        elif action == "reassign_ticket":
+            return self.post_action_reassign_ticket(request, *args, **kwargs)
         # Unknown action
         else:
             raise Http404
@@ -246,6 +255,24 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         messages.success(request, "Ticket opened as unsolved.")
         return redirect("ticket_detail", url_code=kwargs.get("url_code"))
 
+    def post_action_reassign_ticket(self, request, *args, **kwargs):
+        if not self.is_staff_user:
+            raise Http404
+        form = ReassignTicketForm(request.POST)
+        if form.is_valid():
+            reassign = form.cleaned_data.get("reassign")
+            if reassign:
+                self.ticket.assigned_to = reassign
+                self.ticket.save(update_fields=["assigned_to", "updated_at"])
+                messages.success(
+                    request, f"Ticket forwarded to {reassign.get_full_name()}."
+                )
+
+        self.ticket.assigned_to = reassign
+        self.ticket.save(update_fields=["assigned_to", "updated_at"])
+        _send_reassigned_email(self.ticket, reassign)
+        return redirect("ticket_detail", url_code=kwargs.get("url_code"))
+
     def post_action_edit_ticket_fields(self, request, *args, **kwargs):
         if not self.is_staff_user or self.ticket.status == Ticket.Status.CLOSED:
             raise Http404
@@ -285,4 +312,5 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
                 kwargs.get("internal_note_form") or InternalNoteForm()
             )
             context["ticket_fields_form"] = self.get_fields_form()
+            context["reassign_ticket_form"] = ReassignTicketForm()
         return context
