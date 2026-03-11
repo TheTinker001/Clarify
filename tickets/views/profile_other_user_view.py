@@ -5,6 +5,8 @@ from tickets.views.profile_view import UserProfileContext
 
 
 class ProfileOtherUserView(LoginRequiredMixin, UserProfileContext, DetailView):
+    """Read-only profile view for other users, looked up by 'username' slug."""
+
     model = User
     template_name = "profile_other_user.html"
     context_object_name = "profile_user"
@@ -12,6 +14,7 @@ class ProfileOtherUserView(LoginRequiredMixin, UserProfileContext, DetailView):
     slug_url_kwarg = "username"
 
     def get_context_data(self, **kwargs):
+        """Add ticket-preference context for the viewed user."""
         context = super().get_context_data(**kwargs)
         context.update(self.get_profile_context(context["profile_user"]))
         return context

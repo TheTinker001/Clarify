@@ -1,0 +1,16 @@
+name: Check inbox
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"  # every 10 minutes
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Django endpoint
+        run: |
+          curl -fsS -X POST \
+            -H "X-CRON-TOKEN: ${{ secrets.CRON_TOKEN }}" \
+            https://clarify.pythonanywhere.com/tasks/check-inbox/

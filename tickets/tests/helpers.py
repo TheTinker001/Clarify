@@ -18,7 +18,7 @@ def _valid_comment_post_data(self, text="Test comment"):
     Uses the first non-attachment field as the comment text field.
     """
     form = CommentForm()
-    # Pick a non-attachments
+    # Select the first non-attachment field as the comment text field
     field_name = next(name for name in form.fields.keys() if name != "attachments")
     return {"action": "add_comment", field_name: text}
 

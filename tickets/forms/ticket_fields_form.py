@@ -3,7 +3,6 @@ from tickets.models import Ticket
 
 
 class TicketFieldsForm(forms.ModelForm):
-
     class Meta:
         model = Ticket
         fields = ["faculty", "study_level", "category"]
