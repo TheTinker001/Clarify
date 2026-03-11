@@ -1,0 +1,17 @@
+{% extends 'base_content.html' %}
+{% block content %}
+    <div class="container">
+        <h1>{{ issue_group.name }}</h1>
+        <p>
+            <strong>Created At:</strong> {{ issue_group.created_at }}
+        </p>
+        <p>
+            <strong>Number of Tickets:</strong> {{ issue_group.tickets.count }}
+        </p>
+        {% for ticket in issue_group.tickets.all %}
+            {% include "partials/ticket_card.html" with ticket=ticket %}
+        {% empty %}
+            <p class="text-muted">No tickets in this category.</p>
+        {% endfor %}
+    </div>
+{% endblock %}

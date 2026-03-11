@@ -8,7 +8,7 @@
                 <div class="card-body">
                     <h5 class="card-title">{{ i.name }}</h5>
                 </div>
-                <a href="" class="stretched-link"></a>
+                <a href="{{ i.get_absolute_url }}" class="stretched-link"></a>
             </div>
         {% endfor %}
     </div>
