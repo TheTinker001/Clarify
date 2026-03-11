@@ -70,6 +70,7 @@ urlpatterns = [
         views.CheckInboxTaskView.as_view(),
         name="check_inbox_task",
     ),
+    path("issues/", views.IssueGroupView.as_view(), name="issue_group"),
 ]
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
