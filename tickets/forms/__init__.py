@@ -6,3 +6,4 @@ from .ticket_priority_form import *
 from .comment_form import *
 from .internal_note_form import *
 from .ticket_fields_form import *
+from .issue_group_form import *
