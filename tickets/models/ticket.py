@@ -149,6 +149,7 @@ class Ticket(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     awaiting_student_since = models.DateTimeField(null=True, blank=True, db_index=True)
+    reminder_sent_at = models.DateTimeField(null=True, blank=True)
 
     url_code = models.CharField(max_length=64, unique=True, blank=True, null=False)
 

@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
+from tickets.conditional_emails import _send_ticket_closed_email
 from tickets.helpers import _send_staff_comment_email
 from tickets.models import User, Ticket, TicketAttachment
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -226,6 +227,11 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
                 "updated_at",
             ]
         )
+
+        try:
+            _send_ticket_closed_email(self.ticket, "answered")
+        except Exception:
+            pass
 
         messages.success(request, "Ticket closed as answered.")
         return redirect("ticket_detail", url_code=kwargs.get("url_code"))
