@@ -2,7 +2,7 @@
 
 from django.test import TestCase
 from django.urls import reverse
-from tickets.models import User
+from tickets.models import User, IssueGroup
 
 
 class IssueGroupViewTestCase(TestCase):
@@ -36,3 +36,29 @@ class IssueGroupViewTestCase(TestCase):
         self.assertRedirects(
             response, redirect_url, status_code=302, target_status_code=200
         )
+
+    def test_issue_groups_are_in_context(self):
+        self.client.login(username=self.staff.username, password="Password123")
+        group1 = IssueGroup.objects.create(name="Test Issue Group 1")
+        group2 = IssueGroup.objects.create(name="Test Issue Group 2")
+
+        response = self.client.get(self.url)
+
+        self.assertIn("issue_groups", response.context)
+        self.assertIn("page_obj", response.context)
+        self.assertIn("paginator", response.context)
+        self.assertEqual(
+            list(response.context["issue_groups"].object_list),
+            [group1, group2],
+        )
+
+    def test_issue_groups_are_ordered_by_name(self):
+        self.client.login(username=self.staff.username, password="Password123")
+        IssueGroup.objects.create(name="a")
+        IssueGroup.objects.create(name="b")
+        IssueGroup.objects.create(name="c")
+
+        response = self.client.get(self.url)
+
+        names = [issue.name for issue in response.context["issue_groups"].object_list]
+        self.assertEqual(names, ["a", "b", "c"])

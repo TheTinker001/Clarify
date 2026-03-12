@@ -15,8 +15,6 @@ class CreateIssueGroupView(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy("issue_group")
 
     def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            return super().dispatch(request, *args, **kwargs)
         if request.user.user_type == "student":
             return redirect("dashboard")
         return super().dispatch(request, *args, **kwargs)
