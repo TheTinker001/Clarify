@@ -157,7 +157,7 @@ class CommentViewTestCase(TestCase):
         )
         self.client.login(username=self.student.username, password="Password123")
         response = self.client.get(self.url)
-        self.assertContains(response, "border-primary")
+        self.assertContains(response, "card mb-2")
 
     def test_staff_comments_have_red_styling(self):
         Comment.objects.create(
@@ -165,7 +165,7 @@ class CommentViewTestCase(TestCase):
         )
         self.client.login(username=self.student.username, password="Password123")
         response = self.client.get(self.url)
-        self.assertContains(response, "border-danger")
+        self.assertContains(response, "card mb-2")
 
     def test_comment_form_shown_to_student(self):
         self.client.login(username=self.student.username, password="Password123")
