@@ -70,7 +70,7 @@
                     <h5>Comments</h5>
                     {% for comment in comments %}
                         {% if comment.author.user_type == "student" %}
-                            <div class="card mb-2">
+                            <div class="card border-primary mb-2">
                                 <div class="card-header d-flex justify-content-between">
                                     <span>{{ comment.author.full_name }}</span>
                                     <small>{{ comment.created_at|date:"M j, Y, P" }}</small>
@@ -93,7 +93,7 @@
                                 </div>
                             </div>
                         {% else %}
-                            <div class="card mb-2">
+                            <div class="card border-danger mb-2">
                                 <div class="card-header d-flex justify-content-between">
                                     <span>{{ comment.author.full_name }}</span>
                                     <small>{{ comment.created_at|date:"M j, Y, P" }}</small>
