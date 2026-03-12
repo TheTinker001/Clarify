@@ -151,6 +151,7 @@ class Ticket(models.Model):
     awaiting_student_since = models.DateTimeField(null=True, blank=True, db_index=True)
 
     url_code = models.CharField(max_length=64, unique=True, blank=True, null=False)
+    internal_notes = models.TextField(blank=True, default="")
 
     def clean(self):
         """Validate student/assigned_to types, require closed_reason when CLOSED, and clear closure fields otherwise."""

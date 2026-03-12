@@ -39,6 +39,11 @@ urlpatterns = [
     path(
         "ticket/<str:url_code>/", views.TicketDetailView.as_view(), name="ticket_detail"
     ),
+    path(
+        "ticket/<str:url_code>/internal-notes",
+        views.InternalNoteEditView.as_view(),
+        name="internal_note_edit",
+    ),
     path("create_ticket/", views.CreateTicketView.as_view(), name="create_ticket"),
     path(
         "ticket/<str:url_code>/claim/",
