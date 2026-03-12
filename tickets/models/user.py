@@ -54,6 +54,42 @@ class User(AbstractUser):
         blank=True, help_text="Comma-separated category codes"
     )
 
+    class Faculty(models.TextChoices):
+        EMPTY = "", "Select"
+        FOLSM = "folsm", "Faculty of Life Sciences & Medicine (FoLSM)"
+        SSPP = "sspp", "Faculty of Social Science & Public Policy (SSPP)"
+        NMPC = "nmpc", "Florence Nightingale Faculty of Nursing, Midwifery & Palliative Care (NMPC)"
+        NMES = "nmes", "Faculty of Natural, Mathematical & Engineering Sciences (NMES)"
+        AH = "ah", "Faculty of Arts & Humanities (A&H)"
+        KBS = "kbs", "King's Business School (KBS)"
+        DOCS = "docs", "Faculty of Dentistry, Oral & Craniofacial Sciences (DOCS)"
+        DPSOL = "dpsol", "The Dickson Poon School of Law (DPSoL)"
+        IOPPN = "ioppn", "Institute of Psychiatry, Psychology & Neuroscience (IoPPN)"
+
+    class StudyLevel(models.TextChoices):
+        EMPTY = "", "Select"
+        UNDERGRADUATE = "undergraduate", "Undergraduate"
+        POSTGRADUATE_TAUGHT = "postgraduate_taught", "Postgraduate Taught"
+        POSTGRADUATE_RESEARCH = "postgraduate_research", "Postgraduate Research"
+        OTHER = "other", "Other"
+
+    preferred_name = models.CharField(max_length=100, blank=True)
+    pronouns = models.CharField(max_length=50, blank=True)
+    student_id = models.CharField(
+        max_length=8,
+        blank=True,
+        validators=[
+            RegexValidator(
+                regex=r'^\d{8}$',
+                message='Student ID must be exactly 8 digits.'
+            )
+        ],
+    )
+    phone_number = models.CharField(max_length=20, blank=True)
+    faculty = models.CharField(max_length=100, blank=True, choices=Faculty.choices)
+    study_level = models.CharField(max_length=100, blank=True, choices=StudyLevel.choices)
+    graduation_year = models.PositiveIntegerField(null=True, blank=True)
+
     def full_name(self):
         """Return a string containing the user's full name."""
 

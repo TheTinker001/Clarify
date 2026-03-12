@@ -76,13 +76,39 @@
                     {% endif %}
                     <div class="card mt-4 p-3 text-start">
                         <h6>Contact Information</h6>
-                        <p>
-                            <strong>Email:</strong> {{ profile_user.email }}
-                        </p>
+                        {% if not hide_email %}
+                        <p><strong>Email:</strong> {{ profile_user.email }}</p>
+                        {% endif %}
                         <p>
                             <strong>Joined:</strong> {{ profile_user.date_joined|date:"F j, Y" }}
                         </p>
                     </div>
+                    {% if profile_user.user_type == "student" %}
+                    <div class="card mt-4 p-3 text-start">
+                        <h6>Student Information</h6>
+                        {% if profile_user.preferred_name %}
+                            <p><strong>Preferred Name:</strong> {{ profile_user.preferred_name }}</p>
+                        {% endif %}
+                        {% if profile_user.pronouns %}
+                            <p><strong>Pronouns:</strong> {{ profile_user.pronouns }}</p>
+                        {% endif %}
+                        {% if profile_user.student_id %}
+                            <p><strong>Student ID:</strong> {{ profile_user.student_id }}</p>
+                        {% endif %}
+                        {% if profile_user.phone_number %}
+                            <p><strong>Phone:</strong> {{ profile_user.phone_number }}</p>
+                        {% endif %}
+                        {% if profile_user.faculty %}
+                            <p><strong>Faculty:</strong> {{ profile_user.get_faculty_display }}</p>
+                        {% endif %}
+                        {% if profile_user.study_level %}
+                            <p><strong>Study Level:</strong> {{ profile_user.get_study_level_display }}</p>
+                        {% endif %}
+                        {% if profile_user.graduation_year %}
+                            <p><strong>Graduation Year:</strong> {{ profile_user.graduation_year }}</p>
+                        {% endif %}
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
