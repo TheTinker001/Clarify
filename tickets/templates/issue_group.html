@@ -3,6 +3,7 @@
     <div class="container mt-3">
         <h1>Issue Group</h1>
         <a href="{% url 'create_issue_group' %}" class="btn btn-primary mb-3">Create New Issue Group</a>
+        <div class="mb-3">{% include "partials/pagination_navbar.html" with page_obj=page_obj %}</div>
         {% for i in issue_groups %}
             <div class="card mb-3">
                 <div class="card-body">
@@ -10,6 +11,9 @@
                 </div>
                 <a href="{{ i.get_absolute_url }}" class="stretched-link"></a>
             </div>
+        {% empty %}
+            <p class="text-muted">No issue groups</p>
         {% endfor %}
+        <div class="mb-3">{% include "partials/pagination_navbar.html" with page_obj=page_obj %}</div>
     </div>
 {% endblock %}

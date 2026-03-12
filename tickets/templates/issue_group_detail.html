@@ -14,10 +14,12 @@
                 <strong>Tickets:</strong> {{ issue_group.tickets.count }}
             </p>
         </div>
-        {% for ticket in issue_group.tickets.all %}
+        <div class="mb-3">{% include "partials/pagination_navbar.html" with page_obj=page_obj %}</div>
+        {% for ticket in tickets %}
             {% include "partials/ticket_card.html" with ticket=ticket %}
         {% empty %}
-            <p class="text-muted">No tickets in this category.</p>
+            <p class="text-muted">No tickets in this issue group.</p>
         {% endfor %}
+        <div class="mb-3">{% include "partials/pagination_navbar.html" with page_obj=page_obj %}</div>
     </div>
 {% endblock %}
