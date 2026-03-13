@@ -26,10 +26,7 @@ class UserForm(forms.ModelForm):
         }
 
     def clean_username(self):
-        username = self.cleaned_data.get("username")
-        if username:
-            username = username.lower()
-        return username
+        return self.cleaned_data.get("username", "").lower()
 
 
 class NewPasswordMixin(forms.Form):
@@ -131,7 +128,4 @@ class SignUpForm(NewPasswordMixin, forms.ModelForm):
         return user
 
     def clean_username(self):
-        username = self.cleaned_data.get("username")
-        if username:
-            username = username.lower()
-        return username
+        return self.cleaned_data.get("username", "").lower()
