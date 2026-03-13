@@ -43,9 +43,7 @@ class User(AbstractUser):
     profile_picture = models.ImageField(
         upload_to="profile_pictures/", null=True, blank=True
     )
-    self_intro = models.TextField(
-        default="Hello! My friends!", blank=True, max_length=200
-    )
+    self_intro = models.TextField(blank=True, max_length=200)
     faculties = models.TextField(blank=True, help_text="Comma-separated faculty codes")
     study_levels = models.TextField(
         blank=True, help_text="Comma-separated study level codes"

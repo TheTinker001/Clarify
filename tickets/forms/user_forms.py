@@ -20,8 +20,16 @@ class UserForm(forms.ModelForm):
             "self_intro",
         ]
         widgets = {
-            "self_intro": forms.Textarea(attrs={"rows": 2}),
+            "self_intro": forms.Textarea(
+                attrs={"rows": 2, "placeholder": "Write your bio here..."}
+            ),
         }
+
+    def clean_username(self):
+        username = self.cleaned_data.get("username")
+        if username:
+            username = username.lower()
+        return username
 
 
 class NewPasswordMixin(forms.Form):
@@ -121,3 +129,9 @@ class SignUpForm(NewPasswordMixin, forms.ModelForm):
             user_type=self.cleaned_data.get("user_type"),
         )
         return user
+
+    def clean_username(self):
+        username = self.cleaned_data.get("username")
+        if username:
+            username = username.lower()
+        return username

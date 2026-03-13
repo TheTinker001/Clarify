@@ -2,14 +2,7 @@
 {% load static %}
 {% block body %}
     <div class="welcome-page">
-        <nav class="navbar navbar-dark bg-dark">
-            <div class="container">
-                <a class="navbar-brand" href="{% url 'home' %}">
-                    <i class="bi bi-door-open-fill"></i>
-                    Clarify
-                </a>
-            </div>
-        </nav>
+        {% include 'partials/navbar.html' %}
         <div class="container py-5">
             <div class="row align-items-center justify-content-center min-vh-100">
                 <div class="col-lg-5 col-md-6 text-center text-lg-start mb-5 mb-lg-0">
