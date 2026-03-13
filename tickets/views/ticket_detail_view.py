@@ -35,7 +35,7 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
             return super().dispatch(request, *args, **kwargs)
 
         self.ticket = get_object_or_404(
-            Ticket.objects.select_related("student", "assigned_to"),
+            Ticket.objects.select_related("student").prefetch_related("assigned_to"),
             url_code=kwargs.get("url_code"),
         )
 
@@ -123,7 +123,10 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         Student comment sets the ticket's status to AWAITING_STAFF (reopens the ticket if closed).
         Staff may only comment on tickets assigned to them.
         """
-        if self.is_staff_user and self.ticket.assigned_to_id != request.user.id:
+        if (
+            self.is_staff_user
+            and not self.ticket.assigned_to.filter(id=request.user.id).exists()
+        ):
             raise Http404
 
         comment_form = CommentForm(request.POST, request.FILES)
@@ -216,7 +219,7 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         if not self.is_staff_user:
             raise Http404
 
-        if self.ticket.assigned_to_id and self.ticket.assigned_to_id != request.user.id:
+        if not self.ticket.assigned_to.filter(id=request.user.id).exists():
             raise Http404
 
         if self.ticket.status == Ticket.Status.CLOSED:
@@ -224,7 +227,7 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
 
         self.ticket.status = Ticket.Status.CLOSED
         self.ticket.closed_reason = Ticket.ClosedReason.ANSWERED
-        self.closed_at = timezone.now()
+        self.ticket.closed_at = timezone.now()
         self.ticket.awaiting_student_since = None
 
         self.ticket.save(
@@ -245,7 +248,7 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         if not self.is_staff_user:
             raise Http404
 
-        if self.ticket.assigned_to_id and self.ticket.assigned_to_id != request.user.id:
+        if not self.ticket.assigned_to.filter(id=request.user.id).exists():
             raise Http404
 
         if self.ticket.status != Ticket.Status.CLOSED:
@@ -273,7 +276,7 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         if not self.is_staff_user or self.ticket.status == Ticket.Status.CLOSED:
             raise Http404
 
-        if self.ticket.assigned_to_id and self.ticket.assigned_to_id != request.user.id:
+        if not self.ticket.assigned_to.filter(id=request.user.id).exists():
             raise Http404
 
         fields_form = TicketFieldsForm(request.POST, instance=self.ticket)

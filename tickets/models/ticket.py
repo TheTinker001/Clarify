@@ -102,10 +102,8 @@ class Ticket(models.Model):
         related_name="tickets",
         limit_choices_to={"user_type": User.USER_TYPE_STUDENT},
     )
-    assigned_to = models.ForeignKey(
+    assigned_to = models.ManyToManyField(
         User,
-        on_delete=models.SET_NULL,
-        null=True,
         blank=True,
         related_name="assigned_tickets",
         limit_choices_to={"user_type": User.USER_TYPE_STAFF},
@@ -168,10 +166,17 @@ class Ticket(models.Model):
         if self.student_id and self.student.user_type != User.USER_TYPE_STUDENT:
             raise ValidationError({"student": "Ticket can only be made by students."})
 
-        if self.assigned_to and self.assigned_to.user_type != User.USER_TYPE_STAFF:
-            raise ValidationError(
-                {"assigned_to": "Tickets can only be assigned to staff."}
-            )
+        if self.pk and self.assigned_to.exists():
+            if self.assigned_to.count() > 5:
+                raise ValidationError(
+                    {
+                        "assigned_to": "Tickets can only be assigned to maximum of 5 staff."
+                    }
+                )
+            elif self.assigned_to.filter(user_type=User.USER_TYPE_STUDENT).exists():
+                raise ValidationError(
+                    {"assigned_to": "Tickets can only be assigned to staff."}
+                )
 
         if self.status == self.Status.CLOSED:
             if self.closed_at is None:
