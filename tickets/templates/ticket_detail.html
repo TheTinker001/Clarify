@@ -136,7 +136,7 @@
                             </form>
                         </div>
                     </div>
-                {% elif user.user_type == "staff" and ticket.assigned_to == user and ticket.status != ticket.Status.CLOSED %}
+                {% elif user.user_type == "staff" and user in ticket.assigned_to.all and ticket.status != ticket.Status.CLOSED %}
                     <div class="card mt-3">
                         <div class="card-body">
                             <h6 class="card-title">Add a comment</h6>
@@ -165,10 +165,13 @@
                             </dd>
                             <dt class="col-5">Assigned to</dt>
                             <dd class="col-7">
-                                {% if ticket.assigned_to %}
-                                    {{ ticket.assigned_to.full_name }}
+                                {% if ticket.assigned_to.exists %}
+                                    {% for user in ticket.assigned_to.all %}
+                                        {{ user.get_full_name|default:user.username }}
+                                        {% if not forloop.last %},{% endif %}
+                                    {% endfor %}
                                 {% else %}
-                                    Unassigned
+                                    <p class="text-muted m-0 p-0">Unassigned</p>
                                 {% endif %}
                             </dd>
                             <dt class="col-5">Created</dt>
@@ -191,18 +194,22 @@
                         <div class="mb-3"></div>
                         <!-- Claiming -->
                         {% if user.user_type == "staff" %}
-                            {% if ticket.assigned_to == user %}
+                            {% if user in ticket.assigned_to.all %}
                                 <div class="d-flex justify-content-between align-items-start mb-3">
                                     <form method="post" action="{{ ticket.get_unclaim_url }}">
                                         {% csrf_token %}
                                         <button type="submit" class="btn btn-sm btn-outline-danger">Unclaim</button>
                                     </form>
                                 </div>
-                            {% elif ticket.assigned_to %}
+                            {% elif ticket.assigned_to.all|length == 5 %}
                                 <div class="alert alert-warning d-flex align-items-center mb-3"
                                      role="alert">
                                     <span class="bi-flag me-2"></span>
-                                    Claimed by {{ ticket.assigned_to.get_full_name|default:ticket.assigned_to.username }}
+                                    Claimed by
+                                    {% for user in ticket.assigned_to.all %}
+                                        {{ user.get_full_name|default:user.username }}
+                                        {% if not forloop.last %},{% endif %}
+                                    {% endfor %}
                                 </div>
                             {% else %}
                                 <div class="d-flex justify-content-between align-items-start mb-3">
@@ -214,7 +221,7 @@
                             {% endif %}
                             <!-- Priority + Issue group updating -->
                             {% if ticket.status != ticket.Status.CLOSED %}
-                                <div class="d-flex flex-column gap-3">
+                                <div class="d-flex flex-column gap-3 mb-3">
                                     <form id="priority-form" method="post">
                                         {% csrf_token %}
                                         <input type="hidden" name="action" value="set_priority">
@@ -236,7 +243,7 @@
                                         </div>
                                     </form>
                                 </div>
-                                {% if ticket.assigned_to == user %}
+                                {% if user in ticket.assigned_to.all %}
                                     <form method="post">
                                         {% csrf_token %}
                                         <input type="hidden" name="action" value="close_ticket">
@@ -244,7 +251,7 @@
                                     </form>
                                 {% endif %}
                             {% else %}
-                                {% if ticket.assigned_to == user %}
+                                {% if user in ticket.assigned_to.all %}
                                     <form method="post">
                                         {% csrf_token %}
                                         <input type="hidden" name="action" value="unclose_ticket">

@@ -23,7 +23,6 @@ class TicketUnclaimView(View):
         if ticket.assigned_to.filter(id=request.user.id).exists():
             ticket.assigned_to.remove(request.user)
             messages.success(request, "You have unclaimed this ticket.")
-            messages.error(request, "You are not assigned to this ticket.")
         else:
             messages.error(request, "You are not assigned to this ticket.")
 

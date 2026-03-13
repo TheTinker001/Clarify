@@ -177,7 +177,7 @@ class Command(BaseCommand):
         comment_count = Comment.objects.filter(
             author__user_type=User.USER_TYPE_STAFF
         ).count()
-        tickets = Ticket.objects.filter(assigned_to__isnull=False)
+        tickets = Ticket.objects.filter(assigned_to__isnull=False).distinct()
 
         while comment_count < self.STAFF_COMMENT_COUNT:
             print(
@@ -191,7 +191,7 @@ class Command(BaseCommand):
                     generate_comment_and_response_by_category(random_ticket.category)
                 )
                 self.create_comment(
-                    random_ticket, random_ticket.assigned_to, body=staff_comment
+                    random_ticket, random_ticket.assigned_to.first(), body=staff_comment
                 )
                 if student_comment:
                     self.create_comment(
@@ -275,7 +275,7 @@ class Command(BaseCommand):
                                     )
                                 )
                                 self.create_comment(
-                                    t, t.assigned_to, body=staff_comment
+                                    t, t.assigned_to.first(), body=staff_comment
                                 )
                                 if student_comment:
                                     self.create_comment(t, user, body=student_comment)
@@ -424,6 +424,7 @@ class Command(BaseCommand):
             study_level=random_study_level,
             category=random_category,
         )
+        assigned_to = overrides.pop("assigned_to", None)
         data = {
             "student": student,
             "faculty": random_faculty,
@@ -432,12 +433,19 @@ class Command(BaseCommand):
             "subject": generated_subject,
             "body": generated_body,
             "status": Ticket.Status.AWAITING_STAFF,
-            "assigned_to": None,
             "priority": random.choice(self.PRIORITIES),
         }
 
         data.update(overrides)
-        return Ticket.objects.create(**data)
+        ticket = Ticket.objects.create(**data)
+
+        if assigned_to is not None:
+            if isinstance(assigned_to, (list, tuple)):
+                ticket.assigned_to.add(*assigned_to)
+            else:
+                ticket.assigned_to.add(assigned_to)
+
+        return ticket
 
     def create_comment(self, ticket, author, body):
         data = {

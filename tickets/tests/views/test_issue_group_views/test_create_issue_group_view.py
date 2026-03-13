@@ -19,7 +19,7 @@ class IssueGroupCreateViewTestCase(TestCase):
         self.url = reverse("create_issue_group")
 
     def test_url(self):
-        self.assertEqual(self.url, "issues/create/")
+        self.assertEqual(self.url, "/issues/create/")
 
     def test_staff_can_access_create_issue_group_page(self):
         self.client.login(username=self.staff.username, password="Password123")
