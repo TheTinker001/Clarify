@@ -1,7 +1,7 @@
 """Tests for the ticket detail view."""
 
 from django.test import TestCase
-from tickets.forms import TicketPriorityForm, TicketFieldsForm
+from tickets.forms import TicketPriorityForm
 from tickets.models import Ticket, User
 from tickets.tests.helpers import (
     MenuTesterMixin,
@@ -27,13 +27,13 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
         self.staff = User.objects.get(username="@janedoe")
         self.ticket = Ticket.objects.create(
             student=self.student,
-            assigned_to=self.staff,
             faculty="nmes",
             study_level="undergraduate",
             category="other",
             subject="Update card access",
             body="Card access not working for lab.",
         )
+        self.ticket.assigned_to.add(self.staff)
         self.url = self.ticket.get_absolute_url()
 
     def test_ticket_detail_url(self):

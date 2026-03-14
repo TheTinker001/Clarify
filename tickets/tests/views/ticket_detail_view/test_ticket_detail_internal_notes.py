@@ -20,13 +20,13 @@ class TicketInternalNotesTestCase(TestCase):
         self.other_staff = User.objects.get(username="@jonrain")
         self.ticket = Ticket.objects.create(
             student=self.student,
-            assigned_to=self.staff,
             faculty="nmes",
             study_level="undergraduate",
             category="other",
             subject="Test subject",
             body="Test body.",
         )
+        self.ticket.assigned_to.add(self.staff)
         self.url = reverse("ticket_detail", kwargs={"url_code": self.ticket.url_code})
 
     # Template visibility

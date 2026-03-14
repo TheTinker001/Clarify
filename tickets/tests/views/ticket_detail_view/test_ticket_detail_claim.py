@@ -18,7 +18,6 @@ class TicketClaimTestCase(TestCase, MenuTesterMixin):
         self.staff = User.objects.get(username="@janedoe")
         self.ticket = Ticket.objects.create(
             student=self.student,
-            assigned_to=self.staff,
             faculty="nmes",
             study_level="undergraduate",
             category="other",
@@ -33,14 +32,14 @@ class TicketClaimTestCase(TestCase, MenuTesterMixin):
         response = self.client.post(claim_url, follow=True)
 
         self.ticket.refresh_from_db()
-        self.assertEqual(self.ticket.assigned_to, self.staff)
+        self.assertEqual(self.ticket.assigned_to.first(), self.staff)
         self.assertContains(response, "You have claimed this ticket.")
 
         unclaim_url = self.ticket.get_unclaim_url()
         response = self.client.post(unclaim_url, follow=True)
 
         self.ticket.refresh_from_db()
-        self.assertIsNone(self.ticket.assigned_to)
+        self.assertFalse(self.ticket.assigned_to.filter(id=self.staff.id).exists())
         self.assertContains(response, "You have unclaimed this ticket.")
 
     def test_ticket_claim_and_unclaim_by_non_staff(self):
@@ -48,53 +47,90 @@ class TicketClaimTestCase(TestCase, MenuTesterMixin):
         claim_url = self.ticket.get_claim_url()
         response = self.client.post(claim_url, follow=True)
         self.ticket.refresh_from_db()
-        self.assertNotEqual(self.ticket.assigned_to, self.student)
+        self.assertFalse(self.ticket.assigned_to.filter(id=self.student.id).exists())
         self.assertContains(response, "You are not a staff member!")
 
         unclaim_url = self.ticket.get_unclaim_url()
         response = self.client.post(unclaim_url, follow=True)
         self.ticket.refresh_from_db()
-        self.assertNotEqual(self.ticket.assigned_to, self.student)
+        self.assertFalse(self.ticket.assigned_to.filter(id=self.student.id).exists())
         self.assertContains(response, "You are not a staff member!")
 
-    def test_ticket_claim_already_claimed(self):
-        other_staff = User.objects.create_user(
-            username="@otherstaff",
+    def test_ticket_claim_already_claimed_by_five_staff(self):
+        self.ticket.assigned_to.clear()
+        self.assertEqual(self.ticket.assigned_to.count(), 0)
+
+        other_staff1 = User.objects.create_user(
+            username="@otherstaff1",
             password="Password123",
+            email="otherstaff1@example.com",
             user_type=User.USER_TYPE_STAFF,
         )
-        self.ticket.assigned_to = other_staff
-        self.ticket.save()
+        other_staff2 = User.objects.create_user(
+            username="@otherstaff2",
+            password="Password123",
+            email="otherstaff2@example.com",
+            user_type=User.USER_TYPE_STAFF,
+        )
+        other_staff3 = User.objects.create_user(
+            username="@otherstaff3",
+            password="Password123",
+            email="otherstaff3@example.com",
+            user_type=User.USER_TYPE_STAFF,
+        )
+        other_staff4 = User.objects.create_user(
+            username="@otherstaff4",
+            password="Password123",
+            email="otherstaff4@example.com",
+            user_type=User.USER_TYPE_STAFF,
+        )
+        other_staff5 = User.objects.create_user(
+            username="@otherstaff5",
+            password="Password123",
+            email="otherstaff5@example.com",
+            user_type=User.USER_TYPE_STAFF,
+        )
+        self.ticket.assigned_to.add(
+            other_staff1, other_staff2, other_staff3, other_staff4, other_staff5
+        )
         self.client.login(username=self.staff.username, password="Password123")
         claim_url = self.ticket.get_claim_url()
         response = self.client.post(claim_url, follow=True)
         self.ticket.refresh_from_db()
-        self.assertEqual(self.ticket.assigned_to, other_staff)
-        self.assertContains(response, f"Ticket already claimed by {other_staff}.")
+        self.assertSetEqual(
+            set(self.ticket.assigned_to.all()),
+            {other_staff1, other_staff2, other_staff3, other_staff4, other_staff5},
+        )
+        self.assertContains(
+            response, "Ticket already has the maximum number of staff assigned"
+        )
 
     def test_ticket_unclaim_not_assigned(self):
-        other_staff = User.objects.create_user(
-            username="@otherstaff",
-            password="Password123",
-            user_type=User.USER_TYPE_STAFF,
-        )
-        self.ticket.assigned_to = other_staff
-        self.ticket.save()
+        self.ticket.assigned_to.clear()
+        self.assertEqual(self.ticket.assigned_to.count(), 0)
         self.client.login(username=self.staff.username, password="Password123")
         unclaim_url = self.ticket.get_unclaim_url()
         response = self.client.post(unclaim_url, follow=True)
-        self.ticket.refresh_from_db()
-        self.assertEqual(self.ticket.assigned_to, other_staff)
         self.assertContains(response, f"You are not assigned to this ticket.")
 
     def test_ticket_claim_unclaimed(self):
-        self.ticket.assigned_to = None
-        self.ticket.save(update_fields=["assigned_to"])
+        self.ticket.assigned_to.clear()
+        self.assertEqual(self.ticket.assigned_to.count(), 0)
 
         self.client.login(username=self.staff.username, password="Password123")
         claim_url = self.ticket.get_claim_url()
         response = self.client.post(claim_url, follow=True)
 
         self.ticket.refresh_from_db()
-        self.assertEqual(self.ticket.assigned_to, self.staff)
+        self.assertTrue(self.ticket.assigned_to.filter(id=self.staff.id).exists())
         self.assertContains(response, "You have claimed this ticket.")
+
+    def test_claim_already_claimed_ticket(self):
+        self.ticket.assigned_to.add(self.staff)
+        self.assertTrue(self.ticket.assigned_to.filter(id=self.staff.id).exists())
+
+        self.client.login(username=self.staff.username, password="Password123")
+        claim_url = self.ticket.get_claim_url()
+        response = self.client.post(claim_url, follow=True)
+        self.assertTrue(self.ticket.assigned_to.filter(id=self.staff.id).exists())
+        self.assertContains(response, "You have already claimed this ticket.")

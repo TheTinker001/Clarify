@@ -22,13 +22,13 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
         self.staff = User.objects.get(username="@janedoe")
         self.ticket = Ticket.objects.create(
             student=self.student,
-            assigned_to=self.staff,
             faculty="nmes",
             study_level="undergraduate",
             category="other",
             subject="Update card access",
             body="Card access not working for lab.",
         )
+        self.ticket.assigned_to.add(self.staff)
         self.issue_group = IssueGroup.objects.create(name="Test Issue Group")
         self.url = self.ticket.get_absolute_url()
 
