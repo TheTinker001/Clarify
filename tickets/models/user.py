@@ -56,7 +56,10 @@ class User(AbstractUser):
         EMPTY = "", "Select"
         FOLSM = "folsm", "Faculty of Life Sciences & Medicine (FoLSM)"
         SSPP = "sspp", "Faculty of Social Science & Public Policy (SSPP)"
-        NMPC = "nmpc", "Florence Nightingale Faculty of Nursing, Midwifery & Palliative Care (NMPC)"
+        NMPC = (
+            "nmpc",
+            "Florence Nightingale Faculty of Nursing, Midwifery & Palliative Care (NMPC)",
+        )
         NMES = "nmes", "Faculty of Natural, Mathematical & Engineering Sciences (NMES)"
         AH = "ah", "Faculty of Arts & Humanities (A&H)"
         KBS = "kbs", "King's Business School (KBS)"
@@ -78,14 +81,15 @@ class User(AbstractUser):
         blank=True,
         validators=[
             RegexValidator(
-                regex=r'^\d{8}$',
-                message='Student ID must be exactly 8 digits.'
+                regex=r"^\d{8}$", message="Student ID must be exactly 8 digits."
             )
         ],
     )
     phone_number = models.CharField(max_length=20, blank=True)
     faculty = models.CharField(max_length=100, blank=True, choices=Faculty.choices)
-    study_level = models.CharField(max_length=100, blank=True, choices=StudyLevel.choices)
+    study_level = models.CharField(
+        max_length=100, blank=True, choices=StudyLevel.choices
+    )
     graduation_year = models.PositiveIntegerField(null=True, blank=True)
 
     def full_name(self):
