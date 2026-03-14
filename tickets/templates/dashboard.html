@@ -22,7 +22,9 @@
     <div class="container">
         <div class="row">
             <div class="col-12">
-                <h1 class="mb-3">Welcome to your dashboard {{ user.username }}</h1>
+                <h1 class="dashboard-subheading">
+                    Welcome, <a href="{% url 'profile' %}">{{ user.username }}</a>
+                </h1>
                 <!-- Student creating ticket-->
                 {% if user.user_type == user.USER_TYPE_STUDENT %}
                     <div class="mb-3">
@@ -33,7 +35,7 @@
         </div>
         <!-- Buttons -->
         <div class="row">
-            <h2>Ticket categories:</h2>
+            <h2 class="dashboard-subheading">Ticket categories</h2>
             <div class="col-12">
                 {% if user.user_type == "student" %}
                     <div class="btn-group mb-3" role="group" aria-label="Student ticket tabs">
