@@ -10,6 +10,7 @@ from django.views import View
 from tickets.forms.comment_form import CommentForm
 from tickets.models import Comment
 from clarify.settings import EDIT_TIME_LIMIT_MINUTES
+from tickets.models import Comment, TicketAttachment
 
 
 class EditCommentView(LoginRequiredMixin, View):
@@ -47,6 +48,7 @@ class EditCommentView(LoginRequiredMixin, View):
             {
                 "form": form,
                 "comment": comment,
+                "existing_attachments": comment.attachments.all(),
             },
         )
 
@@ -57,7 +59,34 @@ class EditCommentView(LoginRequiredMixin, View):
         form = CommentForm(request.POST, instance=comment)
 
         if form.is_valid():
+            delete_ids = request.POST.getlist("delete_attachments")
+            existing_count = comment.attachments.count() - len(delete_ids)
+            new_files = request.FILES.getlist("attachments")
+
+            if existing_count + len(new_files) > TicketAttachment.MAX_FILES_PER_TICKET:
+                form.add_error(
+                    None,
+                    f"You can only have up to {TicketAttachment.MAX_FILES_PER_TICKET} attachments per comment.",
+                )
+                return render(
+                    request,
+                    "edit_comment.html",
+                    {
+                        "form": form,
+                        "comment": comment,
+                        "existing_attachments": comment.attachments.all(),
+                    },
+                )
             form.save()
+            delete_ids = request.POST.getlist("delete_attachments")
+            if delete_ids:
+                comment.attachments.filter(pk__in=delete_ids).delete()
+
+            # Add new attachments
+            new_files = request.FILES.getlist("attachments")
+            for f in new_files:
+                TicketAttachment.objects.create(comment=comment, file=f)
+
             messages.success(request, "Your message has been edited.")
             return redirect("ticket_detail", url_code=comment.ticket.url_code)
 
@@ -67,5 +96,6 @@ class EditCommentView(LoginRequiredMixin, View):
             {
                 "form": form,
                 "comment": comment,
+                "existing_attachments": comment.attachments.all(),
             },
         )
