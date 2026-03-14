@@ -66,11 +66,11 @@ class TicketModelTestCase(TestCase):
         self._assert_ticket_is_invalid()
 
     def test_clean_accepts_staff_as_assigned_to(self):
-        self.ticket.assigned_to = self.staff
+        self.ticket.assigned_to.add(self.staff)
         self._assert_ticket_is_valid()
 
     def test_clean_reject_student_as_assigned_to(self):
-        self.ticket.assigned_to = self.student
+        self.ticket.assigned_to.add(self.student)
         self._assert_ticket_is_invalid()
 
     def test_clean_when_closed_requires_closed_reason(self):

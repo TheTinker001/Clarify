@@ -4,6 +4,7 @@ from django.utils import timezone
 from django.views.generic import TemplateView
 from django.db.models import Q, Value
 from tickets.models import Ticket, User
+from django.db.models import Count
 
 from django.db.models.functions import Concat
 
@@ -66,8 +67,10 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             overdue_cutoff = timezone.now() - timedelta(days=5)
 
             groups = {
-                "open_tickets": tickets.filter(
-                    assigned_to__isnull=True,
+                "open_tickets": tickets.annotate(
+                    assigned_count=Count("assigned_to", distinct=True)
+                ).filter(
+                    assigned_count__lt=5,
                     status__in=[
                         Ticket.Status.AWAITING_STAFF,
                         Ticket.Status.AWAITING_STUDENT,

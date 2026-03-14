@@ -7,11 +7,9 @@ from django.core.management.base import BaseCommand
 from tickets.models import User, Ticket, Comment
 from django.utils import timezone
 
-from tickets.management.commands.realistic_ticket_data import generate_subject_and_body
 from tickets.management.commands.realistic_ticket_data import (
+    generate_subject_and_body,
     generate_standalone_student_comment,
-)
-from tickets.management.commands.realistic_ticket_data import (
     generate_comment_and_response_by_category,
 )
 
