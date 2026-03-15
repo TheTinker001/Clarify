@@ -1,4 +1,4 @@
-"""Tests for the refactored Internal Notes feature on the ticket detail view."""
+"""Tests for the Internal Notes feature on the ticket detail view."""
 
 from django.test import TestCase
 from django.urls import reverse
@@ -7,7 +7,7 @@ from tickets.models import Ticket, User
 
 
 class TicketInternalNotesTestCase(TestCase):
-    """Test suite for the refactored staff-only internal notes on a ticket."""
+    """Test suite for the staff-only internal notes on a ticket."""
 
     fixtures = [
         "tickets/tests/fixtures/default_user.json",
@@ -28,9 +28,11 @@ class TicketInternalNotesTestCase(TestCase):
             body="Test body.",
         )
         self.url = reverse("ticket_detail", kwargs={"url_code": self.ticket.url_code})
-        self.edit_url = reverse("internal_note_edit", kwargs={"url_code": self.ticket.url_code})
+        self.edit_url = reverse(
+            "internal_note_edit", kwargs={"url_code": self.ticket.url_code}
+        )
 
-    # --- Ticket detail: visibility ---
+    #  Ticket detail: visibility
 
     def test_staff_sees_internal_notes_section(self):
         self.client.login(username=self.staff.username, password="Password123")
@@ -81,7 +83,7 @@ class TicketInternalNotesTestCase(TestCase):
         response = self.client.get(self.url)
         self.assertFalse(response.context["can_edit_internal_notes"])
 
-    # --- Edit page: access ---
+    # Edit page: access
 
     def test_claiming_staff_can_get_edit_page(self):
         self.client.login(username=self.staff.username, password="Password123")
@@ -104,7 +106,7 @@ class TicketInternalNotesTestCase(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn("/log_in/", response["Location"])
 
-    # --- Edit page: POST ---
+    # Edit page: POST
 
     def test_claiming_staff_can_save_internal_notes(self):
         self.client.login(username=self.staff.username, password="Password123")
@@ -146,7 +148,7 @@ class TicketInternalNotesTestCase(TestCase):
         self.ticket.refresh_from_db()
         self.assertEqual(self.ticket.internal_notes, "")
 
-    # --- Edit page: form prefilling ---
+    # Edit page: form prefilling
 
     def test_edit_page_prefills_existing_internal_notes(self):
         self.ticket.internal_notes = "Existing note."
@@ -155,7 +157,7 @@ class TicketInternalNotesTestCase(TestCase):
         response = self.client.get(self.edit_url)
         self.assertContains(response, "Existing note.")
 
-    # --- URL resolution ---
+    # URL resolution
 
     def test_internal_note_edit_url_resolves(self):
         self.assertEqual(
