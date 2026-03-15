@@ -176,6 +176,10 @@ if ENVIRONMENT == "production":
 # Pagination settings
 ITEMS_PER_PAGE = 20
 
+# Ticket visibility/edit windows (minutes)
+TICKET_EDIT_WINDOW_MINUTES = 10
+TICKET_STAFF_VISIBILITY_DELAY_MINUTES = 15
+
 # File extensions settings
 ALLOWED_EXTENSIONS = ["pdf", "doc", "docx", "txt", "jpg", "jpeg", "png"]
 ALLOWED_EXTENSIONS_ACCEPT = ",".join(f".{e}" for e in ALLOWED_EXTENSIONS)

@@ -202,6 +202,18 @@ class Ticket(models.Model):
             code = secrets.token_urlsafe(7)
         return code
 
+    def is_editable_by_student(self):
+        """True if the ticket was created less than TICKET_EDIT_WINDOW_MINUTES ago."""
+        from django.conf import settings as s
+        window = timedelta(minutes=getattr(s, "TICKET_EDIT_WINDOW_MINUTES", 10))
+        return timezone.now() - self.created_at < window
+
+    def is_visible_to_staff(self):
+        """True if the ticket was created at least TICKET_STAFF_VISIBILITY_DELAY_MINUTES ago."""
+        from django.conf import settings as s
+        delay = timedelta(minutes=getattr(s, "TICKET_STAFF_VISIBILITY_DELAY_MINUTES", 15))
+        return timezone.now() - self.created_at >= delay
+
     def get_priority_icon(self):
         """Return a Bootstrap Icons '<i>' element for the ticket's priority, or '' if unrecognised."""
         icons = {

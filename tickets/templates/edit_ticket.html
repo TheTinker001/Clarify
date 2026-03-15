@@ -1,0 +1,30 @@
+{% extends 'base_content.html' %}
+{% load widget_tweaks %}
+{% block content %}
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card p-4 mt-4">
+                    <h1>Edit Ticket</h1>
+                    <p class="text-muted">You can edit this ticket for a limited time after creation.</p>
+                    <form method="post">
+                        {% csrf_token %}
+                        {% for field in form %}
+                            {% if field.name != "attachments" %}
+                                <div class="mb-3">
+                                    {{ field.label_tag }}
+                                    {% render_field field class="form-control" %}
+                                    {% if field.errors %}
+                                        <div class="text-danger">{{ field.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                        <a href="{{ object.get_absolute_url }}" class="btn btn-outline-secondary ms-2">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

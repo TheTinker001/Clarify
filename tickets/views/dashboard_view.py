@@ -9,7 +9,7 @@ from django.db.models.functions import Concat
 
 from datetime import timedelta
 
-from clarify.settings import ITEMS_PER_PAGE
+from clarify.settings import ITEMS_PER_PAGE, TICKET_STAFF_VISIBILITY_DELAY_MINUTES
 
 
 class DashboardView(LoginRequiredMixin, TemplateView):
@@ -52,9 +52,12 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             study_levels = split_codes(current_user.study_levels)
             categories = split_codes(current_user.categories)
 
+            visibility_cutoff = timezone.now() - timedelta(minutes=TICKET_STAFF_VISIBILITY_DELAY_MINUTES)
+
             # Restrict to tickets that fall within a staff member's field preferences
+            # and are older than the visibility delay
             tickets = (
-                Ticket.objects.all()
+                Ticket.objects.filter(created_at__lte=visibility_cutoff)
                 .order_by("-created_at")
                 .filter(
                     Q(faculty__in=faculties)

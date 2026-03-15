@@ -41,6 +41,16 @@ urlpatterns = [
     ),
     path("create_ticket/", views.CreateTicketView.as_view(), name="create_ticket"),
     path(
+        "ticket/<str:url_code>/edit/",
+        views.EditTicketView.as_view(),
+        name="edit_ticket",
+    ),
+    path(
+        "ticket/<str:url_code>/delete/",
+        views.DeleteTicketView.as_view(),
+        name="delete_ticket",
+    ),
+    path(
         "ticket/<str:url_code>/claim/",
         views.TicketClaimView.as_view(),
         name="ticket_claim",

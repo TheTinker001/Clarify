@@ -13,4 +13,5 @@ from .ticket_claim_view import *
 from .ticket_unclaim_view import *
 from .profile_other_user_view import *
 from .edit_comment_view import *
+from .edit_ticket_view import *
 from .close_inactive_tickets_task_view import *
