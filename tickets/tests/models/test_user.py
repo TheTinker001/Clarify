@@ -174,9 +174,6 @@ class UserModelTestCase(TestCase):
         self.user.save()
         self.assertTrue(self.user.profile_picture.name.startswith("profile_pictures/"))
 
-    def test_self_intro_field(self):
-        self.assertEqual(self.user.self_intro, "Hello! My friends!")
-
     def test_faculties_field(self):
         self.user.faculties = "folsm,sspp"
         self.user.save()

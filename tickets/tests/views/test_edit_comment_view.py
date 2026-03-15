@@ -3,10 +3,11 @@
 from datetime import timedelta
 from unittest.mock import patch
 
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 
-from tickets.models import Comment, Ticket, User
+from tickets.models import Comment, Ticket, User, TicketAttachment
 from clarify.settings import EDIT_TIME_LIMIT_MINUTES
 
 
@@ -112,3 +113,42 @@ class EditCommentViewTestCase(TestCase):
         self.assertTemplateUsed(response, "edit_comment.html")
         self.comment.refresh_from_db()
         self.assertEqual(self.comment.body, "Original body text.")
+
+    def test_post_with_too_many_attachments_rerenders_form(self):
+        self.client.login(username=self.student.username, password="Password123")
+        for i in range(5):
+            TicketAttachment.objects.create(
+                comment=self.comment,
+                file=SimpleUploadedFile(
+                    f"file{i}.pdf", b"content", content_type="application/pdf"
+                ),
+            )
+        new_file = SimpleUploadedFile(
+            "extra.pdf", b"content", content_type="application/pdf"
+        )
+        response = self.client.post(
+            self.url, {"body": "Updated.", "attachments": new_file}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "edit_comment.html")
+
+    def test_post_deletes_selected_attachments(self):
+        self.client.login(username=self.student.username, password="Password123")
+        attachment = TicketAttachment.objects.create(
+            comment=self.comment,
+            file=SimpleUploadedFile(
+                "file.pdf", b"content", content_type="application/pdf"
+            ),
+        )
+        self.client.post(
+            self.url, {"body": "Updated.", "delete_attachments": [attachment.pk]}
+        )
+        self.assertFalse(TicketAttachment.objects.filter(pk=attachment.pk).exists())
+
+    def test_post_adds_new_attachments(self):
+        self.client.login(username=self.student.username, password="Password123")
+        new_file = SimpleUploadedFile(
+            "new.pdf", b"content", content_type="application/pdf"
+        )
+        self.client.post(self.url, {"body": "Updated.", "attachments": new_file})
+        self.assertEqual(self.comment.attachments.count(), 1)
