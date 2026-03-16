@@ -187,8 +187,11 @@ ALLOWED_EXTENSIONS_LABEL = (
     "Attachments (max 5 files, 5MB each — pdf, doc, docx, txt, jpg, jpeg, png)"
 )
 
-# Edit comment settings
+# Comment settings
 EDIT_TIME_LIMIT_MINUTES = 10
+
+# Body length max for text fields
+BODY_LENGTH_MAX = 50000
 
 # CRON settings
 CRON_TOKEN = os.environ.get("CRON_TOKEN", "")
@@ -204,6 +207,12 @@ EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
+
+# IMAP configuration (for reading incoming emails)
+IMAP_HOST = os.getenv("IMAP_HOST", "imap.gmail.com")
+IMAP_PORT = int(os.getenv("IMAP_PORT", "993"))
+IMAP_USER = os.getenv("IMAP_USER", "") or EMAIL_HOST_USER
+IMAP_PASSWORD = os.getenv("IMAP_PASSWORD", "") or EMAIL_HOST_PASSWORD
 
 if "test" in sys.argv:
     EMAIL_HOST_USER = ""

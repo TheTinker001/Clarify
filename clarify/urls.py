@@ -39,6 +39,11 @@ urlpatterns = [
     path(
         "ticket/<str:url_code>/", views.TicketDetailView.as_view(), name="ticket_detail"
     ),
+    path(
+        "ticket/<str:url_code>/internal-notes",
+        views.InternalNoteEditView.as_view(),
+        name="internal_note_edit",
+    ),
     path("create_ticket/", views.CreateTicketView.as_view(), name="create_ticket"),
     path(
         "ticket/<str:url_code>/edit/",
@@ -74,6 +79,11 @@ urlpatterns = [
         "tasks/close-inactive/",
         views.CloseInactiveTicketsTaskView.as_view(),
         name="close_inactive_task",
+    ),
+    path(
+        "tasks/check-inbox/",
+        views.CheckInboxTaskView.as_view(),
+        name="check_inbox_task",
     ),
 ]
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
