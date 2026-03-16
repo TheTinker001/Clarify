@@ -4,7 +4,7 @@ from django.utils import timezone
 from django.views.generic import TemplateView
 from django.db.models import Q, Value
 from tickets.models import Ticket, User
-
+from tickets.helpers import get_page_slots
 from django.db.models.functions import Concat
 
 from datetime import timedelta
@@ -206,6 +206,9 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         paginator = Paginator(qs, ITEMS_PER_PAGE)
         page_number = self.request.GET.get("page")
         page_obj = paginator.get_page(page_number)
+        cur = page_obj.number
+        max_pages = paginator.num_pages
+        page_slots = get_page_slots(cur, max_pages)
 
         params = self.request.GET.copy()
         params.pop("page", None)
@@ -229,6 +232,9 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 "category": self.TAB_LABELS.get(tab, "N/A"),
                 "page_obj": page_obj,
                 "paginator": paginator,
+                "max_pages": max_pages,
+                "cur": cur,
+                "page_slots": page_slots,
                 "tab": tab,
                 "total": qs.count(),
                 "querystring": querystring,
