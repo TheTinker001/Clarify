@@ -177,3 +177,32 @@ class ProfileViewTest(TestCase):
         self.user.faculties = "notarealcode"
         self.user.save()
         self.assertEqual(ctx.get_profile_context(self.user)["faculty_labels"], [])
+
+    def test_profile_edit_does_not_update_locked_student_fields(self):
+        self.client.login(username=self.user.username, password="Password123")
+
+        original_student_id = self.user.student_id
+        original_faculty = self.user.faculty
+
+        response = self.client.post(
+            reverse("profile_edit"),
+            {
+                "first_name": self.user.first_name,
+                "last_name": self.user.last_name,
+                "username": self.user.username,
+                "email": self.user.email,
+                "preferred_name": "New Pref",
+                "pronouns": "they/them",
+                "phone_number": "07123456789",
+                "student_id": "99999999",
+                "faculty": "kbs",
+            },
+            follow=True,
+        )
+
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.preferred_name, "New Pref")
+        self.assertEqual(self.user.pronouns, "they/them")
+        self.assertEqual(self.user.phone_number, "07123456789")
+        self.assertEqual(self.user.student_id, original_student_id)
+        self.assertEqual(self.user.faculty, original_faculty)
