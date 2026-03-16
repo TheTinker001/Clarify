@@ -37,6 +37,18 @@ class User(AbstractUser):
     preferred_name = models.CharField(max_length=50, blank=False, default="")
     pronouns = models.CharField(max_length=50, blank=False, default="")
     email = models.EmailField(unique=True, blank=False)
+    phone_number = models.CharField(
+        max_length=20,
+        blank=True,
+        default="",
+        validators=[
+            RegexValidator(
+                regex=r"^[0-9+()\-\s]{7,20}$",
+                message="Phone number may only contain digits, spaces, and +()- characters.",
+            )
+        ],
+    )
+
     user_type = models.CharField(
         max_length=10,
         choices=USER_TYPE_CHOICES,
@@ -53,28 +65,26 @@ class User(AbstractUser):
             )
         ],
     )
-    phone_number = models.CharField(
-        max_length=20,
+
+    faculty = models.CharField(
+        max_length=100,
         blank=True,
         default="",
-        validators=[
-            RegexValidator(
-                regex=r"^[0-9+()\-\s]{7,20}$",
-                message="Phone number may only contain digits, spaces, and +()- characters.",
-            )
-        ],
     )
-    faculty = models.CharField(max_length=100, blank=True, default="")
-    study_level = models.CharField(max_length=100, blank=True, default="")
+    study_level = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+    )
     graduation_year = models.PositiveIntegerField(
         blank=True,
         null=True,
         validators=[MinValueValidator(1900), MaxValueValidator(9999)],
     )
+    self_intro = models.TextField(blank=True, max_length=200)
     profile_picture = models.ImageField(
         upload_to="profile_pictures/", null=True, blank=True
     )
-    self_intro = models.TextField(blank=True, max_length=200)
     faculties = models.TextField(blank=True, help_text="Comma-separated faculty codes")
     study_levels = models.TextField(
         blank=True, help_text="Comma-separated study level codes"

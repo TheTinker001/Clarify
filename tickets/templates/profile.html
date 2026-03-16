@@ -82,15 +82,6 @@
                     {% endif %}
                     <a href="{% url 'profile_edit' %}" class="btn btn-primary mt-3">Edit Profile</a>
                 </div>
-                <div class="card mt-4 p-3 text-start">
-                    <h6>Contact Information</h6>
-                    <p>
-                        <strong>Email:</strong> {{ user.email }}
-                    </p>
-                    <p>
-                        <strong>Joined:</strong> {{ user.date_joined|date:"F j, Y" }}
-                    </p>
-                </div>
             </div>
         </div>
     </div>
