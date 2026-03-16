@@ -145,3 +145,15 @@ class SignUpFormTestCase(TestCase):
         form = SignUpForm(data=self.form_input)
         form.is_valid()
         self.assertEqual(form.cleaned_data["username"], "@janedoe")
+
+    def test_student_signup_allows_blank_preferred_name_and_pronouns(self):
+        self.form_input["preferred_name"] = ""
+        self.form_input["pronouns"] = ""
+        form = SignUpForm(data=self.form_input)
+        self.assertTrue(form.is_valid())
+
+    def test_student_signup_requires_student_id(self):
+        self.form_input["student_id"] = ""
+        form = SignUpForm(data=self.form_input)
+        self.assertFalse(form.is_valid())
+        self.assertIn("student_id", form.errors)
