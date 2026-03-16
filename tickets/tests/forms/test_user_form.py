@@ -99,6 +99,19 @@ class UserFormTestCase(TestCase):
         form.is_valid()
         self.assertIn("username", form.errors)
 
+    def test_profile_edit_form_includes_new_editable_fields(self):
+        form = UserForm()
+        self.assertIn("preferred_name", form.fields)
+        self.assertIn("pronouns", form.fields)
+        self.assertIn("phone_number", form.fields)
+
+    def test_profile_edit_form_excludes_locked_student_fields(self):
+        form = UserForm()
+        self.assertNotIn("student_id", form.fields)
+        self.assertNotIn("faculty", form.fields)
+        self.assertNotIn("study_level", form.fields)
+        self.assertNotIn("graduation_year", form.fields)
+
 
 class StaffPreferenceFormTestCase(TestCase):
     def setUp(self):
