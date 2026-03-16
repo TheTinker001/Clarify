@@ -125,16 +125,16 @@ def _send_staff_comment_email(ticket, comment):
     )
 
 
-def get_page_slots(cur, number_pages):
-    if number_pages <= 9:
-        return list(range(1, number_pages + 1))
+def get_page_slots(cur, max_pages):
+    if max_pages <= 9:
+        return list(range(1, max_pages + 1))
     slots = []
     if cur <= 4:
-        slots = list(range(1, 8)) + ["...", number_pages]
-    elif cur >= number_pages - 3:
-        slots = [1, "..."] + list(range(number_pages - 6, number_pages + 1))
+        slots = list(range(1, 8)) + ["...", max_pages]
+    elif cur >= max_pages - 3:
+        slots = [1, "..."] + list(range(max_pages - 6, max_pages + 1))
     else:
-        slots = [1, "..."] + list(range(cur - 2, cur + 3)) + ["...", number_pages]
+        slots = [1, "..."] + list(range(cur - 2, cur + 3)) + ["...", max_pages]
     return slots
 
 
