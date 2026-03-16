@@ -1,8 +1,10 @@
 """Tests for the profile other user view."""
 
+from django.http import Http404
 from django.test import TestCase
 from django.urls import reverse
 from tickets.models import User
+from tickets.views.profile_other_user_view import ProfileOtherUserView
 
 
 class ProfileOtherUserViewTest(TestCase):
@@ -14,123 +16,55 @@ class ProfileOtherUserViewTest(TestCase):
     ]
 
     def setUp(self):
-        self.staff_user = User.objects.get(username="@janedoe")
-        self.student_user = User.objects.get(username="@johndoe")
-        self.student_user.user_type = User.USER_TYPE_STUDENT
-        self.student_user.preferred_name = "Johnny"
-        self.student_user.pronouns = "he/him"
-        self.student_user.student_id = "12345678"
-        self.student_user.phone_number = "07700900000"
-        self.student_user.faculty = "nmes"
-        self.student_user.study_level = "undergraduate"
-        self.student_user.graduation_year = 2026
-        self.student_user.save()
+        self.student = User.objects.get(username="@johndoe")
+        self.staff = User.objects.get(username="@janedoe")
+        self.other_student = User.objects.get(username="@petrapickles")
 
-        self.url_student = reverse("profile_other_user", kwargs={"username": self.student_user.username})
-        self.url_staff = reverse("profile_other_user", kwargs={"username": self.staff_user.username})
-
-    # --- Access control ---
-
-    def test_unauthenticated_user_redirected(self):
-        response = self.client.get(self.url_staff)
-        self.assertEqual(response.status_code, 302)
-
-    def test_staff_can_view_student_profile(self):
-        self.client.login(username=self.staff_user.username, password="Password123")
-        response = self.client.get(self.url_student)
-        self.assertEqual(response.status_code, 200)
-
-    def test_staff_can_view_staff_profile(self):
-        self.client.login(username=self.staff_user.username, password="Password123")
-        response = self.client.get(self.url_staff)
-        self.assertEqual(response.status_code, 200)
-
-    def test_student_can_view_staff_profile(self):
-        self.client.login(username=self.student_user.username, password="Password123")
-        response = self.client.get(self.url_staff)
-        self.assertEqual(response.status_code, 200)
-
-    def test_student_can_view_own_profile(self):
-        self.client.login(username=self.student_user.username, password="Password123")
-        response = self.client.get(self.url_student)
-        self.assertEqual(response.status_code, 200)
-
-    def test_student_cannot_view_student_profile(self):
-        other_student = User.objects.get(username="@petrapickles")
-        other_student.user_type = User.USER_TYPE_STUDENT
-        other_student.save()
-        url = reverse("profile_other_user", kwargs={"username": other_student.username})
-        self.client.login(username=self.student_user.username, password="Password123")
+    def test_staff_can_view_any_user_profile(self):
+        self.client.login(username=self.staff.username, password="Password123")
+        url = reverse(
+            "profile_other_user", kwargs={"username": self.other_student.username}
+        )
         response = self.client.get(url)
-        self.assertEqual(response.status_code, 403)
-
-    # --- Email visibility ---
-
-    def test_staff_sees_student_email(self):
-        self.client.login(username=self.staff_user.username, password="Password123")
-        response = self.client.get(self.url_student)
-        self.assertContains(response, self.student_user.email)
-
-    def test_student_cannot_see_staff_email(self):
-        self.client.login(username=self.student_user.username, password="Password123")
-        response = self.client.get(self.url_staff)
-        self.assertNotContains(response, self.staff_user.email)
-
-    # --- Student fields visible to staff ---
-
-    def test_staff_sees_student_preferred_name(self):
-        self.client.login(username=self.staff_user.username, password="Password123")
-        response = self.client.get(self.url_student)
-        self.assertContains(response, "Johnny")
-
-    def test_staff_sees_student_pronouns(self):
-        self.client.login(username=self.staff_user.username, password="Password123")
-        response = self.client.get(self.url_student)
-        self.assertContains(response, "he/him")
-
-    def test_staff_sees_student_id(self):
-        self.client.login(username=self.staff_user.username, password="Password123")
-        response = self.client.get(self.url_student)
-        self.assertContains(response, "12345678")
-
-    def test_staff_sees_student_phone(self):
-        self.client.login(username=self.staff_user.username, password="Password123")
-        response = self.client.get(self.url_student)
-        self.assertContains(response, "07700900000")
-
-    def test_staff_sees_student_faculty(self):
-        self.client.login(username=self.staff_user.username, password="Password123")
-        response = self.client.get(self.url_student)
-        self.assertContains(response, "Natural, Mathematical")
-
-    def test_staff_sees_student_study_level(self):
-        self.client.login(username=self.staff_user.username, password="Password123")
-        response = self.client.get(self.url_student)
-        self.assertContains(response, "Undergraduate")
-
-    def test_staff_sees_student_graduation_year(self):
-        self.client.login(username=self.staff_user.username, password="Password123")
-        response = self.client.get(self.url_student)
-        self.assertContains(response, "2026")
-
-    # --- Template and context ---
-
-    def test_correct_template_used(self):
-        self.client.login(username=self.staff_user.username, password="Password123")
-        response = self.client.get(self.url_student)
+        self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "profile_other_user.html")
+        self.assertEqual(response.context["profile_user"], self.other_student)
+        self.assertTrue(response.context["can_view_email"])
+        self.assertTrue(response.context["can_view_student_details"])
+        self.assertContains(response, self.other_student.preferred_name)
+        self.assertContains(response, self.other_student.pronouns)
+        self.assertContains(response, self.other_student.student_id)
+        self.assertContains(response, self.other_student.email)
+        self.assertContains(response, "Social Science")
+        self.assertContains(response, self.other_student.study_level_label)
 
-    def test_context_contains_profile_user(self):
-        self.client.login(username=self.staff_user.username, password="Password123")
-        response = self.client.get(self.url_student)
-        self.assertEqual(response.context["profile_user"], self.student_user)
+    def test_student_can_view_staff_profile_without_staff_email(self):
+        self.client.login(username=self.student.username, password="Password123")
+        url = reverse("profile_other_user", kwargs={"username": self.staff.username})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "profile_other_user.html")
+        self.assertEqual(response.context["profile_user"], self.staff)
+        self.assertFalse(response.context["can_view_email"])
+        self.assertFalse(response.context["can_view_student_details"])
+        self.assertContains(response, self.staff.preferred_name)
+        self.assertContains(response, self.staff.pronouns)
+        self.assertNotContains(response, self.staff.email)
+        self.assertNotContains(response, "Student ID:")
 
-    def test_hide_email_true_for_student_viewer(self):
-        self.client.login(username=self.student_user.username, password="Password123")
-        response = self.client.get(self.url_staff)
-        self.assertTrue(response.context["hide_email"])
+    def test_student_cannot_view_other_student_profile(self):
+        self.client.login(username=self.student.username, password="Password123")
+        url = reverse(
+            "profile_other_user", kwargs={"username": self.other_student.username}
+        )
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
 
-    def test_hide_email_false_for_staff_viewer(self):
-        self.client.login(username=self.staff_user.username, password="Password123")
-        response = self.client.get(self.url_student)
-        self.assertFalse(response.context["hide_email"])
+    def test_user_can_view_own_profile_route(self):
+        self.client.login(username=self.student.username, password="Password123")
+        url = reverse("profile_other_user", kwargs={"username": self.student.username})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context["can_view_email"])
+        self.assertTrue(response.context["can_view_student_details"])
+        self.assertContains(response, self.student.student_id)

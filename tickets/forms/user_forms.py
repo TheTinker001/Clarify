@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth import authenticate
 from django.core.validators import RegexValidator
-from tickets.models import User
+from tickets.models import User, Ticket
 
 
 class UserForm(forms.ModelForm):
@@ -58,6 +58,7 @@ class NewPasswordMixin(forms.Form):
             self.add_error(
                 "password_confirmation", "Confirmation does not match password."
             )
+        return self.cleaned_data
 
 
 class PasswordForm(NewPasswordMixin):
@@ -96,6 +97,14 @@ class PasswordForm(NewPasswordMixin):
 class SignUpForm(NewPasswordMixin, forms.ModelForm):
     """Registration form that creates a new 'User' with a hashed password via 'create_user()'."""
 
+    user_type = forms.ChoiceField(
+        choices=User.USER_TYPE_CHOICES,
+        initial=User.USER_TYPE_STUDENT,
+    )
+    faculty = forms.ChoiceField(choices=Ticket.Faculty.choices, required=False)
+    study_level = forms.ChoiceField(choices=Ticket.StudyLevel.choices, required=False)
+    graduation_year = forms.IntegerField(required=False)
+
     class Meta:
         """Form options."""
 
@@ -103,15 +112,42 @@ class SignUpForm(NewPasswordMixin, forms.ModelForm):
         fields = [
             "first_name",
             "last_name",
+            "preferred_name",
+            "pronouns",
             "username",
             "email",
             "user_type",
+            "student_id",
+            "phone_number",
+            "faculty",
+            "study_level",
+            "graduation_year",
         ]
 
-    user_type = forms.ChoiceField(
-        choices=User.USER_TYPE_CHOICES,
-        initial=User.USER_TYPE_STUDENT,
-    )
+    def clean(self):
+        """Require student-only fields for students and ignore them for staff accounts."""
+        super().clean()
+        cleaned_data = self.cleaned_data
+        user_type = cleaned_data.get("user_type")
+
+        if user_type == User.USER_TYPE_STUDENT:
+            required_student_fields = {
+                "student_id": "Student ID is required for student accounts.",
+                "faculty": "Faculty is required for student accounts.",
+                "study_level": "Study level is required for student accounts.",
+                "graduation_year": "Graduation year is required for student accounts.",
+            }
+            for field_name, error_message in required_student_fields.items():
+                if not cleaned_data.get(field_name):
+                    self.add_error(field_name, error_message)
+        else:
+            cleaned_data["student_id"] = ""
+            cleaned_data["phone_number"] = ""
+            cleaned_data["faculty"] = ""
+            cleaned_data["study_level"] = ""
+            cleaned_data["graduation_year"] = None
+
+        return cleaned_data
 
     def save(self):
         """Create and return the new user via 'create_user' so the password is hashed correctly."""
@@ -121,9 +157,16 @@ class SignUpForm(NewPasswordMixin, forms.ModelForm):
             self.cleaned_data.get("username"),
             first_name=self.cleaned_data.get("first_name"),
             last_name=self.cleaned_data.get("last_name"),
+            preferred_name=self.cleaned_data.get("preferred_name"),
+            pronouns=self.cleaned_data.get("pronouns"),
             email=self.cleaned_data.get("email"),
             password=self.cleaned_data.get("new_password"),
             user_type=self.cleaned_data.get("user_type"),
+            student_id=self.cleaned_data.get("student_id", ""),
+            phone_number=self.cleaned_data.get("phone_number", ""),
+            faculty=self.cleaned_data.get("faculty", ""),
+            study_level=self.cleaned_data.get("study_level", ""),
+            graduation_year=self.cleaned_data.get("graduation_year"),
         )
         return user
 
