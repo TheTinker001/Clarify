@@ -9,7 +9,7 @@ class TicketForm(forms.ModelForm):
 
     class Meta:
         model = Ticket
-        fields = ["faculty", "study_level", "category", "subject", "body"]
+        fields = ["faculty", "study_level", "category", "subject", "priority", "body"]
         widgets = {
             "body": forms.Textarea(attrs={"rows": 10}),
         }
@@ -34,7 +34,7 @@ class TicketForm(forms.ModelForm):
         self.fields["subject"].widget.attrs[
             "placeholder"
         ] = "Write your subject here..."
-
+        self.fields["priority"].label = "How urgent is your issue?"
         self.fields["body"].label = "Please provide more details"
         self.fields["body"].widget.attrs["placeholder"] = "Write your body here..."
 

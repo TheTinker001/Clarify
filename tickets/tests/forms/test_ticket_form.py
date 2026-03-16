@@ -11,7 +11,15 @@ class TicketFormTest(TestCase):
         form = TicketForm()
         self.assertEqual(
             list(form.fields.keys()),
-            ["faculty", "study_level", "category", "subject", "body", "attachments"],
+            [
+                "faculty",
+                "study_level",
+                "category",
+                "subject",
+                "priority",
+                "body",
+                "attachments",
+            ],
         )
 
     def test_form_valid_data(self):
@@ -20,6 +28,7 @@ class TicketFormTest(TestCase):
             "study_level": "undergraduate",
             "category": "health_and_wellbeing",
             "subject": "Test Subject",
+            "priority": "high",
             "body": "Test body content",
         }
         form = TicketForm(data=form_data)
@@ -35,6 +44,7 @@ class TicketFormTest(TestCase):
         self.assertIn("category", form.errors)
         self.assertIn("subject", form.errors)
         self.assertIn("body", form.errors)
+        self.assertIn("priority", form.errors)
 
     def test_form_missing_subject(self):
         form_data = {
@@ -42,10 +52,23 @@ class TicketFormTest(TestCase):
             "study_level": "undergraduate",
             "category": "health_and_wellbeing",
             "body": "Test body",
+            "priority": "high",
         }
         form = TicketForm(data=form_data)
         self.assertFalse(form.is_valid())
         self.assertIn("subject", form.errors)
+
+    def test_form_missing_priority(self):
+        form_data = {
+            "faculty": "kbs",
+            "study_level": "undergraduate",
+            "category": "health_and_wellbeing",
+            "subject": "Test subject",
+            "body": "Test body",
+        }
+        form = TicketForm(data=form_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn("priority", form.errors)
 
     def test_form_missing_body(self):
         form_data = {
@@ -53,6 +76,7 @@ class TicketFormTest(TestCase):
             "study_level": "undergraduate",
             "category": "health_and_wellbeing",
             "subject": "Test subject",
+            "priority": "high",
         }
         form = TicketForm(data=form_data)
         self.assertFalse(form.is_valid())
@@ -78,6 +102,7 @@ class TicketFormTest(TestCase):
                 "category": "health_and_wellbeing",
                 "subject": "Test",
                 "body": "Test body",
+                "priority": "high",
             }
             form = TicketForm(data=form_data)
             if faculty_code != "":
@@ -97,6 +122,7 @@ class TicketFormTest(TestCase):
                 "category": "health_and_wellbeing",
                 "subject": "Test",
                 "body": "Test body",
+                "priority": "high",
             }
             form = TicketForm(data=form_data)
             if level_code != "":
@@ -116,6 +142,7 @@ class TicketFormTest(TestCase):
                 "category": category_code,
                 "subject": "Test",
                 "body": "Test body",
+                "priority": "high",
             }
             form = TicketForm(data=form_data)
 
@@ -142,6 +169,7 @@ class TicketFormTest(TestCase):
             "faculty": "kbs",
             "study_level": "undergraduate",
             "category": "assessment",
+            "priority": "high",
             "subject": "Test subject",
             "body": "Test body",
         }
@@ -159,6 +187,7 @@ class TicketFormTest(TestCase):
             "category": "assessment",
             "subject": "Test subject",
             "body": "Test body",
+            "priority": "high",
         }
         form = TicketForm(data=data, files={"attachments": file})
         self.assertFalse(form.is_valid())
@@ -177,6 +206,7 @@ class TicketFormTest(TestCase):
             "category": "assessment",
             "subject": "Test subject",
             "body": "Test body",
+            "priority": "high",
         }
         form = TicketForm(data=data, files={"attachments": file})
         self.assertFalse(form.is_valid())
@@ -196,6 +226,7 @@ class TicketFormTest(TestCase):
             "category": "assessment",
             "subject": "Test subject",
             "body": "Test body",
+            "priority": "high",
         }
         form = TicketForm(data=data, files={"attachment": file})
         self.assertTrue(form.is_valid())

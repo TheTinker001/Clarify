@@ -34,6 +34,7 @@ class CreateTicketViewTest(TestCase):
             "category": "health_and_wellbeing",
             "subject": "Need medical support",
             "body": "I need help with accessing medical services.",
+            "priority": "high",
         }
 
     def test_redirect_if_not_logged_in(self):
