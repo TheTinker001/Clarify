@@ -5,9 +5,16 @@
     "fields": {
       "first_name": "John",
       "last_name": "Doe",
+      "preferred_name": "John",
+      "pronouns": "he/him",
       "username": "@johndoe",
       "email": "johndoe@example.org",
       "user_type": "student",
+      "student_id": "12345678",
+      "phone_number": "+44 0000 000001",
+      "faculty": "nmes",
+      "study_level": "undergraduate",
+      "graduation_year": 2027,
       "password": "pbkdf2_sha256$260000$4BNvFuAWoTT1XVU8D6hCay$KqDCG+bHl8TwYcvA60SGhOMluAheVOnF1PMz0wClilc=",
       "is_active": true
     }

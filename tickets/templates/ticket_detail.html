@@ -144,12 +144,21 @@
                         <dl class="row mb-0">
                             <dt class="col-5">Created by</dt>
                             <dd class="col-7">
-                                {{ ticket.student.full_name }}
+                                {% if ticket.student == user %}
+                                    <a href="{% url 'profile' %}">{{ ticket.student.username }}</a>
+                                {% else %}
+                                    <a href="{% url 'profile_other_user' username=ticket.student.username %}">{{ ticket.student.username }}</a>
+                                    <span class="text-muted">({{ ticket.student.full_name }})</span>
+                                {% endif %}
                             </dd>
                             <dt class="col-5">Assigned to</dt>
                             <dd class="col-7">
                                 {% if ticket.assigned_to %}
-                                    {{ ticket.assigned_to.full_name }}
+                                    {% if ticket.assigned_to == user %}
+                                        <a href="{% url 'profile' %}">{{ ticket.assigned_to.username }}</a>
+                                    {% else %}
+                                        <a href="{% url 'profile_other_user' username=ticket.assigned_to.username %}">{{ ticket.assigned_to.username }}</a>
+                                    {% endif %}
                                 {% else %}
                                     Unassigned
                                 {% endif %}
@@ -219,7 +228,7 @@
                         {% if user.user_type == "staff" %}
                             <div class="mt-4">
                                 <div class="card">
-                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                    <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
                                         <strong>Internal Notes</strong>
                                         {% if can_edit_internal_notes %}
                                             <a href="{% url 'internal_note_edit' url_code=ticket.url_code %}"
