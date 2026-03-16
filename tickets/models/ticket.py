@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.urls import reverse
 from tickets.helpers import _validate_file_size
 import secrets
-from clarify.settings import ALLOWED_EXTENSIONS
+from clarify.settings import ALLOWED_EXTENSIONS, BODY_LENGTH_MAX
 
 User = get_user_model()
 
@@ -122,9 +122,8 @@ class Ticket(models.Model):
 
     subject = models.CharField(max_length=78)
 
-    BODY_MAX_LENGTH = 50000
     body = models.TextField(
-        max_length=BODY_MAX_LENGTH, validators=[MaxLengthValidator(BODY_MAX_LENGTH)]
+        max_length=BODY_LENGTH_MAX, validators=[MaxLengthValidator(BODY_LENGTH_MAX)]
     )
 
     attachment = models.FileField(
@@ -151,6 +150,12 @@ class Ticket(models.Model):
     awaiting_student_since = models.DateTimeField(null=True, blank=True, db_index=True)
 
     url_code = models.CharField(max_length=64, unique=True, blank=True, null=False)
+    internal_notes = models.TextField(
+        blank=True,
+        default="",
+        max_length=BODY_LENGTH_MAX,
+        validators=[MaxLengthValidator(BODY_LENGTH_MAX)],
+    )
 
     def clean(self):
         """Validate student/assigned_to types, require closed_reason when CLOSED, and clear closure fields otherwise."""

@@ -10,7 +10,6 @@ from django.utils import timezone
 from tickets.forms import (
     CommentForm,
     TicketPriorityForm,
-    InternalNoteForm,
     TicketFieldsForm,
     ReassignTicketForm,
 )
@@ -22,7 +21,7 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
     Display a ticket and handle all in-page form submissions.
 
     POST is dispatched via an 'action' field: 'set_priority', 'add_comment',
-    'add_internal_note', 'close_ticket', 'unclose_ticket'.
+    'close_ticket', 'unclose_ticket'.
 
     'dispatch' sets 'self.ticket', 'self.is_staff_user', and 'self.is_owner'.
     """
@@ -80,9 +79,6 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
 
         elif action == "add_comment":
             return self.post_action_add_comment(request, *args, **kwargs)
-
-        elif action == "add_internal_note":
-            return self.post_action_add_internal_note(request, *args, **kwargs)
 
         elif action == "close_ticket":
             return self.post_action_close_ticket(request, *args, **kwargs)
@@ -186,27 +182,6 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         messages.success(request, "Comment added.")
         return redirect("ticket_detail", url_code=kwargs.get("url_code"))
 
-    def post_action_add_internal_note(self, request, *args, **kwargs):
-        """Save a staff-only internal note.
-        Raises Http404 for students.
-        """
-        if not self.is_staff_user:
-            raise Http404
-
-        note_form = InternalNoteForm(request.POST)
-        if not note_form.is_valid():
-            return self.render_to_response(
-                self.get_context_data(internal_note_form=note_form)
-            )
-
-        note = note_form.save(commit=False)
-        note.ticket = self.ticket
-        note.author = request.user
-        note.save()
-
-        messages.success(request, "Internal note added.")
-        return redirect("ticket_detail", url_code=kwargs.get("url_code"))
-
     def post_action_close_ticket(self, request, *args, **kwargs):
         """
         Mark the ticket CLOSED/ANSWERED.
@@ -305,7 +280,7 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
 
         Preserves an invalid comment form from kwargs.
         Annotates each comment with 'can_edit' (author + within time window).
-        Internal notes only added for staff.
+        Internal notes text and edit permission added for staff.
         """
         context = super().get_context_data(**kwargs)
         context["ticket"] = self.ticket
@@ -325,11 +300,9 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
 
         context["comments"] = comments
         if self.is_staff_user:
-            context["internal_notes"] = self.ticket.internal_notes.select_related(
-                "author"
-            ).all()
-            context["internal_note_form"] = (
-                kwargs.get("internal_note_form") or InternalNoteForm()
+            context["internal_notes"] = self.ticket.internal_notes
+            context["can_edit_internal_notes"] = (
+                self.ticket.assigned_to == self.request.user
             )
             context["ticket_fields_form"] = self.get_fields_form()
             context["reassign_ticket_form"] = self.get_reassign_form()

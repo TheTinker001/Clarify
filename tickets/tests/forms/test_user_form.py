@@ -85,6 +85,20 @@ class UserFormTestCase(TestCase):
         self.assertEqual(user.self_intro, "Updated intro")
         self.assertTrue(user.profile_picture.name.startswith("profile_pictures/"))
 
+    def test_clean_username_lowercases_input(self):
+        user = User.objects.get(username="@johndoe")
+        form = UserForm(
+            instance=user, data={**self.form_input, "username": "@JIMMYATOM"}
+        )
+        form.is_valid()
+        self.assertEqual(form.cleaned_data["username"], "@jimmyatom")
+
+    def test_clean_username_with_none_does_not_crash(self):
+        user = User.objects.get(username="@johndoe")
+        form = UserForm(instance=user, data={**self.form_input, "username": ""})
+        form.is_valid()
+        self.assertIn("username", form.errors)
+
 
 class StaffPreferenceFormTestCase(TestCase):
     def setUp(self):

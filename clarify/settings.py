@@ -183,8 +183,11 @@ ALLOWED_EXTENSIONS_LABEL = (
     "Attachments (max 5 files, 5MB each — pdf, doc, docx, txt, jpg, jpeg, png)"
 )
 
-# Edit comment settings
+# Comment settings
 EDIT_TIME_LIMIT_MINUTES = 10
+
+# Body length max for text fields
+BODY_LENGTH_MAX = 50000
 
 # CRON settings
 CRON_TOKEN = os.environ.get("CRON_TOKEN", "")

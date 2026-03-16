@@ -4,6 +4,6 @@ from .ticket_form import *
 from .staff_preference_form import *
 from .ticket_priority_form import *
 from .comment_form import *
-from .internal_note_form import *
 from .ticket_fields_form import *
+from .internal_note_edit_form import *
 from .reassign_ticket_form import *
