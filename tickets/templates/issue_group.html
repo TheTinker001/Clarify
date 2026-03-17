@@ -5,7 +5,7 @@
         <a href="{% url 'create_issue_group' %}" class="btn btn-primary mb-3">Create New Issue Group</a>
         <div class="mb-3">{% include "partials/pagination_navbar.html" with page_obj=page_obj %}</div>
         {% for i in issue_groups %}
-            <div class="card mb-3">
+            <div class="card mb-3 shadow-sm issue-group-card">
                 <div class="card-body">
                     <h5 class="card-title">{{ i.name }}</h5>
                 </div>
