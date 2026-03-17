@@ -8,6 +8,7 @@ from clarify.settings import ITEMS_PER_PAGE
 
 
 class IssueGroupView(LoginRequiredMixin, TemplateView):
+    """Display existing issue groups to staff users."""
 
     template_name = "issue_group.html"
 

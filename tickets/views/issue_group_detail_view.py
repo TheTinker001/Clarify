@@ -8,6 +8,8 @@ from clarify.settings import ITEMS_PER_PAGE
 
 
 class IssueGroupDetailView(LoginRequiredMixin, TemplateView):
+    """Display a specific issue group to staff users."""
+
     template_name = "issue_group_detail.html"
 
     def dispatch(self, request, *args, **kwargs):

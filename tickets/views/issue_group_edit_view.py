@@ -5,6 +5,8 @@ from django.shortcuts import redirect
 
 
 class UpdateIssueGroupView(UpdateView):
+    """Update an issue group's name."""
+
     model = IssueGroup
     fields = ["name"]
     slug_field = "slug"
