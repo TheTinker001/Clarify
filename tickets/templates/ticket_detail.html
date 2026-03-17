@@ -69,53 +69,28 @@
                 <div class="mt-4">
                     <h5>Comments</h5>
                     {% for comment in comments %}
-                        {% if comment.author.user_type == "student" %}
-                            <div class="card border-primary mb-2">
-                                <div class="card-header bg-primary text-white d-flex justify-content-between">
-                                    <span>{{ comment.author.full_name }}</span>
-                                    <small>{{ comment.created_at|date:"M j, Y, P" }}</small>
-                                </div>
-                                <div class="card-body">
-                                    <p class="card-text mb-0">{{ comment.body }}</p>
-                                    {% if comment.can_edit %}
-                                        <a href="{{ comment.get_absolute_url }}"
-                                           class="btn btn-sm btn-outline-secondary mt-2">Edit</a>
-                                    {% endif %}
-                                    {% if comment.attachments.all %}
-                                        <ul class="mt-1 mb-0">
-                                            {% for attachment in comment.attachments.all %}
-                                                <li>
-                                                    <a href="{{ attachment.file.url }}" target="_blank">{{ attachment.filename }}</a>
-                                                </li>
-                                            {% endfor %}
-                                        </ul>
-                                    {% endif %}
-                                </div>
+                        <div class="card mb-2 comment-card {% if comment.author.user_type == 'staff' %}comment-card--staff{% else %}comment-card--student{% endif %}">
+                            <div class="card-header comment-card-header d-flex justify-content-between align-items-center">
+                                <span class="fw-500">{{ comment.author.full_name }}</span>
+                                <small class="text-white-50">{{ comment.created_at|date:"M j, Y, P" }}</small>
                             </div>
-                        {% else %}
-                            <div class="card border-danger mb-2">
-                                <div class="card-header bg-danger text-white d-flex justify-content-between">
-                                    <span>{{ comment.author.full_name }}</span>
-                                    <small>{{ comment.created_at|date:"M j, Y, P" }}</small>
-                                </div>
-                                <div class="card-body">
-                                    <p class="card-text mb-0">{{ comment.body }}</p>
-                                    {% if comment.can_edit %}
-                                        <a href="{{ comment.get_absolute_url }}"
-                                           class="btn btn-sm btn-outline-secondary mt-2">Edit</a>
-                                    {% endif %}
-                                    {% if comment.attachments.all %}
-                                        <ul class="mt-1 mb-0">
-                                            {% for attachment in comment.attachments.all %}
-                                                <li>
-                                                    <a href="{{ attachment.file.url }}" target="_blank">{{ attachment.filename }}</a>
-                                                </li>
-                                            {% endfor %}
-                                        </ul>
-                                    {% endif %}
-                                </div>
+                            <div class="card-body">
+                                <p class="card-text mb-1">{{ comment.body }}</p>
+                                {% if comment.attachments.all %}
+                                    <ul class="comment-attachments mt-2 mb-1">
+                                        {% for attachment in comment.attachments.all %}
+                                            <li>
+                                                <a href="{{ attachment.file.url }}" target="_blank">{{ attachment.filename }}</a>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                {% endif %}
+                                {% if comment.can_edit %}
+                                    <a href="{{ comment.get_absolute_url }}"
+                                       class="btn btn-sm btn-outline-secondary mt-1">Edit</a>
+                                {% endif %}
                             </div>
-                        {% endif %}
+                        </div>
                     {% empty %}
                         <p class="text-muted">No comments yet.</p>
                     {% endfor %}
@@ -160,12 +135,21 @@
                         <dl class="row mb-0">
                             <dt class="col-5">Created by</dt>
                             <dd class="col-7">
-                                {{ ticket.student.full_name }}
+                                {% if ticket.student == user %}
+                                    <a href="{% url 'profile' %}">{{ ticket.student.username }}</a>
+                                {% else %}
+                                    <a href="{% url 'profile_other_user' username=ticket.student.username %}">{{ ticket.student.username }}</a>
+                                    <span class="text-muted">({{ ticket.student.full_name }})</span>
+                                {% endif %}
                             </dd>
                             <dt class="col-5">Assigned to</dt>
                             <dd class="col-7">
                                 {% if ticket.assigned_to %}
-                                    {{ ticket.assigned_to.full_name }}
+                                    {% if ticket.assigned_to == user %}
+                                        <a href="{% url 'profile' %}">{{ ticket.assigned_to.username }}</a>
+                                    {% else %}
+                                        <a href="{% url 'profile_other_user' username=ticket.assigned_to.username %}">{{ ticket.assigned_to.username }}</a>
+                                    {% endif %}
                                 {% else %}
                                     Unassigned
                                 {% endif %}
@@ -234,33 +218,21 @@
                         <!-- Internal notes (staff only) -->
                         {% if user.user_type == "staff" %}
                             <div class="mt-4">
-                                <h5>Internal Notes</h5>
-                                {% for note in internal_notes %}
-                                    <div class="card border-warning mb-2">
-                                        <div class="card-header bg-warning d-flex justify-content-between">
-                                            <span>{{ note.author.full_name }}</span>
-                                            <small>{{ note.created_at|date:"M j, Y, P" }}</small>
-                                        </div>
-                                        <div class="card-body">
-                                            <p class="card-text mb-0">{{ note.body }}</p>
-                                        </div>
-                                    </div>
-                                {% empty %}
-                                    <p class="text-muted">No internal notes yet.</p>
-                                {% endfor %}
-                            </div>
-                            <div class="card mt-3">
-                                <div class="card-body">
-                                    <h6 class="card-title">Add an internal note</h6>
-                                    <form method="post">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="action" value="add_internal_note">
-                                        {{ internal_note_form.body }}
-                                        {% if internal_note_form.body.errors %}
-                                            <div class="text-danger mt-1">{{ internal_note_form.body.errors }}</div>
+                                <div class="card">
+                                    <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                                        <strong>Internal Notes</strong>
+                                        {% if can_edit_internal_notes %}
+                                            <a href="{% url 'internal_note_edit' url_code=ticket.url_code %}"
+                                               class="btn btn-sm btn-outline-dark">Edit</a>
                                         {% endif %}
-                                        <button type="submit" class="btn btn-warning mt-2">Add Note</button>
-                                    </form>
+                                    </div>
+                                    <div class="card-body">
+                                        {% if internal_notes %}
+                                            <p class="mb-0">{{ internal_notes }}</p>
+                                        {% else %}
+                                            <p class="text-muted mb-0">No internal notes yet.</p>
+                                        {% endif %}
+                                    </div>
                                 </div>
                             </div>
                         {% endif %}

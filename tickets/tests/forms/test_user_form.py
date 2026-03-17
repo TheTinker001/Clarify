@@ -85,6 +85,33 @@ class UserFormTestCase(TestCase):
         self.assertEqual(user.self_intro, "Updated intro")
         self.assertTrue(user.profile_picture.name.startswith("profile_pictures/"))
 
+    def test_clean_username_lowercases_input(self):
+        user = User.objects.get(username="@johndoe")
+        form = UserForm(
+            instance=user, data={**self.form_input, "username": "@JIMMYATOM"}
+        )
+        form.is_valid()
+        self.assertEqual(form.cleaned_data["username"], "@jimmyatom")
+
+    def test_clean_username_with_none_does_not_crash(self):
+        user = User.objects.get(username="@johndoe")
+        form = UserForm(instance=user, data={**self.form_input, "username": ""})
+        form.is_valid()
+        self.assertIn("username", form.errors)
+
+    def test_profile_edit_form_includes_new_editable_fields(self):
+        form = UserForm()
+        self.assertIn("preferred_name", form.fields)
+        self.assertIn("pronouns", form.fields)
+        self.assertIn("phone_number", form.fields)
+
+    def test_profile_edit_form_excludes_locked_student_fields(self):
+        form = UserForm()
+        self.assertNotIn("student_id", form.fields)
+        self.assertNotIn("faculty", form.fields)
+        self.assertNotIn("study_level", form.fields)
+        self.assertNotIn("graduation_year", form.fields)
+
 
 class StaffPreferenceFormTestCase(TestCase):
     def setUp(self):

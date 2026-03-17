@@ -1,0 +1,13 @@
+{% extends 'base_content.html' %}
+{% block content %}
+  <div class="error-page">
+    <i class="bi bi-door-open-fill error-page-icon"></i>
+    <h1>Page not found</h1>
+    <p>
+      Looks like this door leads nowhere.
+      <br>
+      Let's get you back on track.
+    </p>
+    <a href="{% url 'dashboard' %}" class="btn btn-clarify">Go back home</a>
+  </div>
+{% endblock %}

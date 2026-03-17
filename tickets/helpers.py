@@ -1,4 +1,5 @@
-### Helper function and classes go here.
+"""Shared file validation helpers, email utilities, and multi-file upload field for the tickets app."""
+
 from django.core.exceptions import ValidationError
 from django.conf import settings
 from django.core.mail import send_mail
@@ -9,6 +10,7 @@ from django.utils import timezone
 
 
 def _validate_file_size(file):
+    """Raise ValidationError if the uploaded file exceeds 5 MB."""
     max_size_mb = 5
     if file.size > max_size_mb * 1024 * 1024:
         raise ValidationError(f"File size cannot exceed {max_size_mb}MB")
@@ -124,15 +126,26 @@ def _send_staff_comment_email(ticket, comment):
 
 
 class MultipleFileInput(forms.ClearableFileInput):
+    """File input widget that allows the user to select more than one file at a time."""
+
     allow_multiple_selected = True
 
 
 class MultipleFileField(forms.FileField):
+    """Form field that validates and returns multiple uploaded files as a list."""
+
     def __init__(self, *args, **kwargs):
         kwargs.setdefault("widget", MultipleFileInput())
         super().__init__(*args, **kwargs)
 
     def clean(self, data, initial=None):
+        """
+        Normalise data to a list and validate each file individually.
+
+        Some parsers pass a bare file object instead of a one-element list when
+        only one file is selected.
+        Both cases are handled so callers always get a list.
+        """
         single_file_clean = super().clean
         if isinstance(data, (list, tuple)):
             result = []
@@ -146,6 +159,7 @@ class MultipleFileField(forms.FileField):
         return result
 
     def _validate_single_file(self, f):
+        """Run extension and size validators against a single file object."""
         if f:
             ext_validator = FileExtensionValidator(
                 allowed_extensions=settings.ALLOWED_EXTENSIONS

@@ -8,27 +8,15 @@ from tickets.views.decorators import LoginProhibitedMixin
 
 
 class SignUpView(LoginProhibitedMixin, FormView):
-    """
-    Handle new user registration.
-
-    This class-based view displays a registration form for new users and handles
-    the creation of their accounts. Authenticated users are automatically
-    redirected away using `LoginProhibitedMixin`.
-    """
+    """Display the registration form and create new user accounts.
+    Authenticated users are redirected via 'LoginProhibitedMixin'."""
 
     form_class = SignUpForm
     template_name = "sign_up.html"
     redirect_when_logged_in_url = settings.REDIRECT_URL_WHEN_LOGGED_IN
 
     def form_valid(self, form):
-        """
-        Handle valid signup form submissions.
-
-        When the signup form is submitted and validated successfully, a new
-        user account is created, and the user is automatically logged in.
-        Afterward, the method continues to the success URL defined by
-        `get_success_url()`.
-        """
+        """Save the new user, log them in, and proceed to 'get_success_url()'."""
         self.object = form.save()
         login(self.request, self.object)
         return super().form_valid(form)
