@@ -156,14 +156,8 @@
             <div class="col-12">
                 <h2>{{ category }} Tickets ({{ total }})</h2>
                 <div class="row mb-4">
-                    <!-- Left spacer -->
-                    <div class="col-4"></div>
-                    <!-- Pagination top -->
-                    <div class="col-4 d-flex justify-content-center align-items-center">
-                        {% include "partials/pagination_navbar.html" with page_obj=page_obj %}
-                    </div>
                     <!-- Sorting dropdown aligned right -->
-                    <div class="col-4 d-flex justify-content-end align-items-center">
+                    <div class="d-flex justify-content-end align-items-center">
                         {% if user.user_type == "staff" and tab != "closed_tickets" %}
                             <form method="get" class="d-flex align-items-center">
                                 <input type="hidden" name="tab" value="{{ tab }}">
@@ -184,6 +178,12 @@
                                 </select>
                             </form>
                         {% endif %}
+                    </div>
+                    <!-- Left spacer -->
+                    <div class="col-4"></div>
+                    <!-- Pagination top -->
+                    <div class="col-4 d-flex justify-content-center align-items-center">
+                        {% include "partials/pagination_navbar.html" with page_obj=page_obj %}
                     </div>
                 </div>
                 {% for ticket in tickets %}
