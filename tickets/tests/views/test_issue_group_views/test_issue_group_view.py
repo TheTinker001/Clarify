@@ -30,12 +30,8 @@ class IssueGroupViewTestCase(TestCase):
 
     def test_redirect_for_non_staff(self):
         self.client.login(username=self.student.username, password="Password123")
-        response = self.client.get(self.url, follow=True)
-        redirect_url = reverse("dashboard")
-        self.assertEqual(response.status_code, 200)
-        self.assertRedirects(
-            response, redirect_url, status_code=302, target_status_code=200
-        )
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 404)
 
     def test_issue_groups_are_in_context(self):
         self.client.login(username=self.staff.username, password="Password123")
