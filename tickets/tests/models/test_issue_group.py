@@ -4,6 +4,7 @@ from tickets.models import IssueGroup
 
 
 class IssueGroupModelTests(TestCase):
+    """Unit tests for the IssueGroup model."""
 
     def test_generated_slug(self):
         issue = IssueGroup.objects.create(name="Test Issue Group")

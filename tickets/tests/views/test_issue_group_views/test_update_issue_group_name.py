@@ -5,6 +5,7 @@ from tickets.models import IssueGroup, User
 
 
 class UpdateIssueGroupViewTests(TestCase):
+    """Tests for UpdateIssueGroupView"""
 
     fixtures = [
         "tickets/tests/fixtures/default_user.json",
