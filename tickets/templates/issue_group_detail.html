@@ -14,11 +14,25 @@
                 <strong>Tickets:</strong> {{ issue_group.tickets.count }}
             </p>
         </div>
+        <form method="get"
+              action="{% url 'issue_group_detail' slug=issue_group.slug %}">
+            <div class="col-md-4">
+                <label for="statusFilter" class="form-label small text-muted mb-1">Status</label>
+                <select class="form-select"
+                        name="status"
+                        id="statusFilter"
+                        onchange="this.form.submit()">
+                    <option value="" {% if not status %}selected{% endif %}>All tickets</option>
+                    <option value="open" {% if status == "open" %}selected{% endif %}>Open tickets</option>
+                    <option value="closed" {% if status == "closed" %}selected{% endif %}>Closed tickets</option>
+                </select>
+            </div>
+        </form>
         <div class="mb-3">{% include "partials/pagination_navbar.html" with page_obj=page_obj %}</div>
         {% for ticket in tickets %}
             {% include "partials/ticket_card.html" with ticket=ticket %}
         {% empty %}
-            <p class="text-muted">No tickets in this issue group.</p>
+            <p class="text-muted">No {{ status|default:"" }} tickets in this issue group.</p>
         {% endfor %}
         <div class="mb-3">{% include "partials/pagination_navbar.html" with page_obj=page_obj %}</div>
     </div>
