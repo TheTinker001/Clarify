@@ -7,6 +7,7 @@ from django.urls import reverse
 from tickets.helpers import _validate_file_size
 import secrets
 from clarify.settings import ALLOWED_EXTENSIONS, BODY_LENGTH_MAX
+from tickets.models.issue_group import IssueGroup
 
 User = get_user_model()
 
@@ -155,6 +156,14 @@ class Ticket(models.Model):
         default="",
         max_length=BODY_LENGTH_MAX,
         validators=[MaxLengthValidator(BODY_LENGTH_MAX)],
+    )
+
+    issue_group = models.ForeignKey(
+        IssueGroup,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="tickets",
     )
 
     def clean(self):

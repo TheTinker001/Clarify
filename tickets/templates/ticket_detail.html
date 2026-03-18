@@ -36,7 +36,7 @@
                                 <div class="ms-auto">
                                     <button type="submit"
                                             form="ticket-field-form"
-                                            class="btn btn-outline-primary">Edit</button>
+                                            class="btn btn-outline-primary">Update</button>
                                 </div>
                             </div>
                         </div>
@@ -131,6 +131,7 @@
             <div class="col-12 col-lg-4 mt-3 mt-lg-0">
                 <div class="card ticket-card-detail">
                     <div class="card-body">
+                        <!-- Ticket details-->
                         <h5 class="card-title">Details</h5>
                         <dl class="row mb-0">
                             <dt class="col-5">Created by</dt>
@@ -162,6 +163,14 @@
                             <dd class="col-7">
                                 {{ ticket.updated_at|date:"M j, Y, P" }}
                             </dd>
+                            <dt class="col-5">Issue Group</dt>
+                            <dd class="col-7">
+                                {% if ticket.issue_group %}
+                                    {{ ticket.issue_group.name }}
+                                {% else %}
+                                    <p class="text-muted m-0 p-0">No assigned ticket group</p>
+                                {% endif %}
+                            </dd>
                         </dl>
                         <div class="mb-3"></div>
                         <!-- Claiming -->
@@ -187,17 +196,30 @@
                                     </form>
                                 </div>
                             {% endif %}
-                            <!-- Priority updating -->
+                            <!-- Priority + Issue group updating -->
                             {% if ticket.status != ticket.Status.CLOSED %}
-                                <form id="priority-form" method="post">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="action" value="set_priority">
-                                    <div class="input-group input-group-sm">
-                                        <span class="input-group-text">Priority</span>
-                                        {{ ticket_priority_form.priority }}
-                                        <button type="submit" form="priority-form" class="btn btn-outline-primary">Update</button>
-                                    </div>
-                                </form>
+                                <div class="d-flex flex-column gap-3">
+                                    <form id="priority-form" method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="set_priority">
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text">Priority</span>
+                                            {{ ticket_priority_form.priority }}
+                                            <button type="submit" form="priority-form" class="btn btn-outline-primary">Update</button>
+                                        </div>
+                                    </form>
+                                    <form id="ticket-issue-group-form" method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="set_issue_group">
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text">Issue Group</span>
+                                            {{ ticket_issue_group_form.issue_group }}
+                                            <button type="submit"
+                                                    form="ticket-issue-group-form"
+                                                    class="btn btn-outline-primary">Update</button>
+                                        </div>
+                                    </form>
+                                </div>
                                 {% if ticket.assigned_to == user %}
                                     <form method="post">
                                         {% csrf_token %}

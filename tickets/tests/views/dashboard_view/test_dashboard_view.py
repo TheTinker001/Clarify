@@ -35,7 +35,7 @@ class DashboardViewTestCase(TestCase, LogInTester):
         self.staff.categories = self.ticket_data["category"]
         self.staff.save()
 
-    def test_home_url(self):
+    def test_correct_url(self):
         self.assertEqual(self.url, "/dashboard/")
 
     def test_get_dashboard_when_logged_in(self):
