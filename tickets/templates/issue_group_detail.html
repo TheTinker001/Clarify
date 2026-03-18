@@ -1,0 +1,25 @@
+{% extends 'base_content.html' %}
+{% block content %}
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1 class="mb-0">{{ issue_group.name }}</h1>
+            <a href="{% url 'edit_issue_group' slug=issue_group.slug %}"
+               class="btn btn-outline-secondary btn-sm">Edit</a>
+        </div>
+        <div class="mb-4">
+            <p class="mb-1">
+                <strong>Created:</strong> {{ issue_group.created_at }}
+            </p>
+            <p class="mb-0">
+                <strong>Tickets:</strong> {{ issue_group.tickets.count }}
+            </p>
+        </div>
+        <div class="mb-3">{% include "partials/pagination_navbar.html" with page_obj=page_obj %}</div>
+        {% for ticket in tickets %}
+            {% include "partials/ticket_card.html" with ticket=ticket %}
+        {% empty %}
+            <p class="text-muted">No tickets in this issue group.</p>
+        {% endfor %}
+        <div class="mb-3">{% include "partials/pagination_navbar.html" with page_obj=page_obj %}</div>
+    </div>
+{% endblock %}
