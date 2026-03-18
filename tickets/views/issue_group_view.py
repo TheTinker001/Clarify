@@ -3,6 +3,7 @@ from django.http import Http404
 from django.views.generic import TemplateView
 from tickets.models import User, IssueGroup
 from django.core.paginator import Paginator
+from django.db.models import Q
 
 from clarify.settings import ITEMS_PER_PAGE
 
@@ -21,7 +22,8 @@ class IssueGroupView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        qs = IssueGroup.objects.all().order_by("name")
+        qs = IssueGroup.objects.all()
+        qs = self.get_qs_by_search_term(context, qs)
 
         paginator = Paginator(qs, ITEMS_PER_PAGE)
         page_number = self.request.GET.get("page")
@@ -30,4 +32,12 @@ class IssueGroupView(LoginRequiredMixin, TemplateView):
         context["issue_groups"] = page_obj
         context["page_obj"] = page_obj
         context["paginator"] = paginator
+
         return context
+
+    def get_qs_by_search_term(self, context, qs):
+        search_term = self.request.GET.get("searchTermForIG", "").strip()
+        context["searchTermForIG"] = search_term
+        if search_term:
+            qs = qs.filter(Q(name__icontains=search_term))
+        return qs.order_by("name")

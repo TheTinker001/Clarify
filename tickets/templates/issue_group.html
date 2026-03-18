@@ -3,6 +3,23 @@
     <div class="container mt-3">
         <h1>Issue Group</h1>
         <a href="{% url 'create_issue_group' %}" class="btn btn-primary mb-3">Create New Issue Group</a>
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+                <form method="get" action="{% url 'issue_group' %}">
+                    <div class="d-flex align-items-center gap-3">
+                        <input type="text"
+                               class="form-control"
+                               name="searchTermForIG"
+                               placeholder="Search issue groups..."
+                               value="{{ searchTermForIG }}"
+                               id="searchInputForIG">
+                        <button class="btn btn-dark" type="submit">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
         <div class="mb-3">{% include "partials/pagination_navbar.html" with page_obj=page_obj %}</div>
         {% for i in issue_groups %}
             <div class="card mb-3 shadow-sm issue-group-card">
