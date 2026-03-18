@@ -58,3 +58,15 @@ class IssueGroupViewTestCase(TestCase):
 
         names = [issue.name for issue in response.context["issue_groups"].object_list]
         self.assertEqual(names, ["a", "b", "c"])
+
+    def test_issue_group_search_bar(self):
+        self.client.login(username=self.staff.username, password="Password123")
+        i1 = IssueGroup.objects.create(name="a")
+        i2 = IssueGroup.objects.create(name="a2")
+        IssueGroup.objects.create(name="b")
+        IssueGroup.objects.create(name="c")
+
+        response = self.client.get(self.url, {"searchTermForIG": "a"})
+        self.assertEqual(response.status_code, 200)
+        names = [issue for issue in response.context["issue_groups"]]
+        self.assertEqual(names, [i1, i2])
