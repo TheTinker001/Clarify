@@ -1,13 +1,13 @@
 <div class="card mb-3 shadow-sm ticket-card">
     <div class="card-body">
-        <!-- header -->
+        <!-- Header -->
         <div class="d-flex justify-content-between align-items-start">
             <h5 class="card-title mb-1">{{ ticket.subject }}</h5>
             <span class="badge {% if ticket.status == ticket.Status.CLOSED %} bg-secondary {% elif ticket.status == ticket.Status.AWAITING_STUDENT %} bg-warning text-dark {% else %} bg-primary {% endif %} ">
                 {{ ticket.get_status_display }}
             </span>
         </div>
-        <!-- student name, only if you are staff -->
+        <!-- Student name, only if you are staff -->
         {% if user.user_type == "staff" %}
             <div class="d-flex justify-content-between align-items-start mb-2">
                 <div>
@@ -23,13 +23,13 @@
                 {% endif %}
             </div>
         {% endif %}
-        <!-- meta -->
+        <!-- Meta -->
         <div class="mb-2">
             <span class="badge bg-light text-dark me-1">{{ ticket.get_faculty_display }}</span>
             <span class="badge bg-light text-dark me-1">{{ ticket.get_study_level_display }}</span>
             <span class="badge bg-light text-dark">{{ ticket.get_category_display }}</span>
         </div>
-        <!-- dates -->
+        <!-- Dates -->
         <p class="card-text text-muted small mb-1">Created {{ ticket.created_at|date:"d M Y" }}</p>
         {% if ticket.status != ticket.Status.CLOSED %}
             <p class="card-text text-muted small mb-1">Last updated {{ ticket.updated_at|timesince }} ago</p>
@@ -41,6 +41,6 @@
             </p>
         {% endif %}
     </div>
-    <!-- clickable card -->
+    <!-- Clickable card -->
     <a href="{{ ticket.get_absolute_url }}" class="stretched-link"></a>
 </div>
