@@ -58,7 +58,21 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "widget_tweaks",
     "tickets",
+    "django_summernote",
 ]
+
+SUMMERNOTE_CONFIG = {
+    "lazy": False,
+    "summernote": {
+        "toolbar": [
+            ["style", ["bold", "italic", "underline", "strikethrough"]],
+            ["para", ["ul", "ol", "paragraph"]],
+        ],
+        "width": "100%",
+        "height": "200px",
+        "disableDragAndDrop": True,
+    },
+}
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -188,7 +202,6 @@ EDIT_TIME_LIMIT_MINUTES = 10
 
 # Body length max for text fields
 BODY_LENGTH_MAX = 50000
-
 # CRON settings
 CRON_TOKEN = os.environ.get("CRON_TOKEN", "")
 

@@ -25,10 +25,7 @@ class Comment(models.Model):
         on_delete=models.CASCADE,
         related_name="comments",
     )
-    body = models.TextField(
-        max_length=BODY_MAX_LENGTH,
-        validators=[MaxLengthValidator(BODY_MAX_LENGTH)],
-    )
+    body = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     url_code = models.CharField(max_length=64, unique=True, blank=True, null=False)
