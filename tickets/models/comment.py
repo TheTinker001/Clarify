@@ -13,8 +13,6 @@ class Comment(models.Model):
     class Meta:
         ordering = ["created_at"]
 
-    BODY_MAX_LENGTH = 5000
-
     ticket = models.ForeignKey(
         "Ticket",
         on_delete=models.CASCADE,
