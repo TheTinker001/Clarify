@@ -14,6 +14,14 @@
                 <strong>Tickets:</strong> {{ issue_group.tickets.count }}
             </p>
         </div>
+        <form method="post">
+            {% csrf_token %}
+            <textarea name="message" class="form-control" rows="4"></textarea>
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-send-fill"></i> Broadcast
+            </button>
+        </form>
+        {% include "partials/issue_group_message.html" with issue_group=issue_group %}
         <form method="get"
               action="{% url 'issue_group_detail' slug=issue_group.slug %}">
             <div class="col-md-4">

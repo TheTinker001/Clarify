@@ -1,8 +1,9 @@
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from tickets.models import User, IssueGroup, Ticket
+from tickets.models import User, IssueGroup, Ticket, IssueUpdate
 from django.core.paginator import Paginator
+from django.contrib import messages
 
 from clarify.settings import ITEMS_PER_PAGE
 
@@ -52,3 +53,24 @@ class IssueGroupDetailView(LoginRequiredMixin, TemplateView):
         open_qs = qs.exclude(status=Ticket.Status.CLOSED)
         closed_qs = qs.filter(status=Ticket.Status.CLOSED)
         return (open_qs, closed_qs)
+
+    def post(self, request, *args, **kwargs):
+        message = request.POST.get("message", "").strip()
+
+        if message:
+            if request.user.user_type != User.USER_TYPE_STAFF:
+                messages.error(request, "Invalid user type")
+            else:
+                if self.issue_group.tickets.exists():
+                    IssueUpdate.objects.create(
+                        issue=self.issue_group,
+                        message=message,
+                        created_by=request.user,
+                    )
+                    messages.success(request, "Message broadcasted to issue group.")
+                else:
+                    messages.error(request, "No tickets assigned to issue group")
+        else:
+            messages.error(request, "Unable to broadcast empty message")
+
+        return redirect("issue_group_detail", slug=self.issue_group.slug)
