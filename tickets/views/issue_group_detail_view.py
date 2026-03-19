@@ -58,18 +58,15 @@ class IssueGroupDetailView(LoginRequiredMixin, TemplateView):
         message = request.POST.get("message", "").strip()
 
         if message:
-            if request.user.user_type != User.USER_TYPE_STAFF:
-                messages.error(request, "Invalid user type")
+            if self.issue_group.tickets.exists():
+                IssueUpdate.objects.create(
+                    issue=self.issue_group,
+                    message=message,
+                    created_by=request.user,
+                )
+                messages.success(request, "Message broadcasted to issue group.")
             else:
-                if self.issue_group.tickets.exists():
-                    IssueUpdate.objects.create(
-                        issue=self.issue_group,
-                        message=message,
-                        created_by=request.user,
-                    )
-                    messages.success(request, "Message broadcasted to issue group.")
-                else:
-                    messages.error(request, "No tickets assigned to issue group")
+                messages.error(request, "No tickets assigned to issue group")
         else:
             messages.error(request, "Unable to broadcast empty message")
 
