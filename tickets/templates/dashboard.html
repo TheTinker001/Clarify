@@ -174,22 +174,22 @@
                         {% include "partials/pagination_navbar.html" with page_obj=page_obj %}
                     </div>
                     <!-- Sorting dropdown aligned right -->
-                    <div class="col-4 d-flex justify-content-end align-items-center gap-2">
+                    <div class="col-4 d-flex justify-content-end align-items-center">
                         {% if user.user_type == user.USER_TYPE_STAFF %}
-                            <select class="form-select form-select-sm w-auto"
-                                    id="orderFilter"
-                                    onchange="applyOrderFilter(this.value)">
-                                <option value="newest" {% if filters.order == "newest" %}selected{% endif %}>Newest</option>
-                                <option value="oldest" {% if filters.order == "oldest" %}selected{% endif %}>Oldest</option>
-                            </select>
-                            <script>
-                                function applyOrderFilter(value) {
-                                    const url = new URL(window.location.href);
-                                    url.searchParams.set('order', value);
-                                    url.searchParams.delete('page');
-                                    window.location.href = url.toString();
-                                }
-                            </script>
+                            <form method="get" class="d-flex align-items-center">
+                                <input type="hidden" name="tab" value="{{ tab }}">
+                                <input type="hidden" name="searchTerm" value="{{ searchTerm }}">
+                                <input type="hidden" name="faculty" value="{{ filters.faculty }}">
+                                <input type="hidden" name="study_level" value="{{ filters.study_level }}">
+                                <input type="hidden" name="category" value="{{ filters.category }}">
+                                <input type="hidden" name="priority" value="{{ filters.priority }}">
+                                <select class="form-select form-select-sm w-auto"
+                                        name="order"
+                                        onchange="this.form.submit()">
+                                    <option value="newest" {% if filters.order == "newest" %}selected{% endif %}>Newest</option>
+                                    <option value="oldest" {% if filters.order == "oldest" %}selected{% endif %}>Oldest</option>
+                                </select>
+                            </form>
                         {% endif %}
                     </div>
                 </div>

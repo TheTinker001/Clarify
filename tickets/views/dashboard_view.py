@@ -156,7 +156,12 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         """Filter the queryset by search term across subject, body, student username, and full name (staff only)."""
         if current_user.user_type == User.USER_TYPE_STAFF and search_term:
             order_filter = self.request.GET.get("order", "newest")
-            ordering = "created_at" if order_filter == "oldest" else "-created_at"
+
+            if order_filter == "oldest":
+                ordering = "created_at"
+            else:
+                ordering = "-created_at"
+
             qs = (
                 qs.annotate(
                     student_full_name=Concat(
