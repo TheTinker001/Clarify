@@ -1,20 +1,27 @@
 {% if issue_group %}
-    <h6 class="mt-4">Recent broadcasts</h6>
-    {% for update in issue_group.issue_updates.all|slice:":2" %}
-        <div class="card mb-2">
-            <div class="card-body">
-                <p class="mb-1">{{ update.message }}</p>
-                <small class="text-muted">{{ update.created_at }} By: {{ update.created_by }}</small>
-            </div>
+    <div class="mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="mb-0 fw-semibold">Recent issue group broadcasts</h6>
+            <button class="btn btn-sm btn-outline-secondary"
+                    type="button"
+                    data-bs-toggle="offcanvas"
+                    data-bs-target="#broadcastHistoryOffcanvas"
+                    aria-controls="broadcastHistoryOffcanvas">View all</button>
         </div>
-    {% empty %}
-        <p class="text-muted">No broadcast messages yet.</p>
-    {% endfor %}
-    <button class="btn btn-outline-secondary btn-sm mb-3"
-            type="button"
-            data-bs-toggle="offcanvas"
-            data-bs-target="#broadcastHistoryOffcanvas"
-            aria-controls="broadcastHistoryOffcanvas">View all broadcasts</button>
+        {% for update in issue_group.issue_updates.all|slice:":2" %}
+            <div class="card mb-3 shadow-sm ticket-card">
+                <div class="card-body">
+                    <p class="mb-1">{{ update.message }}</p>
+                    <small class="text-muted">
+                        {{ update.created_at }}
+                        {% if update.created_by %}By: {{ update.created_by }}{% endif %}
+                    </small>
+                </div>
+            </div>
+        {% empty %}
+            <p class="text-muted mb-3">No broadcast messages yet.</p>
+        {% endfor %}
+    </div>
     <div class="offcanvas offcanvas-end"
          tabindex="-1"
          id="broadcastHistoryOffcanvas"
