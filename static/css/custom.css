@@ -136,14 +136,14 @@ h3.profile-title {
 /*
  * Tickets
  */
-.ticket-card {
+.ticket-card, .issue-group-card {
   text-decoration: none;
   color: inherit;
   border: 1px solid #e2e2e2;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.ticket-card:hover {
+.ticket-card:hover, .issue-group-card:hover {
   text-decoration: none;
   color: inherit;
   transform: translateY(-2px);
@@ -226,6 +226,24 @@ h3.profile-title {
  */
 .clarify-navbar {
     background-color: #AC202D !important;
+}
+
+.sidebar-brand {
+    font-size: 1.1rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.btn-red {
+    color: white;
+}
+
+.bg-red {
+    background-color: #AC202D;
+}
+
+.bg-red-hover:hover{
+    background-color: #ab0011;
 }
 
 /*
@@ -406,7 +424,7 @@ body {
     color: #fff;
 }
 
-.btn-primary:hover {
+.btn-primary:hover, .btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary.show {
     background-color: #8B1A23;
     border-color: #8B1A23;
     color: #fff;
@@ -431,7 +449,7 @@ body {
     border-color: #AC202D;
 }
 
-.btn-dark:hover {
+.btn-dark:hover, .btn-dark:focus, .btn-dark:active, .btn-dark.show{
     background-color: #8B1A23;
     border-color: #8B1A23;
 }
