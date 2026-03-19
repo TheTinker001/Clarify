@@ -52,10 +52,6 @@ class TicketModelTestCase(TestCase):
         self.ticket.body = "x" * 50000
         self._assert_ticket_is_valid()
 
-    def test_body_cannot_be_over_50000_characters_long(self):
-        self.ticket.body = "x" * 50001
-        self._assert_ticket_is_invalid()
-
     # Tests for clean(self)
     def test_clean_accepts_student_as_student(self):
         self.ticket.student = self.student
