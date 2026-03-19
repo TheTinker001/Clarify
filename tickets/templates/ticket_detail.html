@@ -23,8 +23,8 @@
                         <span class="badge bg-light text-dark me-1">{{ ticket.get_study_level_display }}</span>
                         <span class="badge bg-light text-dark">{{ ticket.get_category_display }}</span>
                     </div>
-                    <!-- Ticket fields -->
-                    {% if user.user_type == "staff" and ticket.status != ticket.Status.CLOSED %}
+                    <!-- Ticket fields (admin only) -->
+                    {% if user.is_superuser and ticket.status != ticket.Status.CLOSED %}
                         <div class="card-body p-4">
                             <form id="ticket-field-form" method="post">
                                 {% csrf_token %}
@@ -178,8 +178,8 @@
                                     </form>
                                 </div>
                             {% endif %}
-                            <!-- Priority updating -->
-                            {% if ticket.status != ticket.Status.CLOSED %}
+                            <!-- Priority updating (admin only) -->
+                            {% if user.is_superuser and ticket.status != ticket.Status.CLOSED %}
                                 <form id="priority-form" method="post">
                                     {% csrf_token %}
                                     <input type="hidden" name="action" value="set_priority">
@@ -189,6 +189,7 @@
                                         <button type="submit" form="priority-form" class="btn btn-outline-primary">Update</button>
                                     </div>
                                 </form>
+                            {% endif %}
                                 {% if ticket.assigned_to == user %}
                                     <form method="post">
                                         {% csrf_token %}

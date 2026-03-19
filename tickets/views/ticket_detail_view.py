@@ -48,8 +48,8 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
 
     # GET helpers
     def get_priority_form(self):
-        """Return a pre-populated priority form for staff, or None for students."""
-        if self.is_staff_user:
+        """Return a pre-populated priority form for admin (superuser) staff, or None."""
+        if self.is_staff_user and self.request.user.is_superuser:
             return TicketPriorityForm(instance=self.ticket)
         return None
 
@@ -58,7 +58,8 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         return CommentForm()
 
     def get_fields_form(self):
-        if self.is_staff_user:
+        """Return a ticket fields form for admin (superuser) staff, or None."""
+        if self.is_staff_user and self.request.user.is_superuser:
             return TicketFieldsForm(instance=self.ticket)
         return None
 
@@ -87,9 +88,9 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
 
     # Action handlers
     def post_action_set_priority(self, request, *args, **kwargs):
-        """Update the ticket's priority for staff.
-        Raises Http404 on closed tickets."""
-        if not self.is_staff_user or self.ticket.status == Ticket.Status.CLOSED:
+        """Update the ticket's priority. Only admin (superuser) staff can do this.
+        Raises Http404 on closed tickets or non-admin users."""
+        if not self.is_staff_user or not request.user.is_superuser or self.ticket.status == Ticket.Status.CLOSED:
             raise Http404
 
         priority_form = TicketPriorityForm(request.POST, instance=self.ticket)
@@ -235,7 +236,8 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         return redirect("ticket_detail", url_code=kwargs.get("url_code"))
 
     def post_action_edit_ticket_fields(self, request, *args, **kwargs):
-        if not self.is_staff_user or self.ticket.status == Ticket.Status.CLOSED:
+        """Only admin (superuser) staff can edit ticket fields."""
+        if not self.is_staff_user or not request.user.is_superuser or self.ticket.status == Ticket.Status.CLOSED:
             raise Http404
 
         if self.ticket.assigned_to_id and self.ticket.assigned_to_id != request.user.id:
