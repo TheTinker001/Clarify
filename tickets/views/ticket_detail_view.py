@@ -181,7 +181,10 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
                 update_fields=["status", "awaiting_student_since", "updated_at"]
             )
 
-        messages.success(request, "Comment added.")
+        messages.success(
+            request,
+            f"Comment added. You have {EDIT_TIME_LIMIT_MINUTES} minutes remaining to edit it.",
+        )
         return redirect("ticket_detail", url_code=kwargs.get("url_code"))
 
     def post_action_close_ticket(self, request, *args, **kwargs):

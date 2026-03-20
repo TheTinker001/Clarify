@@ -70,7 +70,10 @@ class EditCommentViewTestCase(TestCase):
     def test_edit_shows_success_message(self):
         self.client.login(username=self.student.username, password="Password123")
         response = self.client.post(self.url, {"body": "Updated."}, follow=True)
-        self.assertContains(response, "Your message has been edited.")
+        self.assertContains(
+            response,
+            f"Comment edited. You have {EDIT_TIME_LIMIT_MINUTES} minutes remaining to edit it.",
+        )
 
     # Time limit enforcement
     def test_author_cannot_edit_after_10_minutes(self):

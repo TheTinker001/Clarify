@@ -174,7 +174,24 @@
                         {% include "partials/pagination_navbar.html" with page_obj=page_obj %}
                     </div>
                     <!-- Sorting dropdown aligned right -->
-                    <div class="col-4 d-flex justify-content-end align-items-center"></div>
+                    <div class="col-4 d-flex justify-content-end align-items-center">
+                        {% if user.user_type == user.USER_TYPE_STAFF %}
+                            <form method="get" class="d-flex align-items-center">
+                                <input type="hidden" name="tab" value="{{ tab }}">
+                                <input type="hidden" name="searchTerm" value="{{ searchTerm }}">
+                                <input type="hidden" name="faculty" value="{{ filters.faculty }}">
+                                <input type="hidden" name="study_level" value="{{ filters.study_level }}">
+                                <input type="hidden" name="category" value="{{ filters.category }}">
+                                <input type="hidden" name="priority" value="{{ filters.priority }}">
+                                <select class="form-select form-select-sm w-auto"
+                                        name="order"
+                                        onchange="this.form.submit()">
+                                    <option value="newest" {% if filters.order == "newest" %}selected{% endif %}>Newest</option>
+                                    <option value="oldest" {% if filters.order == "oldest" %}selected{% endif %}>Oldest</option>
+                                </select>
+                            </form>
+                        {% endif %}
+                    </div>
                 </div>
                 {% for ticket in tickets %}
                     {% include "partials/ticket_card.html" with ticket=ticket %}
