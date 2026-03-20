@@ -87,7 +87,10 @@ class EditCommentView(LoginRequiredMixin, View):
             for f in new_files:
                 TicketAttachment.objects.create(comment=comment, file=f)
 
-            messages.success(request, "Your message has been edited.")
+            messages.success(
+                request,
+                f"Comment edited. You have {EDIT_TIME_LIMIT_MINUTES} minutes remaining to edit it.",
+            )
             return redirect("ticket_detail", url_code=comment.ticket.url_code)
 
         return render(
