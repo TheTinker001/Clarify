@@ -8,13 +8,3 @@
             class="btn btn-danger"
             onclick="uncheckAll('{{ checkbox_class }}')">Clear All</button>
 </div>
-{% block extra_js %}
-    <script>
-        function checkAll(className) {
-            document.querySelectorAll('input.' + className).forEach(cb => cb.checked = true);
-            }
-        function uncheckAll(className) {
-            document.querySelectorAll('input.' + className).forEach(cb => cb.checked = false);
-            }
-    </script>
-{% endblock %}
