@@ -96,7 +96,7 @@
                     {% endfor %}
                 </div>
                 <!-- Comment form -->
-                {% if user.user_type == "student" %}
+                {% if user.user_type == "student" or user.user_type == "staff" and ticket.assigned_to == user and ticket.status != ticket.Status.CLOSED %}
                     <div class="card mt-3">
                         <div class="card-body">
                             <h6 class="card-title">Add a comment</h6>
@@ -107,22 +107,9 @@
                                 {% if form.body.errors %}<div class="text-danger mt-1">{{ form.body.errors }}</div>{% endif %}
                                 <div class="mt-2">{{ form.attachments }}</div>
                                 {% if form.attachments.errors %}<div class="text-danger mt-1">{{ form.attachments.errors }}</div>{% endif %}
-                                <button type="submit" class="btn btn-primary mt-2">Submit</button>
-                            </form>
-                        </div>
-                    </div>
-                {% elif user.user_type == "staff" and ticket.assigned_to == user and ticket.status != ticket.Status.CLOSED %}
-                    <div class="card mt-3">
-                        <div class="card-body">
-                            <h6 class="card-title">Add a comment</h6>
-                            <form method="post" enctype="multipart/form-data">
-                                {% csrf_token %}
-                                <input type="hidden" name="action" value="add_comment">
-                                {{ form.body }}
-                                {% if form.body.errors %}<div class="text-danger mt-1">{{ form.body.errors }}</div>{% endif %}
-                                {{ form.attachments }}
-                                {% if form.attachments.errors %}<div class="text-danger mt-1">{{ form.attachments.errors }}</div>{% endif %}
-                                <button type="submit" class="btn btn-primary mt-2">Submit</button>
+                                <button type="submit" class="btn btn-primary mt-2">
+                                    <i class="bi bi-send-fill"></i>
+                                </button>
                             </form>
                         </div>
                     </div>
