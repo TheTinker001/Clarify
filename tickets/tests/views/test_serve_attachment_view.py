@@ -6,9 +6,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
-from tickets.models import Ticket
-from tickets.models.attachment import TicketAttachment
-from tickets.models.comment import Comment
+from tickets.models import Ticket, TicketAttachment, Comment
 from tickets.tests.helpers import _reverse_with_next
 
 User = get_user_model()
@@ -18,7 +16,7 @@ TEMP_MEDIA_ROOT = tempfile.mkdtemp()
 
 @override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
 class ServeAttachmentViewTest(TestCase):
-    """Tests for ServeAttachmentView — covers all access-control branches."""
+    """Tests for ServeAttachmentView, covering all access-control branches."""
 
     def setUp(self):
         self.student = User.objects.create_user(
@@ -47,13 +45,14 @@ class ServeAttachmentViewTest(TestCase):
             subject="Test ticket",
             body="Test body.",
         )
-        file = SimpleUploadedFile("test.pdf", b"pdf content", content_type="application/pdf")
+        file = SimpleUploadedFile(
+            "test.pdf", b"pdf content", content_type="application/pdf"
+        )
         self.attachment = TicketAttachment.objects.create(ticket=self.ticket, file=file)
-        # file.name is e.g. "ticket_attachments/2026/03/19/test.pdf"; strip the prefix
         self.path = self.attachment.file.name.removeprefix("ticket_attachments/")
         self.url = reverse("serve_attachment", kwargs={"path": self.path})
 
-    # --- Case 1: unauthenticated ---
+    # Case 1: unauthenticated
 
     def test_unauthenticated_user_is_redirected(self):
         response = self.client.get(self.url)
@@ -64,28 +63,28 @@ class ServeAttachmentViewTest(TestCase):
             fetch_redirect_response=False,
         )
 
-    # --- Case 2: staff ---
+    # Case 2: staff
 
     def test_staff_can_access_any_attachment(self):
         self.client.login(username="staff1", password="Password123")
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
 
-    # --- Case 3: student who owns the ticket ---
+    # Case 3: student who owns the ticket
 
     def test_ticket_owner_student_can_access_attachment(self):
         self.client.login(username="student1", password="Password123")
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
 
-    # --- Case 4: different student (not the owner) ---
+    # Case 4: different student (not the owner)
 
     def test_non_owner_student_gets_404(self):
         self.client.login(username="student2", password="Password123")
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 404)
 
-    # --- Case 5: attachment not found in DB ---
+    # Case 5: attachment not found in DB
 
     def test_nonexistent_path_returns_404(self):
         self.client.login(username="staff1", password="Password123")
@@ -93,7 +92,7 @@ class ServeAttachmentViewTest(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 404)
 
-    # --- Case 6: file missing from disk ---
+    # Case 6: file missing from disk
 
     def test_missing_file_on_disk_raises(self):
         self.client.login(username="staff1", password="Password123")
@@ -101,7 +100,7 @@ class ServeAttachmentViewTest(TestCase):
         with self.assertRaises(FileNotFoundError):
             self.client.get(self.url)
 
-    # --- Case 7: attachment linked to a comment ---
+    # Case 7: attachment linked to a comment
 
     def test_comment_attachment_owner_student_gets_200(self):
         comment = Comment.objects.create(
@@ -109,7 +108,9 @@ class ServeAttachmentViewTest(TestCase):
             author=self.student,
             body="Comment with attachment.",
         )
-        file = SimpleUploadedFile("comment.pdf", b"pdf content", content_type="application/pdf")
+        file = SimpleUploadedFile(
+            "comment.pdf", b"pdf content", content_type="application/pdf"
+        )
         comment_attachment = TicketAttachment.objects.create(comment=comment, file=file)
         path = comment_attachment.file.name.removeprefix("ticket_attachments/")
         url = reverse("serve_attachment", kwargs={"path": path})
@@ -123,7 +124,9 @@ class ServeAttachmentViewTest(TestCase):
             author=self.student,
             body="Comment with attachment.",
         )
-        file = SimpleUploadedFile("comment.pdf", b"pdf content", content_type="application/pdf")
+        file = SimpleUploadedFile(
+            "comment.pdf", b"pdf content", content_type="application/pdf"
+        )
         comment_attachment = TicketAttachment.objects.create(comment=comment, file=file)
         path = comment_attachment.file.name.removeprefix("ticket_attachments/")
         url = reverse("serve_attachment", kwargs={"path": path})
@@ -131,10 +134,12 @@ class ServeAttachmentViewTest(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 404)
 
-    # --- Case 8: attachment with neither ticket nor comment ---
+    # Case 8: attachment with neither ticket nor comment
 
     def test_orphan_attachment_returns_404_for_student(self):
-        file = SimpleUploadedFile("orphan.pdf", b"pdf content", content_type="application/pdf")
+        file = SimpleUploadedFile(
+            "orphan.pdf", b"pdf content", content_type="application/pdf"
+        )
         orphan = TicketAttachment.objects.create(file=file)
         path = orphan.file.name.removeprefix("ticket_attachments/")
         url = reverse("serve_attachment", kwargs={"path": path})
@@ -142,7 +147,7 @@ class ServeAttachmentViewTest(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 404)
 
-    # --- user_type is neither staff nor student ---
+    # Case 9: user_type is neither staff nor student
 
     def test_unknown_user_type_gets_404(self):
         User.objects.create_user(
