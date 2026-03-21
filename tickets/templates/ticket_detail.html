@@ -124,17 +124,20 @@
                             <dt class="col-5">Created by</dt>
                             <dd class="col-7">
                                 {% if ticket.student == user %}
-                                    <a href="{% url 'profile' %}">{{ ticket.student.username }}</a>
+                                    <a href="{% url 'profile' %}">{{ ticket.student.full_name }}</a>
                                 {% else %}
-                                    <a href="{% url 'profile_other_user' username=ticket.student.username %}">{{ ticket.student.username }}</a>
-                                    <span class="text-muted">({{ ticket.student.full_name }})</span>
+                                    <a href="{% url 'profile_other_user' username=ticket.student.username %}">{{ ticket.student.full_name }}</a>
                                 {% endif %}
                             </dd>
                             <dt class="col-5">Assigned to</dt>
                             <dd class="col-7">
                                 {% if ticket.assigned_to.exists %}
                                     {% for assigned_user in ticket.assigned_to.all %}
-                                        {{ assigned_user.get_full_name|default:assigned_user.username }}
+                                        {% if assigned_user == user %}
+                                            <a href="{% url 'profile' %}">{{ assigned_user.full_name }}</a>
+                                        {% else %}
+                                            <a href="{% url 'profile_other_user' username=assigned_user.username %}">{{ assigned_user.full_name }}</a>
+                                        {% endif %}
                                         {% if not forloop.last %},{% endif %}
                                     {% endfor %}
                                 {% else %}
@@ -174,7 +177,7 @@
                                     <span class="bi-flag me-2"></span>
                                     Claimed by
                                     {% for assigned_user in ticket.assigned_to.all %}
-                                        {{ assigned_user.get_full_name|default:assigned_user.username }}
+                                        {{ assigned_user.full_name|default:assigned_user.username }}
                                         {% if not forloop.last %},{% endif %}
                                     {% endfor %}
                                 </div>
