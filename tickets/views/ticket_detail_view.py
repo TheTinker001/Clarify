@@ -14,7 +14,7 @@ from tickets.forms import (
     TicketFieldsForm,
     TicketIssueGroupForm,
 )
-from clarify.settings import EDIT_TIME_LIMIT_MINUTES
+from clarify.settings import EDIT_TIME_LIMIT_MINUTES, MAX_FILES_PER_TICKET
 
 
 class TicketDetailView(LoginRequiredMixin, TemplateView):
@@ -131,10 +131,10 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
             return self.render_to_response(self.get_context_data(form=comment_form))
 
         files = comment_form.cleaned_data.get("attachments") or []
-        if len(files) > TicketAttachment.MAX_FILES_PER_TICKET:
+        if len(files) > MAX_FILES_PER_TICKET:
             comment_form.add_error(
                 "attachments",
-                f"You can upload a maximum of {TicketAttachment.MAX_FILES_PER_TICKET} files.",
+                f"You can upload a maximum of {MAX_FILES_PER_TICKET} files.",
             )
             return self.render_to_response(self.get_context_data(form=comment_form))
 

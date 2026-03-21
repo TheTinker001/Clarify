@@ -6,7 +6,7 @@ from django.db.models import Q, Value, Count
 from django.db.models.functions import Concat
 from tickets.models import Ticket, User
 from datetime import timedelta
-from clarify.settings import ITEMS_PER_PAGE
+from clarify.settings import ITEMS_PER_PAGE, MAX_TICKET_CLAIMANTS
 
 
 class DashboardView(LoginRequiredMixin, TemplateView):
@@ -66,7 +66,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 "open_tickets": tickets.annotate(
                     assigned_count=Count("assigned_to", distinct=True)
                 ).filter(
-                    assigned_count__lt=5,
+                    assigned_count__lt=MAX_TICKET_CLAIMANTS,
                     status__in=[
                         Ticket.Status.AWAITING_STAFF,
                         Ticket.Status.AWAITING_STUDENT,

@@ -6,6 +6,7 @@ from django.views.decorators.http import require_POST
 from django.views import View
 from tickets.models import Ticket, User
 from django.db import transaction
+from clarify.settings import MAX_TICKET_CLAIMANTS
 
 
 @method_decorator([login_required, require_POST], name="dispatch")
@@ -35,7 +36,7 @@ class TicketClaimView(View):
                 messages.success(request, "You have already claimed this ticket.")
                 return redirect(ticket.get_absolute_url())
 
-            if ticket.assigned_to.count() >= 5:
+            if ticket.assigned_to.count() >= MAX_TICKET_CLAIMANTS:
                 assigned_users = ", ".join(
                     str(user) for user in ticket.assigned_to.all()
                 )

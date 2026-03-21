@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.urls import reverse
 from tickets.helpers import _validate_file_size
 import secrets
-from clarify.settings import ALLOWED_EXTENSIONS, BODY_LENGTH_MAX
+from clarify.settings import ALLOWED_EXTENSIONS, BODY_LENGTH_MAX, MAX_TICKET_CLAIMANTS
 from tickets.models.issue_group import IssueGroup
 
 User = get_user_model()
@@ -173,10 +173,10 @@ class Ticket(models.Model):
             raise ValidationError({"student": "Ticket can only be made by students."})
 
         if self.pk and self.assigned_to.exists():
-            if self.assigned_to.count() > 5:
+            if self.assigned_to.count() > MAX_TICKET_CLAIMANTS:
                 raise ValidationError(
                     {
-                        "assigned_to": "Tickets can only be assigned to maximum of 5 staff."
+                        "assigned_to": f"Tickets can only be assigned to maximum of {MAX_TICKET_CLAIMANTS} staff."
                     }
                 )
             elif self.assigned_to.filter(user_type=User.USER_TYPE_STUDENT).exists():
