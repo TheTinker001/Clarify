@@ -5,8 +5,6 @@ from django.urls import reverse
 from tickets.models import User
 from tickets.models.ticket import Ticket
 from tickets.tests.helpers import LogInTester
-from datetime import timedelta
-from django.utils import timezone
 
 
 class DashboardOrderingTestCase(TestCase, LogInTester):
