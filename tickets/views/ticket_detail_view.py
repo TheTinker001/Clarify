@@ -278,6 +278,9 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         if not self.is_staff_user or self.ticket.status == Ticket.Status.CLOSED:
             raise Http404
 
+        if not self.ticket.assigned_to.filter(id=request.user.id).exists():
+            raise Http404
+
         issue_group_form = TicketIssueGroupForm(request.POST, instance=self.ticket)
         if issue_group_form.is_valid():
             issue_group_form.save()

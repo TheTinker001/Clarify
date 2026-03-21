@@ -5,7 +5,7 @@
         <div class="row">
             <div class="col-12">
                 <div class="ticket-header mt-2">
-                    <h1 class="mb-1">{{ ticket.title }}</h1>
+                    <h1 class="mb-1">{{ ticket.subject }}</h1>
                     <div class="d-flex flex-wrap gap-2 align-items-center">
                         <span class="badge bg-secondary text-uppercase">{{ ticket.get_status_display }}</span>
                         <span class="text-muted">Ticket #{{ ticket.pk }}</span>
@@ -96,24 +96,7 @@
                     {% endfor %}
                 </div>
                 <!-- Comment form -->
-                {% if user.user_type == "student" %}
-                    <div class="card mt-3">
-                        <div class="card-body">
-                            <h6 class="card-title">Add a comment</h6>
-                            <form method="post" enctype="multipart/form-data">
-                                {% csrf_token %}
-                                <input type="hidden" name="action" value="add_comment">
-                                {{ form.body }}
-                                {% if form.body.errors %}<div class="text-danger mt-1">{{ form.body.errors }}</div>{% endif %}
-                                {{ form.attachments }}
-                                {% if form.attachments.errors %}<div class="text-danger mt-1">{{ form.attachments.errors }}</div>{% endif %}
-                                <button type="submit" class="btn btn-primary mt-2">
-                                    <i class="bi bi-send-fill"></i>
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                {% elif user.user_type == "staff" and user in ticket.assigned_to.all and ticket.status != ticket.Status.CLOSED %}
+                {% if user.user_type == "student" or user.user_type == "staff" and user in ticket.assigned_to.all and ticket.status != ticket.Status.CLOSED %}
                     <div class="card mt-3">
                         <div class="card-body">
                             <h6 class="card-title">Add a comment</h6>
@@ -150,8 +133,8 @@
                             <dt class="col-5">Assigned to</dt>
                             <dd class="col-7">
                                 {% if ticket.assigned_to.exists %}
-                                    {% for user in ticket.assigned_to.all %}
-                                        {{ user.get_full_name|default:user.username }}
+                                    {% for assigned_user in ticket.assigned_to.all %}
+                                        {{ assigned_user.get_full_name|default:assigned_user.username }}
                                         {% if not forloop.last %},{% endif %}
                                     {% endfor %}
                                 {% else %}
@@ -190,8 +173,8 @@
                                      role="alert">
                                     <span class="bi-flag me-2"></span>
                                     Claimed by
-                                    {% for user in ticket.assigned_to.all %}
-                                        {{ user.get_full_name|default:user.username }}
+                                    {% for assigned_user in ticket.assigned_to.all %}
+                                        {{ assigned_user.get_full_name|default:assigned_user.username }}
                                         {% if not forloop.last %},{% endif %}
                                     {% endfor %}
                                 </div>
