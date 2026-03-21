@@ -1,0 +1,10 @@
+<div class="mb-3">
+    <label for="{{ field.id_for_label }}">{{ label|default:field.label }}</label>
+    {{ field }}
+    <button type="button"
+            class="btn btn-primary"
+            onclick="checkAll('{{ checkbox_class }}')">Select All</button>
+    <button type="button"
+            class="btn btn-danger"
+            onclick="uncheckAll('{{ checkbox_class }}')">Clear All</button>
+</div>

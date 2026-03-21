@@ -11,7 +11,7 @@
         {% if user.user_type == "staff" %}
             <div class="d-flex justify-content-between align-items-start mb-2">
                 <div>
-                    <p class="text-muted mb-0">Student: {{ ticket.student.get_full_name|default:ticket.student.username }}</p>
+                    <p class="text-muted mb-0">Student: {{ ticket.student.full_name|default:ticket.student.username }}</p>
                     <p class="text-muted mb-0">Username: {{ ticket.student.username }}</p>
                 </div>
                 {% if ticket.status != ticket.Status.CLOSED %}

@@ -2,14 +2,11 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
 from django.utils import timezone
 from django.views.generic import TemplateView
-from django.db.models import Q, Value
-from tickets.models import Ticket, User
-
+from django.db.models import Q, Value, Count
 from django.db.models.functions import Concat
-
+from tickets.models import Ticket, User
 from datetime import timedelta
-
-from clarify.settings import ITEMS_PER_PAGE
+from clarify.settings import ITEMS_PER_PAGE, MAX_TICKET_CLAIMANTS
 
 
 class DashboardView(LoginRequiredMixin, TemplateView):
@@ -66,8 +63,10 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             overdue_cutoff = timezone.now() - timedelta(days=5)
 
             groups = {
-                "open_tickets": tickets.filter(
-                    assigned_to__isnull=True,
+                "open_tickets": tickets.annotate(
+                    assigned_count=Count("assigned_to", distinct=True)
+                ).filter(
+                    assigned_count__lt=MAX_TICKET_CLAIMANTS,
                     status__in=[
                         Ticket.Status.AWAITING_STAFF,
                         Ticket.Status.AWAITING_STUDENT,
@@ -141,13 +140,27 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             if category_filter and category_filter in dict(Ticket.Category.choices):
                 qs = qs.filter(category=category_filter)
 
-        qs = qs.order_by(self.default_sorting)
+        if current_user.user_type == User.USER_TYPE_STAFF:
+            order_filter = self.request.GET.get("order", "newest")
+            if order_filter == "oldest":
+                qs = qs.order_by("created_at")
+            else:
+                qs = qs.order_by("-created_at")
+        else:
+            qs = qs.order_by(self.default_sorting)
 
         return tab, qs
 
     def get_queryset_for_search_term(self, qs, current_user, search_term):
         """Filter the queryset by search term across subject, body, student username, and full name (staff only)."""
         if current_user.user_type == User.USER_TYPE_STAFF and search_term:
+            order_filter = self.request.GET.get("order", "newest")
+
+            if order_filter == "oldest":
+                ordering = "created_at"
+            else:
+                ordering = "-created_at"
+
             qs = (
                 qs.annotate(
                     student_full_name=Concat(
@@ -160,7 +173,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                     | Q(student__username__icontains=search_term)
                     | Q(student_full_name__icontains=search_term)
                 )
-                .order_by(self.default_sorting)
+                .order_by(ordering)
             )
         return qs
 
@@ -240,6 +253,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                     "faculty": self.request.GET.get("faculty", ""),
                     "study_level": self.request.GET.get("study_level", ""),
                     "category": self.request.GET.get("category", ""),
+                    "order": self.request.GET.get("order", "newest"),
                 },
                 "filter_choices": {
                     "priority": Ticket.Priority.choices,
