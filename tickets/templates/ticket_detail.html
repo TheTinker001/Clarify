@@ -5,7 +5,7 @@
         <div class="row">
             <div class="col-12">
                 <div class="ticket-header mt-2">
-                    <h1 class="mb-1">{{ ticket.title }}</h1>
+                    <h1 class="mb-1">{{ ticket.subject }}</h1>
                     <div class="d-flex flex-wrap gap-2 align-items-center">
                         <span class="badge bg-secondary text-uppercase">{{ ticket.get_status_display }}</span>
                         <span class="text-muted">Ticket #{{ ticket.pk }}</span>
@@ -98,7 +98,7 @@
                     {% endfor %}
                 </div>
                 <!-- Comment form -->
-                {% if user.user_type == "student" %}
+                {% if user.user_type == "student" or user.user_type == "staff" and user in ticket.assigned_to.all and ticket.status != ticket.Status.CLOSED %}
                     <div class="card mt-3">
                         <div class="card-body">
                             <h6 class="card-title">Add a comment</h6>
@@ -109,22 +109,9 @@
                                 {% if form.body.errors %}<div class="text-danger mt-1">{{ form.body.errors }}</div>{% endif %}
                                 {{ form.attachments }}
                                 {% if form.attachments.errors %}<div class="text-danger mt-1">{{ form.attachments.errors }}</div>{% endif %}
-                                <button type="submit" class="btn btn-primary mt-2">Submit</button>
-                            </form>
-                        </div>
-                    </div>
-                {% elif user.user_type == "staff" and ticket.assigned_to == user and ticket.status != ticket.Status.CLOSED %}
-                    <div class="card mt-3">
-                        <div class="card-body">
-                            <h6 class="card-title">Add a comment</h6>
-                            <form method="post" enctype="multipart/form-data">
-                                {% csrf_token %}
-                                <input type="hidden" name="action" value="add_comment">
-                                {{ form.body }}
-                                {% if form.body.errors %}<div class="text-danger mt-1">{{ form.body.errors }}</div>{% endif %}
-                                {{ form.attachments }}
-                                {% if form.attachments.errors %}<div class="text-danger mt-1">{{ form.attachments.errors }}</div>{% endif %}
-                                <button type="submit" class="btn btn-primary mt-2">Submit</button>
+                                <button type="submit" class="btn btn-primary mt-2">
+                                    <i class="bi bi-send-fill"></i>
+                                </button>
                             </form>
                         </div>
                     </div>
@@ -139,22 +126,24 @@
                             <dt class="col-5">Created by</dt>
                             <dd class="col-7">
                                 {% if ticket.student == user %}
-                                    <a href="{% url 'profile' %}">{{ ticket.student.username }}</a>
+                                    <a href="{% url 'profile' %}">{{ ticket.student.full_name }}</a>
                                 {% else %}
-                                    <a href="{% url 'profile_other_user' username=ticket.student.username %}">{{ ticket.student.username }}</a>
-                                    <span class="text-muted">({{ ticket.student.full_name }})</span>
+                                    <a href="{% url 'profile_other_user' username=ticket.student.username %}">{{ ticket.student.full_name }}</a>
                                 {% endif %}
                             </dd>
                             <dt class="col-5">Assigned to</dt>
                             <dd class="col-7">
-                                {% if ticket.assigned_to %}
-                                    {% if ticket.assigned_to == user %}
-                                        <a href="{% url 'profile' %}">{{ ticket.assigned_to.username }}</a>
-                                    {% else %}
-                                        <a href="{% url 'profile_other_user' username=ticket.assigned_to.username %}">{{ ticket.assigned_to.username }}</a>
-                                    {% endif %}
+                                {% if ticket.assigned_to.exists %}
+                                    {% for assigned_user in ticket.assigned_to.all %}
+                                        {% if assigned_user == user %}
+                                            <a href="{% url 'profile' %}">{{ assigned_user.full_name }}</a>
+                                        {% else %}
+                                            <a href="{% url 'profile_other_user' username=assigned_user.username %}">{{ assigned_user.full_name }}</a>
+                                        {% endif %}
+                                        {% if not forloop.last %},{% endif %}
+                                    {% endfor %}
                                 {% else %}
-                                    Unassigned
+                                    <p class="text-muted m-0 p-0">Unassigned</p>
                                 {% endif %}
                             </dd>
                             <dt class="col-5">Created</dt>
@@ -177,18 +166,22 @@
                         <div class="mb-3"></div>
                         <!-- Claiming -->
                         {% if user.user_type == "staff" %}
-                            {% if ticket.assigned_to == user %}
+                            {% if user in ticket.assigned_to.all %}
                                 <div class="d-flex justify-content-between align-items-start mb-3">
                                     <form method="post" action="{{ ticket.get_unclaim_url }}">
                                         {% csrf_token %}
                                         <button type="submit" class="btn btn-sm btn-outline-danger">Unclaim</button>
                                     </form>
                                 </div>
-                            {% elif ticket.assigned_to %}
+                            {% elif ticket.assigned_to.all|length == 5 %}
                                 <div class="alert alert-warning d-flex align-items-center mb-3"
                                      role="alert">
                                     <span class="bi-flag me-2"></span>
-                                    Claimed by {{ ticket.assigned_to.get_full_name|default:ticket.assigned_to.username }}
+                                    Claimed by
+                                    {% for assigned_user in ticket.assigned_to.all %}
+                                        {{ assigned_user.full_name|default:assigned_user.username }}
+                                        {% if not forloop.last %},{% endif %}
+                                    {% endfor %}
                                 </div>
                             {% else %}
                                 <div class="d-flex justify-content-between align-items-start mb-3">
@@ -200,7 +193,7 @@
                             {% endif %}
                             <!-- Priority + Issue group updating -->
                             {% if ticket.status != ticket.Status.CLOSED %}
-                                <div class="d-flex flex-column gap-3">
+                                <div class="d-flex flex-column gap-3 mb-3">
                                     <form id="priority-form" method="post">
                                         {% csrf_token %}
                                         <input type="hidden" name="action" value="set_priority">
@@ -222,7 +215,7 @@
                                         </div>
                                     </form>
                                 </div>
-                                {% if ticket.assigned_to == user %}
+                                {% if user in ticket.assigned_to.all %}
                                     <form method="post">
                                         {% csrf_token %}
                                         <input type="hidden" name="action" value="close_ticket">
@@ -230,7 +223,7 @@
                                     </form>
                                 {% endif %}
                             {% else %}
-                                {% if ticket.assigned_to == user %}
+                                {% if user in ticket.assigned_to.all %}
                                     <form method="post">
                                         {% csrf_token %}
                                         <input type="hidden" name="action" value="unclose_ticket">

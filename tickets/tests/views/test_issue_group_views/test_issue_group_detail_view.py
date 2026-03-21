@@ -43,7 +43,6 @@ class IssueGroupDetailViewTestCase(TestCase):
         issue_group2 = IssueGroup.objects.create(name="Test Issue Group 2")
         t1 = Ticket.objects.create(
             student=self.student,
-            assigned_to=self.staff,
             faculty="nmes",
             study_level="undergraduate",
             category="other",
@@ -53,7 +52,6 @@ class IssueGroupDetailViewTestCase(TestCase):
         )
         t2 = Ticket.objects.create(
             student=self.student,
-            assigned_to=self.staff,
             faculty="nmes",
             study_level="undergraduate",
             category="other",
@@ -63,7 +61,6 @@ class IssueGroupDetailViewTestCase(TestCase):
         )
         t3 = Ticket.objects.create(
             student=self.student,
-            assigned_to=self.staff,
             faculty="nmes",
             study_level="undergraduate",
             category="other",
@@ -71,6 +68,10 @@ class IssueGroupDetailViewTestCase(TestCase):
             body="Test2",
             issue_group=issue_group2,
         )
+        t1.assigned_to.add(self.staff)
+        t2.assigned_to.add(self.staff)
+        t3.assigned_to.add(self.staff)
+
         self.client.login(username=self.staff.username, password="Password123")
         response = self.client.get(self.url)
         displayed_tickets = list(response.context["tickets"].object_list)

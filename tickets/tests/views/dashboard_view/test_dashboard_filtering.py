@@ -84,14 +84,12 @@ class DashboardFilteringTestCase(TestCase, LogInTester):
         self.client.login(username="@janedoe", password="Password123")
         Ticket.objects.create(
             status=Ticket.Status.AWAITING_STAFF,
-            assigned_to=None,
             subject="Test ticket 1",
             body="This is a test ticket 1.",
             **self.ticket_data,
         )
         Ticket.objects.create(
             status=Ticket.Status.AWAITING_STAFF,
-            assigned_to=None,
             subject="Test ticket 2",
             body="This is a test ticket 2.",
             **self.ticket_data,
