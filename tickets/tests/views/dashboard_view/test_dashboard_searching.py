@@ -219,12 +219,12 @@ class DashboardSearchingTestCase(TestCase, LogInTester):
 
         # Assigned ticket
         for i in range(2):
-            Ticket.objects.create(
+            ticket = Ticket.objects.create(
                 **self.ticket_data,
                 subject=f"search term {i+1}",
                 body="This is a test assigned ticket.",
-                assigned_to=self.staff,
             )
+            ticket.assigned_to.add(self.staff)
 
         response = self.client.get(
             self.url, {"searchTerm": "search term 1", "tab": "assigned_tickets"}

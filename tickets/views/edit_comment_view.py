@@ -9,7 +9,7 @@ from django.views import View
 
 from tickets.forms.comment_form import CommentForm
 from tickets.models import Comment
-from clarify.settings import EDIT_TIME_LIMIT_MINUTES
+from clarify.settings import EDIT_TIME_LIMIT_MINUTES, MAX_FILES_PER_TICKET
 from tickets.models import Comment, TicketAttachment
 
 
@@ -63,10 +63,10 @@ class EditCommentView(LoginRequiredMixin, View):
             existing_count = comment.attachments.count() - len(delete_ids)
             new_files = request.FILES.getlist("attachments")
 
-            if existing_count + len(new_files) > TicketAttachment.MAX_FILES_PER_TICKET:
+            if existing_count + len(new_files) > MAX_FILES_PER_TICKET:
                 form.add_error(
                     None,
-                    f"You can only have up to {TicketAttachment.MAX_FILES_PER_TICKET} attachments per comment.",
+                    f"You can only have up to {MAX_FILES_PER_TICKET} attachments per comment.",
                 )
                 return render(
                     request,

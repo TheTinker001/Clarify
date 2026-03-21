@@ -35,7 +35,6 @@ class DashboardOrderingTestCase(TestCase, LogInTester):
             "study_level": study_level,
             "category": category,
             "status": Ticket.Status.AWAITING_STAFF,
-            "assigned_to": None,
         }
 
         self.ticket_old = Ticket.objects.create(
@@ -79,7 +78,9 @@ class DashboardOrderingTestCase(TestCase, LogInTester):
     def test_invalid_order_value_falls_back_to_newest(self):
         """An invalid order param defaults to newest-first."""
         self.client.login(username="@janedoe", password="Password123")
-        response = self.client.get(self.url, {"tab": "open_tickets", "order": "invalid"})
+        response = self.client.get(
+            self.url, {"tab": "open_tickets", "order": "invalid"}
+        )
         self.assertEqual(response.status_code, 200)
         tickets = list(response.context["page_obj"].object_list)
         self.assertEqual(tickets[0], self.ticket_new)

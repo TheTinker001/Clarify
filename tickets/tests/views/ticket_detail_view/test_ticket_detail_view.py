@@ -2,7 +2,7 @@
 
 from django.test import TestCase, override_settings
 from unittest.mock import patch
-from tickets.forms import TicketPriorityForm, TicketFieldsForm
+from tickets.forms import TicketPriorityForm
 from tickets.models import Ticket, User
 from tickets.tests.helpers import (
     MenuTesterMixin,
@@ -28,13 +28,13 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
         self.staff = User.objects.get(username="@janedoe")
         self.ticket = Ticket.objects.create(
             student=self.student,
-            assigned_to=self.staff,
             faculty="nmes",
             study_level="undergraduate",
             category="other",
             subject="Update card access",
             body="Card access not working for lab.",
         )
+        self.ticket.assigned_to.add(self.staff)
         self.url = self.ticket.get_absolute_url()
 
     def test_ticket_detail_url(self):
@@ -331,18 +331,33 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
         self.assertIsNone(self.ticket.closed_at)
         self.assertIsNone(self.ticket.awaiting_student_since)
 
-    @override_settings(EMAIL_HOST_USER="c@e.com", EMAIL_HOST_PASSWORD="p", DEFAULT_FROM_EMAIL="c@e.com", SITE_URL="http://testserver")
+    @override_settings(
+        EMAIL_HOST_USER="c@e.com",
+        EMAIL_HOST_PASSWORD="p",
+        DEFAULT_FROM_EMAIL="c@e.com",
+        SITE_URL="http://testserver",
+    )
     def test_close_ticket_sends_answered_email(self):
         self.client.login(username=self.staff.username, password="Password123")
-        with patch("tickets.views.ticket_detail_view._send_ticket_closed_email") as mock_send:
+        with patch(
+            "tickets.views.ticket_detail_view._send_ticket_closed_email"
+        ) as mock_send:
             self.client.post(self.url, data={"action": "close_ticket"})
             mock_send.assert_called_once()
             self.assertEqual(mock_send.call_args[0][1], "answered")
 
-    @override_settings(EMAIL_HOST_USER="c@e.com", EMAIL_HOST_PASSWORD="p", DEFAULT_FROM_EMAIL="c@e.com", SITE_URL="http://testserver")
+    @override_settings(
+        EMAIL_HOST_USER="c@e.com",
+        EMAIL_HOST_PASSWORD="p",
+        DEFAULT_FROM_EMAIL="c@e.com",
+        SITE_URL="http://testserver",
+    )
     def test_close_ticket_still_works_when_email_fails(self):
         self.client.login(username=self.staff.username, password="Password123")
-        with patch("tickets.views.ticket_detail_view._send_ticket_closed_email", side_effect=Exception("fail")):
+        with patch(
+            "tickets.views.ticket_detail_view._send_ticket_closed_email",
+            side_effect=Exception("fail"),
+        ):
             self.client.post(self.url, data={"action": "close_ticket"})
             self.ticket.refresh_from_db()
             self.assertEqual(self.ticket.status, Ticket.Status.CLOSED)

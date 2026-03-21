@@ -23,13 +23,13 @@ class TicketDetailCommentEmailTestCase(TestCase, MenuTesterMixin):
         self.staff.save()
         self.ticket = Ticket.objects.create(
             student=self.student,
-            assigned_to=self.staff,
             faculty="nmes",
             study_level="undergraduate",
             category="other",
             subject="Update card access",
             body="Card access not working for lab.",
         )
+        self.ticket.assigned_to.add(self.staff)
         self.url = self.ticket.get_absolute_url()
 
     @override_settings(

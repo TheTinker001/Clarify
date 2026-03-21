@@ -25,13 +25,13 @@ class EditCommentViewTestCase(TestCase):
         self.staff = User.objects.get(username="@janedoe")
         self.ticket = Ticket.objects.create(
             student=self.student,
-            assigned_to=self.staff,
             faculty="nmes",
             study_level="undergraduate",
             category="other",
             subject="Test subject",
             body="Test body.",
         )
+        self.ticket.assigned_to.add(self.staff)
         self.comment = Comment.objects.create(
             ticket=self.ticket,
             author=self.student,
