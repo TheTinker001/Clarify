@@ -1,27 +1,78 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-3">
+<nav class="navbar navbar-expand-lg navbar-dark clarify-navbar mb-3">
   <div class="container">
-    {% if user.is_authenticated %}
+    <div class="my-2">
+      {% if user.is_authenticated %}
+        <button class="btn btn-dark me-2"
+                type="button"
+                data-bs-toggle="offcanvas"
+                data-bs-target="#sidebar"
+                aria-controls="sidebar">
+          <i class="bi bi-list"></i>
+        </button>
+      {% endif %}
       <a class="navbar-brand" href="{% url 'dashboard' %}">
         <i class="bi bi-door-open-fill"></i>
         Clarify
       </a>
-    {% else %}
-      <a class="navbar-brand" href="{% url 'home' %}">
-        <i class="bi bi-door-open-fill"></i>
-        Clarify
-      </a>
-    {% endif %}
-    <button class="navbar-toggler"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#navbarSupportedContent"
-            aria-controls="navbarSupportedContent"
-            aria-expanded="false"
-            aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    {% if user.is_authenticated %}
-      {% include 'partials/menu.html' %}
-    {% endif %}
+    </div>
   </div>
 </nav>
+{% if user.is_authenticated %}
+  <div class="offcanvas offcanvas-start bg-red text-white"
+       tabindex="-1"
+       id="sidebar"
+       aria-labelledby="sidebarLabel">
+    <div class="offcanvas-header d-flex justify-content-between align-items-start">
+      <div class="d-flex flex-column align-items-start">
+        <div class="d-flex align-items-center gap-1">
+          <i class="bi bi-door-open-fill"></i>
+          <span class="sidebar-brand">Clarify</span>
+        </div>
+        <small class="text-white-50 ms-1">{{ request.user.username }}</small>
+      </div>
+      <button type="button"
+              class="btn-close btn-close-white text-reset pt-4"
+              data-bs-dismiss="offcanvas"
+              aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body d-flex flex-column">
+      <div class="list-group">
+        {% if user.user_type == user.USER_TYPE_STUDENT %}
+          <a href="{% url 'create_ticket' %}"
+             class="list-group-item bg-red text-white border-1 bg-red-hover">
+            <i class="bi bi-plus-circle me-2 text-white"></i>
+            Create Ticket
+          </a>
+        {% else %}
+          <a href="{% url 'issue_group' %}"
+             class="list-group-item bg-red text-white border-1 bg-red-hover">
+            <i class="bi bi-collection-fill me-2 text-white"></i>
+            Issue Groups
+          </a>
+          {% if user.is_superuser %}
+            <a href="{% url 'admin:index' %}"
+               class="list-group-item bg-red text-white border-1 bg-red-hover">
+              <i class="bi bi-person-badge-fill me-2 text-white"></i>
+              Admin
+            </a>
+          {% endif %}
+        {% endif %}
+        <a href="{% url 'profile' %}"
+           class="list-group-item bg-red text-white border-1 bg-red-hover">
+          <i class="bi bi-person-circle me-2 text-white"></i>
+          Change Profile
+        </a>
+        <a href="{% url 'password' %}"
+           class="list-group-item bg-red text-white border-1 bg-red-hover">
+          <i class="bi bi-key-fill me-2 text-white"></i>
+          Change Password
+        </a>
+        <a href="{% url 'log_out' %}"
+           class="list-group-item bg-red text-white border-1 bg-red-hover">
+          <i class="bi bi-box-arrow-right me-2 text-white"></i>
+          Log out
+        </a>
+      </div>
+    </div>
+  </div>
+{% endif %}

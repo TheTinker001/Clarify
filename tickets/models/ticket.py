@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.urls import reverse
 from tickets.helpers import _validate_file_size
 import secrets
-from clarify.settings import ALLOWED_EXTENSIONS
+from clarify.settings import ALLOWED_EXTENSIONS, BODY_LENGTH_MAX
 from tickets.models.issue_group import IssueGroup
 
 User = get_user_model()
@@ -121,9 +121,8 @@ class Ticket(models.Model):
 
     subject = models.CharField(max_length=78)
 
-    BODY_MAX_LENGTH = 50000
     body = models.TextField(
-        max_length=BODY_MAX_LENGTH, validators=[MaxLengthValidator(BODY_MAX_LENGTH)]
+        max_length=BODY_LENGTH_MAX, validators=[MaxLengthValidator(BODY_LENGTH_MAX)]
     )
 
     attachment = models.FileField(
@@ -148,8 +147,15 @@ class Ticket(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     awaiting_student_since = models.DateTimeField(null=True, blank=True, db_index=True)
+    reminder_sent_at = models.DateTimeField(null=True, blank=True)
 
     url_code = models.CharField(max_length=64, unique=True, blank=True, null=False)
+    internal_notes = models.TextField(
+        blank=True,
+        default="",
+        max_length=BODY_LENGTH_MAX,
+        validators=[MaxLengthValidator(BODY_LENGTH_MAX)],
+    )
 
     issue_group = models.ForeignKey(
         IssueGroup,

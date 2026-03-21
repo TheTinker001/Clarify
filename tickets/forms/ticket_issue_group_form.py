@@ -3,6 +3,8 @@ from tickets.models import Ticket, IssueGroup
 
 
 class TicketIssueGroupForm(forms.ModelForm):
+    """Form used by staff to update the issue group of an existing ticket."""
+
     class Meta:
         model = Ticket
         fields = ["issue_group"]

@@ -1,5 +1,5 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import redirect
+from django.http import Http404
 from django.views.generic import TemplateView
 from tickets.models import User, IssueGroup
 from django.core.paginator import Paginator
@@ -8,12 +8,14 @@ from clarify.settings import ITEMS_PER_PAGE
 
 
 class IssueGroupView(LoginRequiredMixin, TemplateView):
+    """Display existing issue groups to staff users."""
 
     template_name = "issue_group.html"
 
     def dispatch(self, request, *args, **kwargs):
         if request.user.user_type != User.USER_TYPE_STAFF:
-            return redirect("dashboard")
+            raise Http404
+
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):

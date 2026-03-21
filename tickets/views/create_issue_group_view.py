@@ -8,6 +8,7 @@ from tickets.forms import IssueGroupForm
 
 
 class CreateIssueGroupView(LoginRequiredMixin, CreateView):
+    """Let staff create an issue group."""
 
     model = IssueGroup
     form_class = IssueGroupForm

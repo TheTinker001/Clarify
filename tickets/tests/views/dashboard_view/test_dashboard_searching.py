@@ -272,3 +272,70 @@ class DashboardSearchingTestCase(TestCase, LogInTester):
         tickets = response.context["page_obj"].object_list
         self.assertEqual(len(tickets), 1)
         self.assertEqual(tickets[0].subject, "test closed ticket 1")
+
+    def test_search_results_are_ordered_oldest_first_when_order_is_oldest(self):
+        self.client.login(username="@janedoe", password="Password123")
+
+        older_ticket = Ticket.objects.create(
+            subject="Matching ticket older",
+            body="search target",
+            **self.ticket_data,
+        )
+        newer_ticket = Ticket.objects.create(
+            subject="Matching ticket newer",
+            body="search target",
+            **self.ticket_data,
+        )
+
+        Ticket.objects.filter(pk=older_ticket.pk).update(
+            created_at=timezone.now() - timedelta(days=2)
+        )
+        Ticket.objects.filter(pk=newer_ticket.pk).update(
+            created_at=timezone.now() - timedelta(days=1)
+        )
+
+        response = self.client.get(
+            self.url,
+            {
+                "searchTerm": "Matching ticket",
+                "order": "oldest",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        tickets = list(response.context["page_obj"].object_list)
+        self.assertEqual(tickets[0].pk, older_ticket.pk)
+        self.assertEqual(tickets[1].pk, newer_ticket.pk)
+
+    def test_search_results_are_ordered_newest_first_by_default(self):
+        self.client.login(username="@janedoe", password="Password123")
+
+        older_ticket = Ticket.objects.create(
+            subject="Matching ticket older",
+            body="search target",
+            **self.ticket_data,
+        )
+        newer_ticket = Ticket.objects.create(
+            subject="Matching ticket newer",
+            body="search target",
+            **self.ticket_data,
+        )
+
+        Ticket.objects.filter(pk=older_ticket.pk).update(
+            created_at=timezone.now() - timedelta(days=2)
+        )
+        Ticket.objects.filter(pk=newer_ticket.pk).update(
+            created_at=timezone.now() - timedelta(days=1)
+        )
+
+        response = self.client.get(
+            self.url,
+            {
+                "searchTerm": "Matching ticket",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        tickets = list(response.context["page_obj"].object_list)
+        self.assertEqual(tickets[0].pk, newer_ticket.pk)
+        self.assertEqual(tickets[1].pk, older_ticket.pk)

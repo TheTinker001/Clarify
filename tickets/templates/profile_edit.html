@@ -8,6 +8,20 @@
                     <p class="text-muted">Update your personal details and profile picture.</p>
                     <a href="{% url 'profile' %}"
                        class="btn btn-outline-secondary btn-sm mb-3 back-to-profile-btn">← Back to Profile</a>
+                    {% if user.user_type == "student" %}
+                        <p>
+                            <strong>Student ID:</strong> {{ user.student_id|default:"—" }}
+                        </p>
+                        <p>
+                            <strong>Faculty:</strong> {{ user.faculty_label|default:"—" }}
+                        </p>
+                        <p>
+                            <strong>Study Level:</strong> {{ user.study_level_label|default:"—" }}
+                        </p>
+                        <p>
+                            <strong>Graduation Year:</strong> {{ user.graduation_year|default:"—" }}
+                        </p>
+                    {% endif %}
                     <!-- Form -->
                     <form action="{% url 'profile_edit' %}"
                           method="post"

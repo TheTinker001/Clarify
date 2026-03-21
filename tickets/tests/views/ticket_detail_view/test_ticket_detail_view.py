@@ -1,6 +1,7 @@
 """Tests for the ticket detail view."""
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
+from unittest.mock import patch
 from tickets.forms import TicketPriorityForm
 from tickets.models import Ticket, User
 from tickets.tests.helpers import (
@@ -329,3 +330,34 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
         self.assertIsNone(self.ticket.closed_reason)
         self.assertIsNone(self.ticket.closed_at)
         self.assertIsNone(self.ticket.awaiting_student_since)
+
+    @override_settings(
+        EMAIL_HOST_USER="c@e.com",
+        EMAIL_HOST_PASSWORD="p",
+        DEFAULT_FROM_EMAIL="c@e.com",
+        SITE_URL="http://testserver",
+    )
+    def test_close_ticket_sends_answered_email(self):
+        self.client.login(username=self.staff.username, password="Password123")
+        with patch(
+            "tickets.views.ticket_detail_view._send_ticket_closed_email"
+        ) as mock_send:
+            self.client.post(self.url, data={"action": "close_ticket"})
+            mock_send.assert_called_once()
+            self.assertEqual(mock_send.call_args[0][1], "answered")
+
+    @override_settings(
+        EMAIL_HOST_USER="c@e.com",
+        EMAIL_HOST_PASSWORD="p",
+        DEFAULT_FROM_EMAIL="c@e.com",
+        SITE_URL="http://testserver",
+    )
+    def test_close_ticket_still_works_when_email_fails(self):
+        self.client.login(username=self.staff.username, password="Password123")
+        with patch(
+            "tickets.views.ticket_detail_view._send_ticket_closed_email",
+            side_effect=Exception("fail"),
+        ):
+            self.client.post(self.url, data={"action": "close_ticket"})
+            self.ticket.refresh_from_db()
+            self.assertEqual(self.ticket.status, Ticket.Status.CLOSED)

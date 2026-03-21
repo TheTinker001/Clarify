@@ -144,13 +144,27 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             if category_filter and category_filter in dict(Ticket.Category.choices):
                 qs = qs.filter(category=category_filter)
 
-        qs = qs.order_by(self.default_sorting)
+        if current_user.user_type == User.USER_TYPE_STAFF:
+            order_filter = self.request.GET.get("order", "newest")
+            if order_filter == "oldest":
+                qs = qs.order_by("created_at")
+            else:
+                qs = qs.order_by("-created_at")
+        else:
+            qs = qs.order_by(self.default_sorting)
 
         return tab, qs
 
     def get_queryset_for_search_term(self, qs, current_user, search_term):
         """Filter the queryset by search term across subject, body, student username, and full name (staff only)."""
         if current_user.user_type == User.USER_TYPE_STAFF and search_term:
+            order_filter = self.request.GET.get("order", "newest")
+
+            if order_filter == "oldest":
+                ordering = "created_at"
+            else:
+                ordering = "-created_at"
+
             qs = (
                 qs.annotate(
                     student_full_name=Concat(
@@ -163,7 +177,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                     | Q(student__username__icontains=search_term)
                     | Q(student_full_name__icontains=search_term)
                 )
-                .order_by(self.default_sorting)
+                .order_by(ordering)
             )
         return qs
 
@@ -243,6 +257,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                     "faculty": self.request.GET.get("faculty", ""),
                     "study_level": self.request.GET.get("study_level", ""),
                     "category": self.request.GET.get("category", ""),
+                    "order": self.request.GET.get("order", "newest"),
                 },
                 "filter_choices": {
                     "priority": Ticket.Priority.choices,

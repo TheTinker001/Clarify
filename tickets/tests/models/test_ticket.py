@@ -121,7 +121,7 @@ class TicketModelTestCase(TestCase):
 
     # Tests for save(self, *args, **kwargs)
     def test_invalid_save(self):
-        self.ticket.subject = "x" * 79  # invalid subject length
+        self.ticket.subject = "x" * 79  # Exceed the maximum allowed subject length
         with self.assertRaises(ValidationError):
             self.ticket.save()
 

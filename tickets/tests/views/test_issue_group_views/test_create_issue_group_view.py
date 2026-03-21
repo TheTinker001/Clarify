@@ -5,6 +5,7 @@ from django.contrib.messages import get_messages
 
 
 class IssueGroupCreateViewTestCase(TestCase):
+    """Tests for IssueGroupCreateView."""
 
     fixtures = ["tickets/tests/fixtures/default_user.json"]
 
