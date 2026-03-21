@@ -2,11 +2,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
 from django.utils import timezone
 from django.views.generic import TemplateView
-from django.db.models import Q, Value
-from tickets.models import Ticket, User
-from django.db.models import Count
-
+from django.db.models import Q, Value, Count
 from django.db.models.functions import Concat
+from tickets.models import Ticket, User
 
 from datetime import timedelta
 
