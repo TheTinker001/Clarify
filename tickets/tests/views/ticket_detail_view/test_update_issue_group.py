@@ -18,17 +18,16 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
 
     def setUp(self):
         self.student = User.objects.get(username="@johndoe")
-        self.student2 = User.objects.get(username="@petrapickles")
         self.staff = User.objects.get(username="@janedoe")
         self.ticket = Ticket.objects.create(
             student=self.student,
-            assigned_to=self.staff,
             faculty="nmes",
             study_level="undergraduate",
             category="other",
             subject="Update card access",
             body="Card access not working for lab.",
         )
+        self.ticket.assigned_to.add(self.staff)
         self.issue_group = IssueGroup.objects.create(name="Test Issue Group")
         self.url = self.ticket.get_absolute_url()
 
@@ -36,7 +35,7 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
         self.client.login(username=self.student.username, password="Password123")
         response = self.client.post(
             self.url,
-            data={"action": "set_issue_group", "issue_group": self.issue_group},
+            data={"action": "set_issue_group", "issue_group": self.issue_group.pk},
         )
         self.assertEqual(response.status_code, 404)
 
@@ -61,7 +60,7 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
         self.client.login(username=self.staff.username, password="Password123")
         response = self.client.post(
             self.url,
-            data={"action": "set_issue_group", "issue_group": self.issue_group},
+            data={"action": "set_issue_group", "issue_group": self.issue_group.pk},
         )
         self.assertEqual(response.status_code, 404)
 
@@ -86,3 +85,31 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
         self.ticket.refresh_from_db()
         self.assertEqual(self.ticket.issue_group, issue_group2)
         self.assertEqual(response.status_code, 302)
+
+    def test_assigned_staff_can_update_issue_group(self):
+        self.client.login(username="@janedoe", password="Password123")
+
+        response = self.client.post(
+            self.url,
+            {
+                "action": "set_issue_group",
+                "issue_group": self.issue_group.pk,
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.ticket.refresh_from_db()
+        self.assertEqual(self.ticket.issue_group, self.issue_group)
+
+    def test_unassigned_staff_cannot_update_issue_group(self):
+        self.client.login(username="@jonrain", password="Password123")
+
+        response = self.client.post(
+            self.url,
+            {
+                "action": "set_issue_group",
+                "issue_group": self.issue_group.pk,
+            },
+        )
+
+        self.assertEqual(response.status_code, 404)

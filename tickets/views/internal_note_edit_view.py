@@ -20,11 +20,15 @@ class InternalNoteEditView(LoginRequiredMixin, UpdateView):
         """Check permissions before processing the request."""
         if not request.user.is_authenticated:
             return super().dispatch(request, *args, **kwargs)
+
         self.object = self.get_object()
+
         if request.user.user_type != User.USER_TYPE_STAFF:
             raise Http404
-        if self.object.assigned_to != request.user:
+
+        if not self.object.assigned_to.filter(id=request.user.id).exists():
             raise Http404
+
         return super().dispatch(request, *args, **kwargs)
 
     def get_success_url(self):

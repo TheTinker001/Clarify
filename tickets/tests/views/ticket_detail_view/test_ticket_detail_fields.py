@@ -21,13 +21,13 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
         self.staff = User.objects.get(username="@janedoe")
         self.ticket = Ticket.objects.create(
             student=self.student,
-            assigned_to=self.staff,
             faculty="nmes",
             study_level="undergraduate",
             category="other",
             subject="Update card access",
             body="Card access not working for lab.",
         )
+        self.ticket.assigned_to.add(self.staff)
         self.url = self.ticket.get_absolute_url()
 
     def test_fields_form_in_context_for_staff(self):
@@ -88,7 +88,7 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
             password="Password123",
             user_type=User.USER_TYPE_STAFF,
         )
-        self.ticket.assigned_to = assigned_staff
+        self.ticket.assigned_to.add(assigned_staff)
         self.ticket.save()
         self.client.login(username=other_staff.username, password="Password123")
         response = self.client.post(
@@ -104,7 +104,7 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
 
     def test_edit_fields_as_assigned_staff_success(self):
         self.client.login(
-            username=self.ticket.assigned_to.username, password="Password123"
+            username=self.ticket.assigned_to.first().username, password="Password123"
         )
         response = self.client.post(
             self.ticket.get_absolute_url(),

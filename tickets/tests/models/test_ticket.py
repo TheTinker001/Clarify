@@ -62,12 +62,27 @@ class TicketModelTestCase(TestCase):
         self._assert_ticket_is_invalid()
 
     def test_clean_accepts_staff_as_assigned_to(self):
-        self.ticket.assigned_to = self.staff
+        self.ticket.assigned_to.add(self.staff)
         self._assert_ticket_is_valid()
 
     def test_clean_reject_student_as_assigned_to(self):
-        self.ticket.assigned_to = self.student
+        self.ticket.assigned_to.add(self.student)
         self._assert_ticket_is_invalid()
+
+    def test_clean_when_mt_five_staff_assigned(self):
+        staff_users = []
+        for i in range(6):
+            staff = User.objects.create_user(
+                username=f"@staff{i}",
+                email=f"staff{i}@example.com",
+                password="Password123",
+                user_type=User.USER_TYPE_STAFF,
+            )
+            staff_users.append(staff)
+
+        self.ticket.assigned_to.add(*staff_users)
+        with self.assertRaises(ValidationError):
+            self.ticket.full_clean()
 
     def test_clean_when_closed_requires_closed_reason(self):
         self.ticket.status = Ticket.Status.CLOSED

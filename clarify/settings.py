@@ -190,18 +190,23 @@ if ENVIRONMENT == "production":
 # Pagination settings
 ITEMS_PER_PAGE = 20
 
-# File extensions settings
+# File settings
 ALLOWED_EXTENSIONS = ["pdf", "doc", "docx", "txt", "jpg", "jpeg", "png"]
 ALLOWED_EXTENSIONS_ACCEPT = ",".join(f".{e}" for e in ALLOWED_EXTENSIONS)
 ALLOWED_EXTENSIONS_LABEL = (
     "Attachments (max 5 files, 5MB each — pdf, doc, docx, txt, jpg, jpeg, png)"
 )
+MAX_FILES_PER_TICKET = 5
 
 # Comment settings
 EDIT_TIME_LIMIT_MINUTES = 10
 
 # Body length max for text fields
 BODY_LENGTH_MAX = 50000
+
+# Maximum number of staff users who can claim a ticket
+MAX_TICKET_CLAIMANTS = 5
+
 # CRON settings
 CRON_TOKEN = os.environ.get("CRON_TOKEN", "")
 

@@ -92,6 +92,11 @@ urlpatterns = [
         views.UpdateIssueGroupView.as_view(),
         name="edit_issue_group",
     ),
+    path(
+        "media/ticket_attachments/<path:path>",
+        views.ServeAttachmentView.as_view(),
+        name="serve_attachment",
+    ),
 ]
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
