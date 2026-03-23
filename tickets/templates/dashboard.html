@@ -1,4 +1,5 @@
 {% extends 'base_content.html' %}
+{% load static %}
 {% block messages %}
     {% if messages %}
         <div class="container mt-3">
@@ -202,4 +203,7 @@
         <!-- Pagination -->
         <div class="mb-3">{% include "partials/pagination_navbar.html" with page_obj=page_obj %}</div>
     </div>
+{% endblock %}
+{% block extra_js %}
+    <script src="{% static 'js/pagination.js' %}"></script>
 {% endblock %}
