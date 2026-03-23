@@ -1,4 +1,7 @@
 from django.test import TestCase
+from django_summernote.widgets import SummernoteWidget
+
+from clarify.settings import BODY_LENGTH_MAX
 from tickets.models import Ticket
 from tickets.forms import TicketForm
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -84,7 +87,7 @@ class TicketFormTest(TestCase):
 
     def test_body_widget_is_textarea(self):
         form = TicketForm()
-        self.assertEqual(form.fields["body"].widget.attrs["rows"], 10)
+        self.assertIsInstance(form.fields["body"].widget, SummernoteWidget)
 
     def test_form_does_not_include_student_field(self):
         form = TicketForm()
@@ -230,3 +233,20 @@ class TicketFormTest(TestCase):
         }
         form = TicketForm(data=data, files={"attachment": file})
         self.assertTrue(form.is_valid())
+
+    def test_body_too_long_is_invalid(self):
+        form = TicketForm(
+            data={
+                "faculty": Ticket.Faculty.AH,
+                "study_level": Ticket.StudyLevel.UNDERGRADUATE,
+                "category": Ticket.Category.HEALTH_AND_WELLBEING,
+                "subject": "Test subject",
+                "body": "a" * (BODY_LENGTH_MAX + 1),
+            }
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("body", form.errors)
+        self.assertNotIn("faculty", form.errors)
+        self.assertNotIn("study_level", form.errors)
+        self.assertNotIn("category", form.errors)

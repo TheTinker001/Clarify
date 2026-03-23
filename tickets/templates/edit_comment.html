@@ -29,8 +29,8 @@
                                 <div class="edit-comment-attachments">{{ form.attachments }}</div>
                                 {% if form.attachments.errors %}<div class="text-danger mt-1">{{ form.attachments.errors }}</div>{% endif %}
                             </div>
-                            <div class="mt-4 d-flex gap-2">
-                                <button type="submit" class="btn btn-clarify" style="width:auto;">Save changes</button>
+                            <div class="d-flex gap-2 mt-3 edit-comment-buttons">
+                                <button type="submit" class="btn btn-clarify">Save changes</button>
                                 <a href="{% url 'ticket_detail' url_code=comment.ticket.url_code %}"
                                    class="btn btn-outline-secondary">Cancel</a>
                             </div>

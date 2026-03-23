@@ -8,8 +8,6 @@ from clarify.settings import ALLOWED_EXTENSIONS
 class TicketAttachment(models.Model):
     """A file attached to either a ticket or a comment (exactly one FK should be set)."""
 
-    MAX_FILES_PER_TICKET = 5
-
     ticket = models.ForeignKey(
         "Ticket",
         on_delete=models.CASCADE,
