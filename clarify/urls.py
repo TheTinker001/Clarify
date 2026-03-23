@@ -18,7 +18,7 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from tickets import views
 
 urlpatterns = [
@@ -75,6 +75,7 @@ urlpatterns = [
         views.CheckInboxTaskView.as_view(),
         name="check_inbox_task",
     ),
+    path("summernote/", include("django_summernote.urls")),
     path("issues/", views.IssueGroupView.as_view(), name="issue_group"),
     path(
         "issues/create/",
