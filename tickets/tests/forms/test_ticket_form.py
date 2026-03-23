@@ -45,9 +45,9 @@ class TicketFormTest(TestCase):
         form = TicketForm(data=form_data)
         self.assertFalse(form.is_valid())
         self.assertIn("category", form.errors)
+        self.assertIn("priority", form.errors)
         self.assertIn("subject", form.errors)
         self.assertIn("body", form.errors)
-        self.assertIn("priority", form.errors)
 
     def test_form_missing_subject(self):
         form_data = {
