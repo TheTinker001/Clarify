@@ -206,13 +206,16 @@ class TicketFormTest(TestCase):
     def test_body_too_long_is_invalid(self):
         form = TicketForm(
             data={
-                "faculty": "AH",
-                "study_level": "UG",
-                "category": "HW",
+                "faculty": Ticket.Faculty.AH,
+                "study_level": Ticket.StudyLevel.UNDERGRADUATE,
+                "category": Ticket.Category.HEALTH_AND_WELLBEING,
                 "subject": "Test subject",
                 "body": "a" * (BODY_LENGTH_MAX + 1),
             }
         )
-        print(form.errors)  # add this temporarily
+
         self.assertFalse(form.is_valid())
         self.assertIn("body", form.errors)
+        self.assertNotIn("faculty", form.errors)
+        self.assertNotIn("study_level", form.errors)
+        self.assertNotIn("category", form.errors)
