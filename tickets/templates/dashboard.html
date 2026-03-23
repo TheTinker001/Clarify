@@ -38,7 +38,7 @@
         <div class="row">
             <h2 class="dashboard-subheading">Ticket categories</h2>
             <div class="col-12">
-                {% if user.user_type == "student" %}
+                {% if user.user_type == user.USER_TYPE_STUDENT %}
                     <div class="btn-group mb-3" role="group" aria-label="Student ticket tabs">
                         <a href="?tab=open_tickets"
                            class="btn btn-outline-primary {% if tab == 'open_tickets' %}active{% endif %}">Open</a>
@@ -49,7 +49,7 @@
                         <a href="?tab=closed_tickets"
                            class="btn btn-outline-primary {% if tab == 'closed_tickets' %}active{% endif %}">Closed</a>
                     </div>
-                {% elif user.user_type == "staff" %}
+                {% elif user.user_type == user.USER_TYPE_STAFF %}
                     <div class="btn-group mb-3" role="group" aria-label="Staff ticket tabs">
                         <a href="?tab=open_tickets{% if carry_querystring %}&{{ carry_querystring }}{% endif %}"
                            class="btn btn-outline-primary {% if tab == 'open_tickets' %}active{% endif %}">Open</a>

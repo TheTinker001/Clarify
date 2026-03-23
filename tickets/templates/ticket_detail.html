@@ -9,7 +9,7 @@
                     <div class="d-flex flex-wrap gap-2 align-items-center">
                         <span class="badge bg-secondary text-uppercase">{{ ticket.get_status_display }}</span>
                         <span class="text-muted">Ticket #{{ ticket.pk }}</span>
-                        {% if user.user_type == "staff" and ticket.status != ticket.Status.CLOSED %}
+                        {% if user.user_type == user.USER_TYPE_STAFF and ticket.status != ticket.Status.CLOSED %}
                             <span class="ms-auto  badge fs-1">
                                 {% autoescape off %}
                                     {{ ticket.get_priority_icon }}
@@ -69,7 +69,7 @@
                 <div class="mt-4">
                     <h5>Comments</h5>
                     {% for comment in comments %}
-                        <div class="card mb-2 comment-card {% if comment.author.user_type == 'staff' %}comment-card--staff{% else %}comment-card--student{% endif %}">
+                        <div class="card mb-2 comment-card {% if comment.author.user_type == user.USER_TYPE_STAFF %}comment-card--staff{% else %}comment-card--student{% endif %}">
                             <div class="card-header comment-card-header d-flex justify-content-between align-items-center">
                                 <span class="fw-500">{{ comment.author.full_name }}</span>
                                 <small class="text-white-50">{{ comment.created_at|date:"M j, Y, P" }}</small>
@@ -96,7 +96,7 @@
                     {% endfor %}
                 </div>
                 <!-- Comment form -->
-                {% if user.user_type == "student" or user.user_type == "staff" and user in ticket.assigned_to.all and ticket.status != ticket.Status.CLOSED %}
+                {% if user.user_type == user.USER_TYPE_STUDENT or user.user_type == user.USER_TYPE_STAFF and user in ticket.assigned_to.all and ticket.status != ticket.Status.CLOSED %}
                     <div class="card mt-3">
                         <div class="card-body">
                             <h6 class="card-title">Add a comment</h6>
@@ -163,7 +163,7 @@
                         </dl>
                         <div class="mb-3"></div>
                         <!-- Claiming -->
-                        {% if user.user_type == "staff" %}
+                        {% if user.user_type == user.USER_TYPE_STAFF %}
                             {% if user in ticket.assigned_to.all %}
                                 <div class="d-flex justify-content-between align-items-start mb-3">
                                     <form method="post" action="{{ ticket.get_unclaim_url }}">
@@ -229,7 +229,7 @@
                             {% endif %}
                         {% endif %}
                         <!-- Internal notes (staff only) -->
-                        {% if user.user_type == "staff" %}
+                        {% if user.user_type == user.USER_TYPE_STAFF %}
                             <div class="mt-4">
                                 <div class="card">
                                     <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
