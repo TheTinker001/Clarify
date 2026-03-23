@@ -84,7 +84,6 @@ class IssueGroupDetailViewTestCase(TestCase):
         issue_group = IssueGroup.objects.create(name="Test Issue Group 3")
         t1 = Ticket.objects.create(
             student=self.student,
-            assigned_to=self.staff,
             faculty="nmes",
             study_level="undergraduate",
             category="other",
@@ -92,9 +91,9 @@ class IssueGroupDetailViewTestCase(TestCase):
             body="Test",
             issue_group=issue_group,
         )
+        t1.assigned_to.add(self.staff)
         t2 = Ticket.objects.create(
             student=self.student,
-            assigned_to=self.staff,
             faculty="nmes",
             study_level="undergraduate",
             category="other",
@@ -102,9 +101,9 @@ class IssueGroupDetailViewTestCase(TestCase):
             body="Test2",
             issue_group=issue_group,
         )
+        t2.assigned_to.add(self.staff)
         t3 = Ticket.objects.create(
             student=self.student,
-            assigned_to=self.staff,
             faculty="nmes",
             study_level="undergraduate",
             category="other",
@@ -115,6 +114,7 @@ class IssueGroupDetailViewTestCase(TestCase):
             closed_reason=Ticket.ClosedReason.ANSWERED,
             closed_at=timezone.now(),
         )
+        t3.assigned_to.add(self.staff)
         self.client.login(username=self.staff.username, password="Password123")
         url = reverse(
             "issue_group_detail",
@@ -141,7 +141,6 @@ class IssueGroupDetailViewTestCase(TestCase):
         issue_group = IssueGroup.objects.create(name="Test Issue Group 3")
         t1 = Ticket.objects.create(
             student=self.student,
-            assigned_to=self.staff,
             faculty="nmes",
             study_level="undergraduate",
             category="other",
@@ -149,9 +148,9 @@ class IssueGroupDetailViewTestCase(TestCase):
             body="Test",
             issue_group=issue_group,
         )
+        t1.assigned_to.add(self.staff)
         t2 = Ticket.objects.create(
             student=self.student,
-            assigned_to=self.staff,
             faculty="nmes",
             study_level="undergraduate",
             category="other",
@@ -162,6 +161,7 @@ class IssueGroupDetailViewTestCase(TestCase):
             closed_reason=Ticket.ClosedReason.ANSWERED,
             closed_at=timezone.now(),
         )
+        t2.assigned_to.add(self.staff)
         self.client.login(username=self.staff.username, password="Password123")
         url = reverse(
             "issue_group_detail",
@@ -197,9 +197,8 @@ class IssueGroupDetailViewTestCase(TestCase):
 
     def test_successfull_broadcast(self):
         self.client.login(username=self.staff.username, password="Password123")
-        Ticket.objects.create(
+        ticket = Ticket.objects.create(
             student=self.student,
-            assigned_to=self.staff,
             faculty="nmes",
             study_level="undergraduate",
             category="other",
@@ -207,6 +206,7 @@ class IssueGroupDetailViewTestCase(TestCase):
             body="Test2",
             issue_group=self.issue_group,
         )
+        ticket.assigned_to.add(self.staff)
         start_count = IssueUpdate.objects.count()
         response = self.client.post(self.url, {"message": "Test message"}, follow=True)
         self.assertEqual(IssueUpdate.objects.count(), start_count + 1)
