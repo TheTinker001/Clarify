@@ -32,10 +32,7 @@ class UserFormTestCase(TestCase):
 
     def test_valid_user_form(self):
         form = UserForm(data=self.form_input)
-        import sys
 
-        print(form.errors, file=sys.stderr)
-        print(form.errors)
         if not form.is_valid():
             raise Exception(form.errors)
         self.assertTrue(form.is_valid())
@@ -98,6 +95,19 @@ class UserFormTestCase(TestCase):
         form = UserForm(instance=user, data={**self.form_input, "username": ""})
         form.is_valid()
         self.assertIn("username", form.errors)
+
+    def test_profile_edit_form_includes_new_editable_fields(self):
+        form = UserForm()
+        self.assertIn("preferred_name", form.fields)
+        self.assertIn("pronouns", form.fields)
+        self.assertIn("phone_number", form.fields)
+
+    def test_profile_edit_form_excludes_locked_student_fields(self):
+        form = UserForm()
+        self.assertNotIn("student_id", form.fields)
+        self.assertNotIn("faculty", form.fields)
+        self.assertNotIn("study_level", form.fields)
+        self.assertNotIn("graduation_year", form.fields)
 
 
 class StaffPreferenceFormTestCase(TestCase):

@@ -100,6 +100,26 @@ class UserModelTestCase(TestCase):
         self.user.last_name = "x" * 51
         self._assert_user_is_invalid()
 
+    def test_preferred_name_must_not_be_blank(self):
+        self.user.preferred_name = ""
+        self._assert_user_is_invalid()
+
+    def test_pronouns_must_not_be_blank(self):
+        self.user.pronouns = ""
+        self._assert_user_is_invalid()
+
+    def test_student_id_must_be_eight_digits_when_present(self):
+        self.user.student_id = "1234"
+        self._assert_user_is_invalid()
+
+    def test_phone_number_may_be_blank(self):
+        self.user.phone_number = ""
+        self._assert_user_is_valid()
+
+    def test_phone_number_rejects_invalid_characters(self):
+        self.user.phone_number = "abc123"
+        self._assert_user_is_invalid()
+
     def test_email_must_not_be_blank(self):
         self.user.email = ""
         self._assert_user_is_invalid()
@@ -147,6 +167,23 @@ class UserModelTestCase(TestCase):
         actual_gravatar_url = self.user.mini_gravatar()
         expected_gravatar_url = self._gravatar_url(size=60)
         self.assertEqual(actual_gravatar_url, expected_gravatar_url)
+
+    def test_faculty_label(self):
+        self.assertIn(
+            "Faculty of Natural, Mathematical & Engineering Sciences (NMES)",
+            self.user.faculty_label,
+        )
+
+    def test_study_level_label(self):
+        self.assertEqual(self.user.study_level_label, "Undergraduate")
+
+    def test_faculty_label_returns_blank_for_unknown_value(self):
+        self.user.faculty = "unknown"
+        self.assertEqual(self.user.faculty_label, "")
+
+    def test_study_level_label_returns_blank_for_unknown_value(self):
+        self.user.study_level = "unknown"
+        self.assertEqual(self.user.study_level_label, "")
 
     def _gravatar_url(self, size):
         gravatar_url = f"{UserModelTestCase.GRAVATAR_URL}?size={size}&default=mp"

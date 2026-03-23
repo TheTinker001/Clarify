@@ -5,7 +5,7 @@
         <div class="row">
             <div class="col-12">
                 <div class="ticket-header mt-2">
-                    <h1 class="mb-1">{{ ticket.title }}</h1>
+                    <h1 class="mb-1">{{ ticket.subject }}</h1>
                     <div class="d-flex flex-wrap gap-2 align-items-center">
                         <span class="badge bg-secondary text-uppercase">{{ ticket.get_status_display }}</span>
                         <span class="text-muted">Ticket #{{ ticket.pk }}</span>
@@ -18,7 +18,7 @@
                         {% endif %}
                     </div>
                     <!-- Display ticket tags for UI consistency with dashboard view -->
-                    <div class="mt-2">
+                    <div class="mt-2 ticket-tags">
                         <span class="badge bg-light text-dark me-1">{{ ticket.get_faculty_display }}</span>
                         <span class="badge bg-light text-dark me-1">{{ ticket.get_study_level_display }}</span>
                         <span class="badge bg-light text-dark">{{ ticket.get_category_display }}</span>
@@ -36,7 +36,7 @@
                                 <div class="ms-auto">
                                     <button type="submit"
                                             form="ticket-field-form"
-                                            class="btn btn-outline-primary">Edit</button>
+                                            class="btn btn-outline-primary">Update</button>
                                 </div>
                             </div>
                         </div>
@@ -50,7 +50,7 @@
                     <div class="card-body">
                         <h5 class="card-title">{{ ticket.subject }}</h5>
                         <p class="card-text">{{ ticket.description }}</p>
-                        <p class="card-text text-muted">{{ ticket.body }}</p>
+                        <p class="card-text text-muted">{{ ticket.body|safe }}</p>
                         {% if ticket.attachments.all %}
                             <div class="mt-2">
                                 <strong>Attachments:</strong>
@@ -75,7 +75,7 @@
                                 <small class="text-white-50">{{ comment.created_at|date:"M j, Y, P" }}</small>
                             </div>
                             <div class="card-body">
-                                <p class="card-text mb-1">{{ comment.body }}</p>
+                                <p class="card-text mb-1">{{ comment.body|safe }}</p>
                                 {% if comment.attachments.all %}
                                     <ul class="comment-attachments mt-2 mb-1">
                                         {% for attachment in comment.attachments.all %}
@@ -96,7 +96,7 @@
                     {% endfor %}
                 </div>
                 <!-- Comment form -->
-                {% if user.user_type == "student" %}
+                {% if user.user_type == "student" or user.user_type == "staff" and user in ticket.assigned_to.all and ticket.status != ticket.Status.CLOSED %}
                     <div class="card mt-3">
                         <div class="card-body">
                             <h6 class="card-title">Add a comment</h6>
@@ -105,24 +105,11 @@
                                 <input type="hidden" name="action" value="add_comment">
                                 {{ form.body }}
                                 {% if form.body.errors %}<div class="text-danger mt-1">{{ form.body.errors }}</div>{% endif %}
-                                {{ form.attachments }}
+                                <div class="mt-2">{{ form.attachments }}</div>
                                 {% if form.attachments.errors %}<div class="text-danger mt-1">{{ form.attachments.errors }}</div>{% endif %}
-                                <button type="submit" class="btn btn-primary mt-2">Submit</button>
-                            </form>
-                        </div>
-                    </div>
-                {% elif user.user_type == "staff" and ticket.assigned_to == user and ticket.status != ticket.Status.CLOSED %}
-                    <div class="card mt-3">
-                        <div class="card-body">
-                            <h6 class="card-title">Add a comment</h6>
-                            <form method="post" enctype="multipart/form-data">
-                                {% csrf_token %}
-                                <input type="hidden" name="action" value="add_comment">
-                                {{ form.body }}
-                                {% if form.body.errors %}<div class="text-danger mt-1">{{ form.body.errors }}</div>{% endif %}
-                                {{ form.attachments }}
-                                {% if form.attachments.errors %}<div class="text-danger mt-1">{{ form.attachments.errors }}</div>{% endif %}
-                                <button type="submit" class="btn btn-primary mt-2">Submit</button>
+                                <button type="submit" class="btn btn-primary mt-2">
+                                    <i class="bi bi-send-fill"></i>
+                                </button>
                             </form>
                         </div>
                     </div>
@@ -131,18 +118,30 @@
             <div class="col-12 col-lg-4 mt-3 mt-lg-0">
                 <div class="card ticket-card-detail">
                     <div class="card-body">
+                        <!-- Ticket details-->
                         <h5 class="card-title">Details</h5>
                         <dl class="row mb-0">
                             <dt class="col-5">Created by</dt>
                             <dd class="col-7">
-                                {{ ticket.student.full_name }}
+                                {% if ticket.student == user %}
+                                    <a href="{% url 'profile' %}">{{ ticket.student.full_name }}</a>
+                                {% else %}
+                                    <a href="{% url 'profile_other_user' username=ticket.student.username %}">{{ ticket.student.full_name }}</a>
+                                {% endif %}
                             </dd>
                             <dt class="col-5">Assigned to</dt>
                             <dd class="col-7">
-                                {% if ticket.assigned_to %}
-                                    {{ ticket.assigned_to.full_name }}
+                                {% if ticket.assigned_to.exists %}
+                                    {% for assigned_user in ticket.assigned_to.all %}
+                                        {% if assigned_user == user %}
+                                            <a href="{% url 'profile' %}">{{ assigned_user.full_name }}</a>
+                                        {% else %}
+                                            <a href="{% url 'profile_other_user' username=assigned_user.username %}">{{ assigned_user.full_name }}</a>
+                                        {% endif %}
+                                        {% if not forloop.last %},{% endif %}
+                                    {% endfor %}
                                 {% else %}
-                                    Unassigned
+                                    <p class="text-muted m-0 p-0">Unassigned</p>
                                 {% endif %}
                             </dd>
                             <dt class="col-5">Created</dt>
@@ -153,32 +152,44 @@
                             <dd class="col-7">
                                 {{ ticket.updated_at|date:"M j, Y, P" }}
                             </dd>
+                            <dt class="col-5">Issue Group</dt>
+                            <dd class="col-7">
+                                {% if ticket.issue_group %}
+                                    {{ ticket.issue_group.name }}
+                                {% else %}
+                                    <p class="text-muted m-0 p-0">No assigned ticket group</p>
+                                {% endif %}
+                            </dd>
                         </dl>
                         <div class="mb-3"></div>
                         <!-- Claiming -->
                         {% if user.user_type == "staff" %}
-                            {% if ticket.assigned_to == user %}
+                            {% if user in ticket.assigned_to.all %}
                                 <div class="d-flex justify-content-between align-items-start mb-3">
                                     <form method="post" action="{{ ticket.get_unclaim_url }}">
                                         {% csrf_token %}
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">Unclaim</button>
+                                        <button type="submit" class="btn btn-sm btn-outline-primary">Unclaim</button>
                                     </form>
                                 </div>
-                            {% elif ticket.assigned_to %}
+                            {% elif ticket.assigned_to.all|length == 5 %}
                                 <div class="alert alert-warning d-flex align-items-center mb-3"
                                      role="alert">
                                     <span class="bi-flag me-2"></span>
-                                    Claimed by {{ ticket.assigned_to.get_full_name|default:ticket.assigned_to.username }}
+                                    Claimed by
+                                    {% for assigned_user in ticket.assigned_to.all %}
+                                        {{ assigned_user.full_name|default:assigned_user.username }}
+                                        {% if not forloop.last %},{% endif %}
+                                    {% endfor %}
                                 </div>
                             {% else %}
                                 <div class="d-flex justify-content-between align-items-start mb-3">
                                     <form method="post" action="{{ ticket.get_claim_url }}">
                                         {% csrf_token %}
-                                        <button type="submit" class="btn btn-sm btn-outline-success">Claim</button>
+                                        <button type="submit" class="btn btn-sm btn-outline-primary">Claim</button>
                                     </form>
                                 </div>
                             {% endif %}
-                            <!-- Priority updating (admin only) -->
+                            <!-- Priority and IssueGroup updating (admin only) -->
                             {% if user.is_superuser and ticket.status != ticket.Status.CLOSED %}
                                 <form id="priority-form" method="post">
                                     {% csrf_token %}
@@ -189,8 +200,19 @@
                                         <button type="submit" form="priority-form" class="btn btn-outline-primary">Update</button>
                                     </div>
                                 </form>
+                                <form id="ticket-issue-group-form" method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="set_issue_group">
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text">Issue Group</span>
+                                        {{ ticket_issue_group_form.issue_group }}
+                                        <button type="submit"
+                                                form="ticket-issue-group-form"
+                                                class="btn btn-outline-primary">Update</button>
+                                    </div>
+                                </form>
                             {% endif %}
-                                {% if ticket.assigned_to == user %}
+                                {% if user in ticket.assigned_to.all %}
                                     <form method="post">
                                         {% csrf_token %}
                                         <input type="hidden" name="action" value="close_ticket">
@@ -198,7 +220,7 @@
                                     </form>
                                 {% endif %}
                             {% else %}
-                                {% if ticket.assigned_to == user %}
+                                {% if user in ticket.assigned_to.all %}
                                     <form method="post">
                                         {% csrf_token %}
                                         <input type="hidden" name="action" value="unclose_ticket">
@@ -211,16 +233,16 @@
                         {% if user.user_type == "staff" %}
                             <div class="mt-4">
                                 <div class="card">
-                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                    <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
                                         <strong>Internal Notes</strong>
                                         {% if can_edit_internal_notes %}
                                             <a href="{% url 'internal_note_edit' url_code=ticket.url_code %}"
-                                               class="btn btn-sm btn-outline-dark">Edit</a>
+                                               class="btn btn-sm btn-outline-secondary mt-1">Edit</a>
                                         {% endif %}
                                     </div>
                                     <div class="card-body">
                                         {% if internal_notes %}
-                                            <p class="mb-0">{{ internal_notes }}</p>
+                                            <p class="mb-0">{{ internal_notes|safe }}</p>
                                         {% else %}
                                             <p class="text-muted mb-0">No internal notes yet.</p>
                                         {% endif %}

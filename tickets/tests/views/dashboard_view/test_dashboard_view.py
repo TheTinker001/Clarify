@@ -23,6 +23,7 @@ class DashboardViewTestCase(TestCase, LogInTester):
         self.priority_sort_kw = "priority"
         self.student = User.objects.get(username="@johndoe")
         self.staff = User.objects.get(username="@janedoe")
+        self.staff2 = User.objects.get(username="@jonrain")
         self.ticket_data = {
             "student": self.student,
             "faculty": Ticket.Faculty.choices[1][0],
@@ -35,7 +36,7 @@ class DashboardViewTestCase(TestCase, LogInTester):
         self.staff.categories = self.ticket_data["category"]
         self.staff.save()
 
-    def test_home_url(self):
+    def test_correct_url(self):
         self.assertEqual(self.url, "/dashboard/")
 
     def test_get_dashboard_when_logged_in(self):
@@ -73,17 +74,46 @@ class DashboardViewTestCase(TestCase, LogInTester):
         self.assertEqual(len(page_obj2.object_list), 10)
 
     def test_context_when_user_is_staff(self):
+        staff3 = User.objects.create(
+            first_name="Staff",
+            last_name="3",
+            username="@staff3",
+            email="staff3@example.org",
+            user_type=User.USER_TYPE_STAFF,
+            password="Password123",
+        )
+        staff4 = User.objects.create(
+            first_name="Staff",
+            last_name="4",
+            username="@staff4",
+            email="staff4@example.org",
+            user_type=User.USER_TYPE_STAFF,
+            password="Password123",
+        )
+        staff5 = User.objects.create(
+            first_name="Staff",
+            last_name="5",
+            username="@staff5",
+            email="staff5@example.org",
+            user_type=User.USER_TYPE_STAFF,
+            password="Password123",
+        )
+
         self.client.login(username=self.staff.username, password="Password123")
         # create 6 open tickets
         for i in range(6):
             Ticket.objects.create(**self.ticket_data, subject=f"Test open ticket {i+1}")
         # create 3 assigned tickets
         for i in range(3):
-            Ticket.objects.create(
+            t = Ticket.objects.create(
                 **self.ticket_data,
                 subject=f"Test assigned ticket {i+1}",
-                assigned_to=self.staff,
             )
+            t.assigned_to.add(self.staff)
+            t.assigned_to.add(self.staff2)
+            t.assigned_to.add(staff3)
+            t.assigned_to.add(staff4)
+            t.assigned_to.add(staff5)
         # create 4 overdue tickets
         for i in range(4):
             ticket = Ticket.objects.create(
@@ -132,16 +162,15 @@ class DashboardViewTestCase(TestCase, LogInTester):
                 **self.ticket_data,
                 subject=f"Test open ticket {i+1}",
                 status=Ticket.Status.AWAITING_STAFF,
-                assigned_to=None,
             )
         # 3 in progress
         for i in range(3):
-            Ticket.objects.create(
+            t = Ticket.objects.create(
                 **self.ticket_data,
                 subject=f"Test assigned ticket {i+1}",
                 status=Ticket.Status.AWAITING_STAFF,
-                assigned_to=self.staff,
             )
+            t.assigned_to.add(self.staff)
         # 2 need response
         for i in range(2):
             Ticket.objects.create(
@@ -234,7 +263,6 @@ class DashboardViewTestCase(TestCase, LogInTester):
                 subject=f"Test ticket {i}",
                 priority=i,
                 status=Ticket.Status.AWAITING_STAFF,
-                assigned_to=None,
             )
 
         response = self.client.get(
@@ -334,15 +362,15 @@ class DashboardViewTestCase(TestCase, LogInTester):
                 **self.ticket_data,
                 subject=f"Open {i+1}",
                 status=Ticket.Status.AWAITING_STAFF,
-                assigned_to=None,
             )
 
         # Ticket not in open_tickets
-        Ticket.objects.create(
+        t = Ticket.objects.create(
             **self.ticket_data,
-            subject="Assigned",
-            status=Ticket.Status.AWAITING_STAFF,
-            assigned_to=self.staff,
+            subject=f"Closed ticket {i+1}",
+            status=Ticket.Status.CLOSED,
+            closed_reason=Ticket.ClosedReason.ANSWERED,
+            closed_at=timezone.now(),
         )
 
         # This tab is valid in TAB_LABELS but doesn't exist in staff groups

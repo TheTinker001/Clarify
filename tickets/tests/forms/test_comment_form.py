@@ -5,6 +5,7 @@ from django.test import TestCase
 
 from tickets.forms import CommentForm
 from tickets.models import Comment
+from clarify.settings import BODY_LENGTH_MAX
 
 
 class CommentFormTestCase(TestCase):
@@ -20,12 +21,12 @@ class CommentFormTestCase(TestCase):
         self.assertIn("body", form.errors)
 
     def test_body_too_long_is_invalid(self):
-        form = CommentForm(data={"body": "a" * (Comment.BODY_MAX_LENGTH + 1)})
+        form = CommentForm(data={"body": "a" * (BODY_LENGTH_MAX + 1)})
         self.assertFalse(form.is_valid())
         self.assertIn("body", form.errors)
 
     def test_body_at_max_length_is_valid(self):
-        form = CommentForm(data={"body": "a" * Comment.BODY_MAX_LENGTH})
+        form = CommentForm(data={"body": "a" * BODY_LENGTH_MAX})
         self.assertTrue(form.is_valid())
 
     def test_attachments_field_is_optional(self):

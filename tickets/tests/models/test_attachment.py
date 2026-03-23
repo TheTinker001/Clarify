@@ -2,6 +2,8 @@ from django.test import TestCase
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth import get_user_model
 from tickets.models import Ticket, TicketAttachment, Comment
+from clarify.settings import MAX_FILES_PER_TICKET
+
 
 User = get_user_model()
 
@@ -61,4 +63,4 @@ class TicketAttachmentTestCase(TestCase):
         self.assertTrue(str(attachment).endswith(".pdf"))
 
     def test_max_files_constant(self):
-        self.assertEqual(TicketAttachment.MAX_FILES_PER_TICKET, 5)
+        self.assertEqual(MAX_FILES_PER_TICKET, 5)

@@ -7,11 +7,9 @@ from django.core.management.base import BaseCommand
 from tickets.models import User, Ticket, Comment
 from django.utils import timezone
 
-from tickets.management.commands.realistic_ticket_data import generate_subject_and_body
 from tickets.management.commands.realistic_ticket_data import (
+    generate_subject_and_body,
     generate_standalone_student_comment,
-)
-from tickets.management.commands.realistic_ticket_data import (
     generate_comment_and_response_by_category,
 )
 
@@ -21,50 +19,85 @@ user_fixtures = [
         "email": "john.doe@example.org",
         "first_name": "John",
         "last_name": "Doe",
-        "user_type": "student",
+        "preferred_name": "John",
+        "pronouns": "he/him",
+        "user_type": User.USER_TYPE_STUDENT,
+        "student_id": "12345678",
+        "phone_number": "+44 0000 000001",
+        "faculty": Ticket.Faculty.FOLSM,
+        "study_level": Ticket.StudyLevel.UNDERGRADUATE,
+        "graduation_year": 2027,
     },
     {
         "username": "@janedoe",
         "email": "jane.doe@example.org",
         "first_name": "Jane",
         "last_name": "Doe",
-        "user_type": "student",
+        "preferred_name": "Jane",
+        "pronouns": "she/her",
+        "user_type": User.USER_TYPE_STUDENT,
+        "student_id": "12345679",
+        "phone_number": "+44 0000 000002",
+        "faculty": Ticket.Faculty.SSPP,
+        "study_level": Ticket.StudyLevel.POSTGRADUATE_TAUGHT,
+        "graduation_year": 2026,
     },
     {
         "username": "@charlie",
         "email": "charlie.johnson@example.org",
         "first_name": "Charlie",
         "last_name": "Johnson",
-        "user_type": "student",
+        "preferred_name": "Charlie",
+        "pronouns": "they/them",
+        "user_type": User.USER_TYPE_STUDENT,
+        "student_id": "12345681",
+        "phone_number": "+44 7000 000003",
+        "faculty": Ticket.Faculty.NMES,
+        "study_level": Ticket.StudyLevel.UNDERGRADUATE,
+        "graduation_year": 2028,
     },
     {
         "username": "@student001",
         "email": "student001@example.org",
         "first_name": "Student",
         "last_name": "001",
-        "user_type": "student",
+        "preferred_name": "Hercules",
+        "pronouns": "he/him",
+        "user_type": User.USER_TYPE_STUDENT,
+        "student_id": "12345682",
+        "phone_number": "",
+        "faculty": Ticket.Faculty.KBS,
+        "study_level": Ticket.StudyLevel.POSTGRADUATE_RESEARCH,
+        "graduation_year": 2029,
     },
     {
         "username": "@staff001",
         "email": "staff001@example.org",
         "first_name": "Staff",
         "last_name": "001",
-        "user_type": "staff",
+        "preferred_name": "Steve",
+        "pronouns": "he/him",
+        "user_type": User.USER_TYPE_STAFF,
     },
     {
         "username": "@staff002",
         "email": "staff002@example.org",
         "first_name": "Staff",
         "last_name": "002",
-        "user_type": "staff",
+        "preferred_name": "Alex",
+        "pronouns": "she/her",
+        "user_type": User.USER_TYPE_STAFF,
     },
     {
         "username": "@admin",
         "email": "admin@example.org",
         "first_name": "Admin",
         "last_name": "User",
-        "user_type": "staff",
+        "preferred_name": "Remy",
+        "pronouns": "they/them",
+        "user_type": User.USER_TYPE_STAFF,
         "is_superuser": True,
+        "is_staff": True,
     },
 ]
 
@@ -181,7 +214,7 @@ class Command(BaseCommand):
         comment_count = Comment.objects.filter(
             author__user_type=User.USER_TYPE_STAFF
         ).count()
-        tickets = Ticket.objects.filter(assigned_to__isnull=False)
+        tickets = Ticket.objects.filter(assigned_to__isnull=False).distinct()
 
         while comment_count < self.STAFF_COMMENT_COUNT:
             print(
@@ -195,7 +228,7 @@ class Command(BaseCommand):
                     generate_comment_and_response_by_category(random_ticket.category)
                 )
                 self.create_comment(
-                    random_ticket, random_ticket.assigned_to, body=staff_comment
+                    random_ticket, random_ticket.assigned_to.first(), body=staff_comment
                 )
                 if student_comment:
                     self.create_comment(
@@ -279,7 +312,7 @@ class Command(BaseCommand):
                                     )
                                 )
                                 self.create_comment(
-                                    t, t.assigned_to, body=staff_comment
+                                    t, t.assigned_to.first(), body=staff_comment
                                 )
                                 if student_comment:
                                     self.create_comment(t, user, body=student_comment)
@@ -326,23 +359,85 @@ class Command(BaseCommand):
         last_name = self.faker.last_name()
         email = create_email(first_name, last_name)
         username = create_username(first_name, last_name)
+
+        # User type
+        if type:
+            user_type = type
+        else:
+            user_type = User.USER_TYPE_STUDENT
+
+        # Student ID
+        if user_type == User.USER_TYPE_STUDENT:
+            student_id = f"{self.faker.unique.random_int(min=10000000, max=99999999)}"
+        else:
+            student_id = ""
+
+        # Student phone number
+        if user_type == User.USER_TYPE_STUDENT and random.random() < 0.67:
+            phone_number = self.faker.numerify(text="07#########")
+        else:
+            phone_number = ""
+
+        # Student faculty
+        if user_type == User.USER_TYPE_STUDENT:
+            faculty = random.choice(self.FACULTIES)
+        else:
+            faculty = ""
+
+        # Student study level
+        if user_type == User.USER_TYPE_STUDENT:
+            study_level = random.choice(self.STUDY_LEVELS)
+        else:
+            study_level = ""
+
+        # Student graduation year
+        if user_type == User.USER_TYPE_STUDENT:
+            graduation_year = self.faker.random_int(min=2026, max=2030)
+        else:
+            graduation_year = None
+
+        # Determine if user is staff
+        if user_type == User.USER_TYPE_STAFF:
+            is_staff = True
+        else:
+            is_staff = False
+
+        # Staff faculties
+        if user_type == User.USER_TYPE_STAFF:
+            faculties = ",".join(self.FACULTIES)
+        else:
+            faculties = ""
+
+        # Staff study levels
+        if user_type == User.USER_TYPE_STAFF:
+            study_levels = ",".join(self.STUDY_LEVELS)
+        else:
+            study_levels = ""
+
+        # Staff categories
+        if user_type == User.USER_TYPE_STAFF:
+            categories = ",".join(self.CATEGORIES)
+        else:
+            categories = ""
+
         self.try_create_user(
             {
                 "username": username,
                 "email": email,
                 "first_name": first_name,
                 "last_name": last_name,
-                "user_type": (type if type else User.USER_TYPE_STUDENT),
-                "is_staff": (True if type == User.USER_TYPE_STAFF else False),
-                "faculties": (
-                    ",".join(self.FACULTIES) if type == User.USER_TYPE_STAFF else ""
-                ),
-                "study_levels": (
-                    ",".join(self.STUDY_LEVELS) if type == User.USER_TYPE_STAFF else ""
-                ),
-                "categories": (
-                    ",".join(self.CATEGORIES) if type == User.USER_TYPE_STAFF else ""
-                ),
+                "preferred_name": first_name,
+                "pronouns": random.choice(["he/him", "she/her", "they/them"]),
+                "user_type": user_type,
+                "student_id": student_id,
+                "phone_number": phone_number,
+                "faculty": faculty,
+                "study_level": study_level,
+                "graduation_year": graduation_year,
+                "is_staff": is_staff,
+                "faculties": faculties,
+                "study_levels": study_levels,
+                "categories": categories,
             }
         )
 
@@ -361,7 +456,14 @@ class Command(BaseCommand):
             password=Command.DEFAULT_PASSWORD,
             first_name=data["first_name"],
             last_name=data["last_name"],
+            preferred_name=data.get("preferred_name", data["first_name"]),
+            pronouns=data.get("pronouns", "Prefer not to say"),
             user_type=data.get("user_type", User.USER_TYPE_STUDENT),
+            student_id=data.get("student_id", ""),
+            phone_number=data.get("phone_number", ""),
+            faculty=data.get("faculty", ""),
+            study_level=data.get("study_level", ""),
+            graduation_year=data.get("graduation_year"),
             is_staff=data.get("is_staff", False),
             is_superuser=data.get("is_superuser", False),
             faculties=data.get("faculties", ""),
@@ -376,7 +478,6 @@ class Command(BaseCommand):
                 t = self.create_ticket(
                     student,
                     status=Ticket.Status.AWAITING_STAFF,
-                    assigned_to=None,
                 )
             case "IN_PROGRESS":
                 random_staff = random.choice(staff_qs)
@@ -389,11 +490,10 @@ class Command(BaseCommand):
                 t = self.create_ticket(
                     student,
                     status=Ticket.Status.AWAITING_STUDENT,
-                    assigned_to=None,
                 )
                 staff_comment, student_comment = (
                     generate_comment_and_response_by_category(t.category)
-                )  # student_comment is not used
+                )
                 self.create_comment(
                     t,
                     random.choice(staff_qs),
@@ -403,7 +503,6 @@ class Command(BaseCommand):
                 t = self.create_ticket(
                     student,
                     status=Ticket.Status.AWAITING_STAFF,
-                    assigned_to=None,
                 )
                 overdue_cutoff = timezone.now() - timedelta(days=5)
                 Ticket.objects.filter(pk=t.pk).update(
@@ -413,7 +512,6 @@ class Command(BaseCommand):
                 t = self.create_ticket(
                     student,
                     status=Ticket.Status.CLOSED,
-                    assigned_to=None,
                     closed_reason=Ticket.ClosedReason.ANSWERED,
                     closed_at=timezone.now(),
                 )
@@ -428,6 +526,7 @@ class Command(BaseCommand):
             study_level=random_study_level,
             category=random_category,
         )
+        assigned_to = overrides.pop("assigned_to", None)
         data = {
             "student": student,
             "faculty": random_faculty,
@@ -436,12 +535,19 @@ class Command(BaseCommand):
             "subject": generated_subject,
             "body": generated_body,
             "status": Ticket.Status.AWAITING_STAFF,
-            "assigned_to": None,
             "priority": random.choice(self.PRIORITIES),
         }
 
         data.update(overrides)
-        return Ticket.objects.create(**data)
+        ticket = Ticket.objects.create(**data)
+
+        if assigned_to is not None:
+            if isinstance(assigned_to, (list, tuple)):
+                ticket.assigned_to.add(*assigned_to)
+            else:
+                ticket.assigned_to.add(assigned_to)
+
+        return ticket
 
     def create_comment(self, ticket, author, body):
         data = {

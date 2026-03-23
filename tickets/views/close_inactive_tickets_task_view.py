@@ -5,7 +5,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
-from tickets.helpers import _close_inactive_tickets
+from tickets.conditional_emails import close_inactive_tickets_with_email, send_reminder_emails
 
 
 def _authorized(token):
@@ -23,9 +23,11 @@ class CloseInactiveTicketsTaskView(View):
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
-        closed = _close_inactive_tickets(days=14)
-        return JsonResponse({"closed": closed})
+        reminders = send_reminder_emails(days=7)
+        closed = close_inactive_tickets_with_email(days=14)
+        return JsonResponse({"reminders_sent": reminders, "closed": closed})
 
     def post(self, request, *args, **kwargs):
-        closed = _close_inactive_tickets(days=14)
-        return JsonResponse({"closed": closed})
+        reminders = send_reminder_emails(days=7)
+        closed = close_inactive_tickets_with_email(days=14)
+        return JsonResponse({"reminders_sent": reminders, "closed": closed})
