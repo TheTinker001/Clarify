@@ -20,14 +20,10 @@ class TicketUnclaimView(View):
             messages.error(request, "You are not a staff member!")
             return redirect(ticket.get_absolute_url())
 
-        # Only unassigns if the current user is the assigned staff member.
-        updated = Ticket.objects.filter(
-            url_code=url_code, assigned_to=request.user
-        ).update(assigned_to=None)
-
-        if updated == 0:
-            messages.error(request, "You are not assigned to this ticket.")
-        else:
+        if ticket.assigned_to.filter(id=request.user.id).exists():
+            ticket.assigned_to.remove(request.user)
             messages.success(request, "You have unclaimed this ticket.")
+        else:
+            messages.error(request, "You are not assigned to this ticket.")
 
         return redirect(ticket.get_absolute_url())

@@ -5,6 +5,8 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
 from django.views import View
 from tickets.models import Ticket, User
+from django.db import transaction
+from clarify.settings import MAX_TICKET_CLAIMANTS
 
 
 @method_decorator([login_required, require_POST], name="dispatch")
@@ -18,30 +20,33 @@ class TicketClaimView(View):
 
     def post(self, request, url_code):
         """Process the claim request and redirect back to the ticket detail page."""
-        ticket = get_object_or_404(
-            Ticket.objects.select_related("assigned_to"),
-            url_code=url_code,
-        )
+        ticket = get_object_or_404(Ticket, url_code=url_code)
 
         if request.user.user_type != User.USER_TYPE_STAFF:
             messages.error(request, "You are not a staff member!")
             return redirect(ticket.get_absolute_url())
 
-        # Atomic conditional update: only claims the ticket if it is still unassigned.
-        updated = Ticket.objects.filter(
-            url_code=url_code, assigned_to__isnull=True
-        ).update(assigned_to=request.user)
+        with transaction.atomic():
+            ticket = get_object_or_404(
+                Ticket.objects.select_for_update(),
+                url_code=url_code,
+            )
 
-        if updated:
-            messages.success(request, "You have claimed this ticket.")
-            return redirect(ticket.get_absolute_url())
+            if ticket.assigned_to.filter(id=request.user.id).exists():
+                messages.success(request, "You have already claimed this ticket.")
+                return redirect(ticket.get_absolute_url())
 
-        # If update() returned 0 => another request claimed it first.
-        # Re-read the DB to find out who now owns it and show the appropriate message.
-        ticket.refresh_from_db(fields=["assigned_to"])
-        if ticket.assigned_to_id == request.user.id:
+            if ticket.assigned_to.count() >= MAX_TICKET_CLAIMANTS:
+                assigned_users = ", ".join(
+                    str(user) for user in ticket.assigned_to.all()
+                )
+                messages.error(
+                    request,
+                    f"Ticket already has the maximum number of staff assigned: {assigned_users}.",
+                )
+                return redirect(ticket.get_absolute_url())
+
+            ticket.assigned_to.add(request.user)
             messages.success(request, "You have claimed this ticket.")
-        else:
-            messages.error(request, f"Ticket already claimed by {ticket.assigned_to}.")
 
         return redirect(ticket.get_absolute_url())

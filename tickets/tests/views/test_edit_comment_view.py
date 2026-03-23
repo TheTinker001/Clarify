@@ -25,13 +25,13 @@ class EditCommentViewTestCase(TestCase):
         self.staff = User.objects.get(username="@janedoe")
         self.ticket = Ticket.objects.create(
             student=self.student,
-            assigned_to=self.staff,
             faculty="nmes",
             study_level="undergraduate",
             category="other",
             subject="Test subject",
             body="Test body.",
         )
+        self.ticket.assigned_to.add(self.staff)
         self.comment = Comment.objects.create(
             ticket=self.ticket,
             author=self.student,
@@ -70,7 +70,10 @@ class EditCommentViewTestCase(TestCase):
     def test_edit_shows_success_message(self):
         self.client.login(username=self.student.username, password="Password123")
         response = self.client.post(self.url, {"body": "Updated."}, follow=True)
-        self.assertContains(response, "Your message has been edited.")
+        self.assertContains(
+            response,
+            f"Comment edited. You have {EDIT_TIME_LIMIT_MINUTES} minutes remaining to edit it.",
+        )
 
     # Time limit enforcement
     def test_author_cannot_edit_after_10_minutes(self):

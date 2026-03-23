@@ -7,6 +7,7 @@ from tickets.models import Ticket
 from tickets.forms import TicketForm
 from tickets.helpers import _send_ticket_created_email
 from tickets.models.attachment import TicketAttachment
+from clarify.settings import MAX_FILES_PER_TICKET
 
 
 class CreateTicketView(LoginRequiredMixin, CreateView):
@@ -33,10 +34,10 @@ class CreateTicketView(LoginRequiredMixin, CreateView):
         """Save the ticket and attachments, send a confirmation email (failures silently swallowed)."""
         form.instance.student = self.request.user
         files = self.request.FILES.getlist("attachments")
-        if len(files) > TicketAttachment.MAX_FILES_PER_TICKET:
+        if len(files) > MAX_FILES_PER_TICKET:
             form.add_error(
                 "attachments",
-                f"You can upload a maximum of {TicketAttachment.MAX_FILES_PER_TICKET} files.",
+                f"You can upload a maximum of {MAX_FILES_PER_TICKET} files.",
             )
             return self.form_invalid(form)
 

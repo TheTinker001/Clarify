@@ -72,7 +72,6 @@
                 <div class="card-body">
                     <form method="get" action="{% url 'dashboard' %}">
                         <input type="hidden" name="tab" value="{{ tab }}">
-                        <input type="hidden" name="priority" value="{{ filters.priority }}">
                         <!-- Search bar + buttons -->
                         <div class="d-flex align-items-center gap-3">
                             <input type="text"
@@ -94,12 +93,11 @@
                             </button>
                         </div>
                         <!-- Filters -->
-                        <!-- if altering, make sure collapse animation is not choppy-->
-                        <div class="collapse {% if filters.faculty or filters.study_level or filters.category %}show{% endif %}"
+                        <div class="collapse {% if filters.faculty or filters.study_level or filters.category or filters.priority %}show{% endif %}"
                              id="filterSelectionGroup">
                             <div class="pt-3">
                                 <div class="row g-3">
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <label for="facultyFilter" class="form-label small text-muted mb-1">Faculty</label>
                                         <select class="form-select" name="faculty" id="facultyFilter">
                                             {% for value, label in filter_choices.faculty %}
@@ -114,7 +112,7 @@
                                             {% endfor %}
                                         </select>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <label for="studyLevelFilter" class="form-label small text-muted mb-1">Study level</label>
                                         <select class="form-select" name="study_level" id="studyLevelFilter">
                                             {% for value, label in filter_choices.study_level %}
@@ -129,7 +127,7 @@
                                             {% endfor %}
                                         </select>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <label for="categoryFilter" class="form-label small text-muted mb-1">Category</label>
                                         <select class="form-select" name="category" id="categoryFilter">
                                             {% for value, label in filter_choices.category %}
@@ -140,6 +138,18 @@
                                                     {% else %}
                                                         {{ label }}
                                                     {% endif %}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="priorityFilter" class="form-label small text-muted mb-1">Priority</label>
+                                        <select class="form-select" name="priority" id="priorityFilter">
+                                            <option value="" {% if filters.priority == "" %}selected{% endif %}>All priorities</option>
+                                            {% for value, label in filter_choices.priority %}
+                                                <option value="{{ value }}"
+                                                        {% if filters.priority == value %}selected{% endif %}>
+                                                    {{ label }}
                                                 </option>
                                             {% endfor %}
                                         </select>
@@ -157,24 +167,20 @@
                 <h2>{{ category }} Tickets ({{ total }})</h2>
                 <div class="row mb-4">
                     <!-- Sorting dropdown aligned right -->
-                    <div class="d-flex justify-content-end align-items-center">
-                        {% if user.user_type == "staff" and tab != "closed_tickets" %}
+                    <div class="col-4 d-flex justify-content-end align-items-center">
+                        {% if user.user_type == user.USER_TYPE_STAFF %}
                             <form method="get" class="d-flex align-items-center">
                                 <input type="hidden" name="tab" value="{{ tab }}">
                                 <input type="hidden" name="searchTerm" value="{{ searchTerm }}">
                                 <input type="hidden" name="faculty" value="{{ filters.faculty }}">
                                 <input type="hidden" name="study_level" value="{{ filters.study_level }}">
                                 <input type="hidden" name="category" value="{{ filters.category }}">
+                                <input type="hidden" name="priority" value="{{ filters.priority }}">
                                 <select class="form-select form-select-sm w-auto"
-                                        name="priority"
+                                        name="order"
                                         onchange="this.form.submit()">
-                                    <option value="" {% if filters.priority == "" %}selected{% endif %}>All priorities</option>
-                                    {% for value, label in filter_choices.priority %}
-                                        <option value="{{ value }}"
-                                                {% if filters.priority == value %}selected{% endif %}>
-                                            {{ label }}
-                                        </option>
-                                    {% endfor %}
+                                    <option value="newest" {% if filters.order == "newest" %}selected{% endif %}>Newest</option>
+                                    <option value="oldest" {% if filters.order == "oldest" %}selected{% endif %}>Oldest</option>
                                 </select>
                             </form>
                         {% endif %}
