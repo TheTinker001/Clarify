@@ -130,10 +130,14 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
 
         Staff comment sets the ticket's status to AWAITING_STUDENT
         Student comment sets the ticket's status to AWAITING_STAFF (reopens the ticket if closed).
-        Staff may only comment on tickets assigned to them.
+        Staff may only comment on tickets assigned to them (except admin users).
         """
+        if self.is_staff_user and self.ticket.status == Ticket.Status.CLOSED:
+            raise Http404
+
         if (
             self.is_staff_user
+            and not request.user.is_superuser
             and not self.ticket.assigned_to.filter(id=request.user.id).exists()
         ):
             raise Http404
@@ -210,7 +214,10 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         if not self.is_staff_user:
             raise Http404
 
-        if not self.ticket.assigned_to.filter(id=request.user.id).exists():
+        if (
+            not request.user.is_superuser
+            and not self.ticket.assigned_to.filter(id=request.user.id).exists()
+        ):
             raise Http404
 
         if self.ticket.status == Ticket.Status.CLOSED:
@@ -241,10 +248,14 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
 
     def post_action_unclose_ticket(self, request, *args, **kwargs):
         """Reopen a closed ticket to AWAITING_STAFF."""
+
         if not self.is_staff_user:
             raise Http404
 
-        if not self.ticket.assigned_to.filter(id=request.user.id).exists():
+        if (
+            not request.user.is_superuser
+            and not self.ticket.assigned_to.filter(id=request.user.id).exists()
+        ):
             raise Http404
 
         if self.ticket.status != Ticket.Status.CLOSED:
@@ -336,9 +347,10 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         context["comments"] = comments
         if self.is_staff_user:
             context["internal_notes"] = self.ticket.internal_notes
-            context["can_edit_internal_notes"] = self.ticket.assigned_to.filter(
-                id=self.request.user.id
-            ).exists()
+            context["can_edit_internal_notes"] = (
+                self.request.user.is_superuser
+                or self.ticket.assigned_to.filter(id=self.request.user.id).exists()
+            )
             context["ticket_fields_form"] = self.get_fields_form()
 
         return context
