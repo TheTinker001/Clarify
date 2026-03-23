@@ -5,6 +5,8 @@ from tickets.helpers import get_page_slots
 
 
 class GetPageSlotsTests(TestCase):
+    """Tests for the helper function 'get_page_slots'"""
+
     def test_pages_less_than_9(self):
         self.assertEqual(get_page_slots(1, 5), [1, 2, 3, 4, 5])
 
