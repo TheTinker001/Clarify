@@ -32,10 +32,7 @@ class UserFormTestCase(TestCase):
 
     def test_valid_user_form(self):
         form = UserForm(data=self.form_input)
-        import sys
 
-        print(form.errors, file=sys.stderr)
-        print(form.errors)
         if not form.is_valid():
             raise Exception(form.errors)
         self.assertTrue(form.is_valid())

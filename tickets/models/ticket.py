@@ -121,9 +121,7 @@ class Ticket(models.Model):
 
     subject = models.CharField(max_length=78)
 
-    body = models.TextField(
-        max_length=BODY_LENGTH_MAX, validators=[MaxLengthValidator(BODY_LENGTH_MAX)]
-    )
+    body = models.TextField()
 
     attachment = models.FileField(
         upload_to="ticket_attachments/%Y/%m/%d/",

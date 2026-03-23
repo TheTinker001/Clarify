@@ -18,7 +18,7 @@
                         {% endif %}
                     </div>
                     <!-- Display ticket tags for UI consistency with dashboard view -->
-                    <div class="mt-2">
+                    <div class="mt-2 ticket-tags">
                         <span class="badge bg-light text-dark me-1">{{ ticket.get_faculty_display }}</span>
                         <span class="badge bg-light text-dark me-1">{{ ticket.get_study_level_display }}</span>
                         <span class="badge bg-light text-dark">{{ ticket.get_category_display }}</span>
@@ -50,7 +50,7 @@
                     <div class="card-body">
                         <h5 class="card-title">{{ ticket.subject }}</h5>
                         <p class="card-text">{{ ticket.description }}</p>
-                        <p class="card-text text-muted">{{ ticket.body }}</p>
+                        <p class="card-text text-muted">{{ ticket.body|safe }}</p>
                         {% if ticket.attachments.all %}
                             <div class="mt-2">
                                 <strong>Attachments:</strong>
@@ -75,7 +75,7 @@
                                 <small class="text-white-50">{{ comment.created_at|date:"M j, Y, P" }}</small>
                             </div>
                             <div class="card-body">
-                                <p class="card-text mb-1">{{ comment.body }}</p>
+                                <p class="card-text mb-1">{{ comment.body|safe }}</p>
                                 {% if comment.attachments.all %}
                                     <ul class="comment-attachments mt-2 mb-1">
                                         {% for attachment in comment.attachments.all %}
@@ -105,7 +105,7 @@
                                 <input type="hidden" name="action" value="add_comment">
                                 {{ form.body }}
                                 {% if form.body.errors %}<div class="text-danger mt-1">{{ form.body.errors }}</div>{% endif %}
-                                {{ form.attachments }}
+                                <div class="mt-2">{{ form.attachments }}</div>
                                 {% if form.attachments.errors %}<div class="text-danger mt-1">{{ form.attachments.errors }}</div>{% endif %}
                                 <button type="submit" class="btn btn-primary mt-2">
                                     <i class="bi bi-send-fill"></i>
@@ -168,7 +168,7 @@
                                 <div class="d-flex justify-content-between align-items-start mb-3">
                                     <form method="post" action="{{ ticket.get_unclaim_url }}">
                                         {% csrf_token %}
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">Unclaim</button>
+                                        <button type="submit" class="btn btn-sm btn-outline-primary">Unclaim</button>
                                     </form>
                                 </div>
                             {% elif ticket.assigned_to.all|length == 5 %}
@@ -185,7 +185,7 @@
                                 <div class="d-flex justify-content-between align-items-start mb-3">
                                     <form method="post" action="{{ ticket.get_claim_url }}">
                                         {% csrf_token %}
-                                        <button type="submit" class="btn btn-sm btn-outline-success">Claim</button>
+                                        <button type="submit" class="btn btn-sm btn-outline-primary">Claim</button>
                                     </form>
                                 </div>
                             {% endif %}
@@ -238,12 +238,12 @@
                                         <strong>Internal Notes</strong>
                                         {% if can_edit_internal_notes %}
                                             <a href="{% url 'internal_note_edit' url_code=ticket.url_code %}"
-                                               class="btn btn-sm btn-outline-dark">Edit</a>
+                                               class="btn btn-sm btn-outline-secondary mt-1">Edit</a>
                                         {% endif %}
                                     </div>
                                     <div class="card-body">
                                         {% if internal_notes %}
-                                            <p class="mb-0">{{ internal_notes }}</p>
+                                            <p class="mb-0">{{ internal_notes|safe }}</p>
                                         {% else %}
                                             <p class="text-muted mb-0">No internal notes yet.</p>
                                         {% endif %}
