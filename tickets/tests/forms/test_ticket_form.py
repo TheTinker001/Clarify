@@ -14,7 +14,15 @@ class TicketFormTest(TestCase):
         form = TicketForm()
         self.assertEqual(
             list(form.fields.keys()),
-            ["faculty", "study_level", "category", "subject", "body", "attachments"],
+            [
+                "faculty",
+                "study_level",
+                "category",
+                "priority",
+                "subject",
+                "body",
+                "attachments",
+            ],
         )
 
     def test_form_valid_data(self):
@@ -22,6 +30,7 @@ class TicketFormTest(TestCase):
             "faculty": "kbs",
             "study_level": "undergraduate",
             "category": "health_and_wellbeing",
+            "priority": "high",
             "subject": "Test Subject",
             "body": "Test body content",
         }
@@ -36,6 +45,7 @@ class TicketFormTest(TestCase):
         form = TicketForm(data=form_data)
         self.assertFalse(form.is_valid())
         self.assertIn("category", form.errors)
+        self.assertIn("priority", form.errors)
         self.assertIn("subject", form.errors)
         self.assertIn("body", form.errors)
 
@@ -44,17 +54,31 @@ class TicketFormTest(TestCase):
             "faculty": "kbs",
             "study_level": "undergraduate",
             "category": "health_and_wellbeing",
+            "priority": "high",
             "body": "Test body",
         }
         form = TicketForm(data=form_data)
         self.assertFalse(form.is_valid())
         self.assertIn("subject", form.errors)
 
+    def test_form_missing_priority(self):
+        form_data = {
+            "faculty": "kbs",
+            "study_level": "undergraduate",
+            "category": "health_and_wellbeing",
+            "subject": "Test subject",
+            "body": "Test body",
+        }
+        form = TicketForm(data=form_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn("priority", form.errors)
+
     def test_form_missing_body(self):
         form_data = {
             "faculty": "kbs",
             "study_level": "undergraduate",
             "category": "health_and_wellbeing",
+            "priority": "high",
             "subject": "Test subject",
         }
         form = TicketForm(data=form_data)
@@ -79,6 +103,7 @@ class TicketFormTest(TestCase):
                 "faculty": faculty_code,
                 "study_level": "undergraduate",
                 "category": "health_and_wellbeing",
+                "priority": "high",
                 "subject": "Test",
                 "body": "Test body",
             }
@@ -98,6 +123,7 @@ class TicketFormTest(TestCase):
                 "faculty": "kbs",
                 "study_level": level_code,
                 "category": "health_and_wellbeing",
+                "priority": "high",
                 "subject": "Test",
                 "body": "Test body",
             }
@@ -117,6 +143,7 @@ class TicketFormTest(TestCase):
                 "faculty": "kbs",
                 "study_level": "undergraduate",
                 "category": category_code,
+                "priority": "high",
                 "subject": "Test",
                 "body": "Test body",
             }
@@ -145,6 +172,7 @@ class TicketFormTest(TestCase):
             "faculty": "kbs",
             "study_level": "undergraduate",
             "category": "assessment",
+            "priority": "high",
             "subject": "Test subject",
             "body": "Test body",
         }
@@ -160,6 +188,7 @@ class TicketFormTest(TestCase):
             "faculty": "kbs",
             "study_level": "undergraduate",
             "category": "assessment",
+            "priority": "high",
             "subject": "Test subject",
             "body": "Test body",
         }
@@ -178,6 +207,7 @@ class TicketFormTest(TestCase):
             "faculty": "kbs",
             "study_level": "undergraduate",
             "category": "assessment",
+            "priority": "high",
             "subject": "Test subject",
             "body": "Test body",
         }
@@ -197,6 +227,7 @@ class TicketFormTest(TestCase):
             "faculty": "kbs",
             "study_level": "undergraduate",
             "category": "assessment",
+            "priority": "high",
             "subject": "Test subject",
             "body": "Test body",
         }

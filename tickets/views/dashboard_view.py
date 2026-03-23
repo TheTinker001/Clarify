@@ -2,6 +2,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
 from django.utils import timezone
 from django.views.generic import TemplateView
+from tickets.helpers import get_page_slots
 from django.db.models import Q, Value, Count
 from django.db.models.functions import Concat
 from tickets.models import Ticket, User
@@ -22,6 +23,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         "closed_tickets": "Closed",
     }
     default_sorting = "-created_at"
+    default_pk = "-pk"
 
     def get_tab(self):
         """Return the active tab key from the query string, falling back to 'open_tickets'."""
@@ -99,7 +101,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 "in_progress_tickets": tickets.filter(
                     status=Ticket.Status.AWAITING_STAFF,
                     assigned_to__isnull=False,
-                ),
+                ).distinct(),
                 "need_response_tickets": tickets.filter(
                     status=Ticket.Status.AWAITING_STUDENT,
                 ),
@@ -143,11 +145,11 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         if current_user.user_type == User.USER_TYPE_STAFF:
             order_filter = self.request.GET.get("order", "newest")
             if order_filter == "oldest":
-                qs = qs.order_by("created_at")
+                qs = qs.order_by("created_at", "pk")
             else:
-                qs = qs.order_by("-created_at")
+                qs = qs.order_by(self.default_sorting, self.default_pk)
         else:
-            qs = qs.order_by(self.default_sorting)
+            qs = qs.order_by(self.default_sorting, self.default_pk)
 
         return tab, qs
 
@@ -157,9 +159,9 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             order_filter = self.request.GET.get("order", "newest")
 
             if order_filter == "oldest":
-                ordering = "created_at"
+                ordering = ("created_at", "pk")
             else:
-                ordering = "-created_at"
+                ordering = (self.default_sorting, self.default_pk)
 
             qs = (
                 qs.annotate(
@@ -173,7 +175,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                     | Q(student__username__icontains=search_term)
                     | Q(student_full_name__icontains=search_term)
                 )
-                .order_by(ordering)
+                .order_by(*ordering)
             )
         return qs
 
@@ -219,6 +221,9 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         paginator = Paginator(qs, ITEMS_PER_PAGE)
         page_number = self.request.GET.get("page")
         page_obj = paginator.get_page(page_number)
+        cur = page_obj.number
+        max_pages = paginator.num_pages
+        page_slots = get_page_slots(cur, max_pages)
 
         params = self.request.GET.copy()
         params.pop("page", None)
@@ -242,11 +247,13 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 "category": self.TAB_LABELS.get(tab, "N/A"),
                 "page_obj": page_obj,
                 "paginator": paginator,
+                "max_pages": max_pages,
+                "cur": cur,
+                "page_slots": page_slots,
                 "tab": tab,
                 "total": qs.count(),
                 "querystring": querystring,
                 "carry_querystring": carry_querystring,
-                "priority_sort": self.request.GET.get("sort", ""),
                 "searchTerm": search_term,
                 "filters": {
                     "priority": self.request.GET.get("priority", ""),
