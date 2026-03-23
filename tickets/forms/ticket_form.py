@@ -16,7 +16,7 @@ class TicketForm(forms.ModelForm):
 
     class Meta:
         model = Ticket
-        fields = ["faculty", "study_level", "category", "subject", "body"]
+        fields = ["faculty", "study_level", "category", "priority", "subject", "body"]
         widgets = {
             "body": SummernoteWidget(),
         }
@@ -37,11 +37,11 @@ class TicketForm(forms.ModelForm):
         self.fields["faculty"].label = "Please select your faculty"
         self.fields["study_level"].label = "Please select the relevant level of study"
         self.fields["category"].label = "What is your question about?"
+        self.fields["priority"].label = "How urgent is your issue?"
         self.fields["subject"].label = "Let us know why you're getting in touch"
         self.fields["subject"].widget.attrs[
             "placeholder"
         ] = "Write your subject here..."
-
         self.fields["body"].label = "Please provide more details"
         self.fields["body"].widget.attrs["placeholder"] = "Write your body here..."
 
