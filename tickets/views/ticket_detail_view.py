@@ -56,9 +56,16 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         return None
 
     def get_ticket_issue_group_form(self):
-        """Return a pre-populated priority form for staff, or None for students."""
-        if self.is_staff_user:
+        """Return a pre-populated issue-group form for admins or assigned staff."""
+        if not self.is_staff_user:
+            return None
+
+        if (
+            self.request.user.is_superuser
+            or self.ticket.assigned_to.filter(id=self.request.user.id).exists()
+        ):
             return TicketIssueGroupForm(instance=self.ticket)
+
         return None
 
     def get_comment_form(self):
@@ -285,7 +292,10 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         if not self.is_staff_user or self.ticket.status == Ticket.Status.CLOSED:
             raise Http404
 
-        if not self.ticket.assigned_to.filter(id=request.user.id).exists():
+        if (
+            not request.user.is_superuser
+            and not self.ticket.assigned_to.filter(id=request.user.id).exists()
+        ):
             raise Http404
 
         issue_group_form = TicketIssueGroupForm(request.POST, instance=self.ticket)
