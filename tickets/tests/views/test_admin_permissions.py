@@ -180,22 +180,6 @@ class AdminFieldsPermissionsTest(TestCase):
         )
         self.assertEqual(response.status_code, 404)
 
-    def test_admin_cannot_edit_ticket_fields_if_not_assigned(self):
-        self.ticket.assigned_to.clear()
-        self.client.login(username="@fldadmin", password="Password123")
-
-        response = self.client.post(
-            self.url,
-            {
-                "action": "set_ticket_fields",
-                "faculty": "nmes",
-                "study_level": "undergraduate",
-                "category": "assessment",
-            },
-        )
-
-        self.assertEqual(response.status_code, 404)
-
     def test_admin_sees_fields_form(self):
         self.client.login(username="@fldadmin", password="Password123")
         response = self.client.get(self.url)

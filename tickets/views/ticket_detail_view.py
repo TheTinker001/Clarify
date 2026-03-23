@@ -101,7 +101,11 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
     def post_action_set_priority(self, request, *args, **kwargs):
         """Update the ticket's priority. Only admin (superuser) staff can do this.
         Raises Http404 on closed tickets or non-admin users."""
-        if not self.is_staff_user or not request.user.is_superuser or self.ticket.status == Ticket.Status.CLOSED:
+        if (
+            not self.is_staff_user
+            or not request.user.is_superuser
+            or self.ticket.status == Ticket.Status.CLOSED
+        ):
             raise Http404
 
         priority_form = TicketPriorityForm(request.POST, instance=self.ticket)
@@ -259,10 +263,11 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
 
     def post_action_edit_ticket_fields(self, request, *args, **kwargs):
         """Only admin (superuser) staff can edit ticket fields."""
-        if not self.is_staff_user or not request.user.is_superuser or self.ticket.status == Ticket.Status.CLOSED:
-            raise Http404
-
-        if not self.ticket.assigned_to.filter(id=request.user.id).exists():
+        if (
+            not self.is_staff_user
+            or not request.user.is_superuser
+            or self.ticket.status == Ticket.Status.CLOSED
+        ):
             raise Http404
 
         fields_form = TicketFieldsForm(request.POST, instance=self.ticket)
