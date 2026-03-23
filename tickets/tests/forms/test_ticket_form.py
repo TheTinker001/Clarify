@@ -30,8 +30,8 @@ class TicketFormTest(TestCase):
             "faculty": "kbs",
             "study_level": "undergraduate",
             "category": "health_and_wellbeing",
-            "subject": "Test Subject",
             "priority": "high",
+            "subject": "Test Subject",
             "body": "Test body content",
         }
         form = TicketForm(data=form_data)
@@ -54,8 +54,8 @@ class TicketFormTest(TestCase):
             "faculty": "kbs",
             "study_level": "undergraduate",
             "category": "health_and_wellbeing",
-            "body": "Test body",
             "priority": "high",
+            "body": "Test body",
         }
         form = TicketForm(data=form_data)
         self.assertFalse(form.is_valid())
@@ -78,8 +78,8 @@ class TicketFormTest(TestCase):
             "faculty": "kbs",
             "study_level": "undergraduate",
             "category": "health_and_wellbeing",
-            "subject": "Test subject",
             "priority": "high",
+            "subject": "Test subject",
         }
         form = TicketForm(data=form_data)
         self.assertFalse(form.is_valid())
@@ -103,9 +103,9 @@ class TicketFormTest(TestCase):
                 "faculty": faculty_code,
                 "study_level": "undergraduate",
                 "category": "health_and_wellbeing",
+                "priority": "high",
                 "subject": "Test",
                 "body": "Test body",
-                "priority": "high",
             }
             form = TicketForm(data=form_data)
             if faculty_code != "":
@@ -123,9 +123,9 @@ class TicketFormTest(TestCase):
                 "faculty": "kbs",
                 "study_level": level_code,
                 "category": "health_and_wellbeing",
+                "priority": "high",
                 "subject": "Test",
                 "body": "Test body",
-                "priority": "high",
             }
             form = TicketForm(data=form_data)
             if level_code != "":
@@ -143,9 +143,9 @@ class TicketFormTest(TestCase):
                 "faculty": "kbs",
                 "study_level": "undergraduate",
                 "category": category_code,
+                "priority": "high",
                 "subject": "Test",
                 "body": "Test body",
-                "priority": "high",
             }
             form = TicketForm(data=form_data)
 
@@ -188,9 +188,9 @@ class TicketFormTest(TestCase):
             "faculty": "kbs",
             "study_level": "undergraduate",
             "category": "assessment",
+            "priority": "high",
             "subject": "Test subject",
             "body": "Test body",
-            "priority": "high",
         }
         form = TicketForm(data=data, files={"attachments": file})
         self.assertFalse(form.is_valid())
@@ -207,9 +207,9 @@ class TicketFormTest(TestCase):
             "faculty": "kbs",
             "study_level": "undergraduate",
             "category": "assessment",
+            "priority": "high",
             "subject": "Test subject",
             "body": "Test body",
-            "priority": "high",
         }
         form = TicketForm(data=data, files={"attachments": file})
         self.assertFalse(form.is_valid())
@@ -227,9 +227,9 @@ class TicketFormTest(TestCase):
             "faculty": "kbs",
             "study_level": "undergraduate",
             "category": "assessment",
+            "priority": "high",
             "subject": "Test subject",
             "body": "Test body",
-            "priority": "high",
         }
         form = TicketForm(data=data, files={"attachment": file})
         self.assertTrue(form.is_valid())

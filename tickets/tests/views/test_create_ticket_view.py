@@ -32,9 +32,9 @@ class CreateTicketViewTest(TestCase):
             "faculty": "kbs",
             "study_level": "undergraduate",
             "category": "health_and_wellbeing",
+            "priority": "high",
             "subject": "Need medical support",
             "body": "I need help with accessing medical services.",
-            "priority": "high",
         }
 
     def test_redirect_if_not_logged_in(self):
