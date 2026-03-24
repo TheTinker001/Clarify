@@ -17,15 +17,6 @@
                             </span>
                         {% endif %}
                     </div>
-                    {% if user.user_type == "student" and ticket.is_editable_by_student %}
-                        <div class="mt-2">
-                            <a href="{% url 'edit_ticket' url_code=ticket.url_code %}" class="btn btn-sm btn-outline-primary me-1">Edit Ticket</a>
-                            <form method="post" action="{% url 'delete_ticket' url_code=ticket.url_code %}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this ticket?')">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-sm btn-outline-danger">Delete Ticket</button>
-                            </form>
-                        </div>
-                    {% endif %}
                     <!-- Display ticket tags for UI consistency with dashboard view -->
                     <div class="mt-2 ticket-tags">
                         <span class="badge bg-light text-dark me-1">{{ ticket.get_faculty_display }}</span>
@@ -48,6 +39,27 @@
                                             class="btn btn-outline-primary">Update</button>
                                 </div>
                             </div>
+                        </div>
+                    {% endif %}
+                    <!-- Ticket edit/delete buttons (students only) -->
+                    {% if user.user_type == user.USER_TYPE_STUDENT and ticket.is_editable_by_student %}
+                        <div class="d-flex flex-wrap gap-2 mt-3">
+                            <a href="{% url 'edit_ticket' url_code=ticket.url_code %}"
+                               class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1">
+                                <i class="bi bi-pencil"></i>
+                                <span>Edit</span>
+                            </a>
+                            <form method="post"
+                                  action="{% url 'delete_ticket' url_code=ticket.url_code %}"
+                                  class="m-0"
+                                  onsubmit="return confirm('Are you sure you want to delete this ticket?')">
+                                {% csrf_token %}
+                                <button type="submit"
+                                        class="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1">
+                                    <i class="bi bi-trash"></i>
+                                    <span>Delete</span>
+                                </button>
+                            </form>
                         </div>
                     {% endif %}
                 </div>

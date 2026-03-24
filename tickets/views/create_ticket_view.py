@@ -7,7 +7,7 @@ from tickets.models import Ticket
 from tickets.forms import TicketForm
 from tickets.helpers import _send_ticket_created_email
 from tickets.models.attachment import TicketAttachment
-from clarify.settings import MAX_FILES_PER_TICKET
+from clarify.settings import MAX_FILES_PER_TICKET, TICKET_EDIT_WINDOW_MINUTES
 
 
 class CreateTicketView(LoginRequiredMixin, CreateView):
@@ -51,5 +51,8 @@ class CreateTicketView(LoginRequiredMixin, CreateView):
         except Exception:
             pass
 
-        messages.success(self.request, "Ticket created successfully!")
+        messages.success(
+            self.request,
+            f"Ticket created successfully! You have {TICKET_EDIT_WINDOW_MINUTES} minutes to edit/delete your ticket.",
+        )
         return response

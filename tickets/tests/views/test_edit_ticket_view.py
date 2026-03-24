@@ -1,7 +1,7 @@
 """Tests for the edit/delete ticket views and 15-minute staff visibility."""
 
 from datetime import timedelta
-from unittest.mock import patch
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
@@ -97,6 +97,33 @@ class EditTicketViewTest(TestCase):
     def test_unauthenticated_user_redirected(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 302)
+
+    def test_student_can_add_attachment_when_editing_ticket(self):
+        self.client.login(username="@editstudent", password="Password123")
+
+        file = SimpleUploadedFile(
+            "extra.pdf",
+            b"file content",
+            content_type="application/pdf",
+        )
+
+        response = self.client.post(
+            self.url,
+            {
+                "faculty": "kbs",
+                "study_level": "undergraduate",
+                "category": "other",
+                "priority": Ticket.Priority.LOW,
+                "subject": "Updated subject",
+                "body": "Updated body.",
+                "attachments": file,
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.ticket.refresh_from_db()
+        self.assertEqual(self.ticket.attachments.count(), 1)
 
 
 class DeleteTicketViewTest(TestCase):
