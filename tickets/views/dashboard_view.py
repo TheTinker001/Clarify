@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
 from django.utils import timezone
@@ -51,9 +52,14 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             study_levels = split_codes(current_user.study_levels)
             categories = split_codes(current_user.categories)
 
+            visibility_cutoff = timezone.now() - timedelta(
+                minutes=getattr(settings, "TICKET_STAFF_VISIBILITY_DELAY_MINUTES", 15)
+            )
+
             # Restrict to tickets that fall within a staff member's field preferences
+            # and are older than the visibility delay
             tickets = (
-                Ticket.objects.all()
+                Ticket.objects.filter(created_at__lte=visibility_cutoff)
                 .order_by("-created_at")
                 .filter(
                     Q(faculty__in=faculties)

@@ -1,11 +1,12 @@
 """Tests for the Internal Notes feature on the ticket detail view."""
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from tickets.models import Ticket, User
 
 
+@override_settings(TICKET_STAFF_VISIBILITY_DELAY_MINUTES=0)
 class TicketInternalNotesTestCase(TestCase):
     """Test suite for the staff-only internal notes on a ticket."""
 

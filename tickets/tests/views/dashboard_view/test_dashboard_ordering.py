@@ -1,12 +1,13 @@
 """Tests for the ticket age (time ordering) filter on the staff dashboard."""
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from tickets.models import User
 from tickets.models.ticket import Ticket
 from tickets.tests.helpers import LogInTester
 
 
+@override_settings(TICKET_STAFF_VISIBILITY_DELAY_MINUTES=0)
 class DashboardOrderingTestCase(TestCase, LogInTester):
     """Tests for the ticket age ordering filter on the staff dashboard."""
 

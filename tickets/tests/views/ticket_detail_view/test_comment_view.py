@@ -1,7 +1,7 @@
 """Tests for comment submission in the ticket detail view."""
 
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from tickets.models import Comment, Ticket, User
 from tickets.models.attachment import TicketAttachment
@@ -11,6 +11,7 @@ from datetime import timedelta
 from django.utils import timezone
 
 
+@override_settings(TICKET_STAFF_VISIBILITY_DELAY_MINUTES=0)
 class CommentViewTestCase(TestCase):
     """Test suite for comment submission via the ticket detail view."""
 

@@ -46,6 +46,9 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         if not (self.is_staff_user or self.is_owner):
             raise Http404
 
+        if self.is_staff_user and not self.ticket.is_visible_to_staff():
+            raise Http404
+
         return super().dispatch(request, *args, **kwargs)
 
     # GET helpers
