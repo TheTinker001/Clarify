@@ -1,4 +1,5 @@
 {% extends 'base_content.html' %}
+{% load static %}
 {% block content %}
     <div class="container mt-3">
         <h1>Issue Group</h1>
@@ -33,4 +34,7 @@
         {% endfor %}
         <div class="mb-3">{% include "partials/pagination_navbar.html" with page_obj=page_obj %}</div>
     </div>
+{% endblock %}
+{% block extra_js %}
+    <script src="{% static 'js/pagination.js' %}"></script>
 {% endblock %}
