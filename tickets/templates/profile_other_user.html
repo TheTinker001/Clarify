@@ -24,7 +24,7 @@
                     </div>
                     <h4 class="mb-0">{{ profile_user.full_name }}</h4>
                     <p class="text-muted">{{ profile_user.username }}</p>
-                    <span class="badge text-uppercase fs-3 {% if profile_user.user_type == 'staff' %}badge-staff{% else %}badge-student{% endif %}">
+                    <span class="badge text-uppercase fs-3 {% if profile_user.user_type == user.USER_TYPE_STAFF %}badge-staff{% else %}badge-student{% endif %}">
                         {{ profile_user.user_type }}
                     </span>
                     <p class="mt-3">{{ profile_user.self_intro }}</p>
@@ -52,7 +52,7 @@
                                 <strong>Phone number:</strong> {{ profile_user.phone_number|default:"—" }}
                             </p>
                         {% endif %}
-                        {% if profile_user.user_type == "staff" %}
+                        {% if profile_user.user_type == user.USER_TYPE_STAFF %}
                             <p>
                                 <strong>Faculty:</strong>
                                 <br>

@@ -5,7 +5,10 @@ from django.test import TestCase
 
 from tickets.models import Comment, Ticket, User
 from tickets.models.attachment import TicketAttachment
-from tickets.tests.helpers import _reverse_with_next
+from tickets.tests.helpers import _reverse_with_next, _valid_comment_post_data
+
+from datetime import timedelta
+from django.utils import timezone
 
 
 class CommentViewTestCase(TestCase):
@@ -303,3 +306,67 @@ class CommentViewTestCase(TestCase):
         response = self.client.get(self.url)
         self.assertContains(response, "ticket_attachments")
         self.assertContains(response, ".pdf")
+
+    def test_student_comment_on_closed_ticket_reopens_ticket(self):
+        self.ticket.status = Ticket.Status.CLOSED
+        self.ticket.closed_reason = Ticket.ClosedReason.ANSWERED
+        self.ticket.closed_at = timezone.now()
+        self.ticket.awaiting_student_since = timezone.now() - timedelta(days=2)
+        self.ticket.save()
+
+        self.client.login(username=self.student.username, password="Password123")
+        response = self.client.post(
+            self.url,
+            data=_valid_comment_post_data("Student follow-up"),
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.ticket.refresh_from_db()
+        self.assertEqual(self.ticket.status, Ticket.Status.AWAITING_STAFF)
+        self.assertIsNone(self.ticket.closed_reason)
+        self.assertIsNone(self.ticket.closed_at)
+        self.assertIsNone(self.ticket.awaiting_student_since)
+
+    def test_staff_comment_sets_ticket_to_awaiting_student(self):
+        self.ticket.status = Ticket.Status.AWAITING_STAFF
+        self.ticket.awaiting_student_since = None
+        self.ticket.save()
+
+        self.client.login(username=self.staff.username, password="Password123")
+        response = self.client.post(
+            self.url,
+            data=_valid_comment_post_data("Staff reply"),
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.ticket.refresh_from_db()
+        self.assertEqual(self.ticket.status, Ticket.Status.AWAITING_STUDENT)
+        self.assertIsNotNone(self.ticket.awaiting_student_since)
+
+    def test_student_comment_sets_ticket_to_awaiting_staff(self):
+        self.ticket.status = Ticket.Status.AWAITING_STUDENT
+        self.ticket.awaiting_student_since = timezone.now() - timedelta(days=2)
+        self.ticket.save()
+
+        self.client.login(username=self.student.username, password="Password123")
+        response = self.client.post(
+            self.url,
+            data=_valid_comment_post_data("Student reply"),
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.ticket.refresh_from_db()
+        self.assertEqual(self.ticket.status, Ticket.Status.AWAITING_STAFF)
+        self.assertIsNone(self.ticket.awaiting_student_since)
+
+    def test_success_message_shown_after_comment(self):
+        self.client.login(username=self.student.username, password="Password123")
+        response = self.client.post(
+            self.url,
+            data=_valid_comment_post_data("Student reply"),
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        messages = list(response.context["messages"])
+        self.assertTrue(any("Comment added." in str(m) for m in messages))

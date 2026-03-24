@@ -36,6 +36,14 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
         )
         self.ticket.assigned_to.add(self.staff)
         self.url = self.ticket.get_absolute_url()
+        self.admin = User.objects.create_user(
+            username="@adminstaff",
+            email="adminstaff@example.org",
+            password="Password123",
+            user_type=User.USER_TYPE_STAFF,
+            is_staff=True,
+            is_superuser=True,
+        )
 
     def test_ticket_detail_url(self):
         self.assertEqual(self.url, f"/ticket/{self.ticket.url_code}/")
@@ -76,7 +84,7 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
         self.assertEqual(response.status_code, 404)
 
     def test_priority_form_in_context_for_staff(self):
-        self.client.login(username=self.staff.username, password="Password123")
+        self.client.login(username=self.admin.username, password="Password123")
         response = self.client.get(self.url)
         self.assertIn("ticket_priority_form", response.context)
         self.assertIsInstance(
@@ -93,15 +101,20 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
         self.ticket.closed_reason = Ticket.ClosedReason.ANSWERED
         self.ticket.closed_at = timezone.now()
         self.ticket.save()
-        self.client.login(username=self.staff.username, password="Password123")
+        self.client.login(username=self.admin.username, password="Password123")
         response = self.client.post(
             self.url,
             data={"action": "set_priority", "priority": Ticket.Priority.HIGH},
         )
         self.assertEqual(response.status_code, 404)
 
-    def test_post_invalid_priority(self):
+    def test_priority_form_not_in_context_for_staff(self):
         self.client.login(username=self.staff.username, password="Password123")
+        response = self.client.get(self.url)
+        self.assertIsNone(response.context.get("ticket_priority_form"))
+
+    def test_post_invalid_priority(self):
+        self.client.login(username=self.admin.username, password="Password123")
         initial_priority = self.ticket.priority
         response = self.client.post(
             self.url, data={"action": "set_priority", "priority": "invalid_priority"}
@@ -118,7 +131,7 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
         self.assertContains(response, self.ticket.get_category_display(), html=True)
 
     def test_post_different_valid_priorities(self):
-        self.client.login(username=self.staff.username, password="Password123")
+        self.client.login(username=self.admin.username, password="Password123")
         for priority in [
             Ticket.Priority.LOW,
             Ticket.Priority.MEDIUM,
@@ -219,8 +232,7 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
         self.assertEqual(self.ticket.status, Ticket.Status.AWAITING_STAFF)
         self.assertIsNone(self.ticket.awaiting_student_since)
 
-    def test_comment_does_not_change_status_if_ticket_is_closed(self):
-        # Closed ticket
+    def test_staff_cannot_comment_on_closed_ticket(self):
         self.ticket.status = Ticket.Status.CLOSED
         self.ticket.closed_reason = Ticket.ClosedReason.ANSWERED
         self.ticket.closed_at = timezone.now()
@@ -231,13 +243,7 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
         response = self.client.post(
             self.url, data=_valid_comment_post_data("Staff comment")
         )
-        self.assertEqual(response.status_code, 302)
-
-        self.ticket.refresh_from_db()
-        self.assertEqual(self.ticket.status, Ticket.Status.CLOSED)
-        self.assertEqual(self.ticket.closed_reason, Ticket.ClosedReason.ANSWERED)
-        # awaiting_student_since should remain unchanged by add_comment when closed
-        self.assertIsNotNone(self.ticket.closed_at)
+        self.assertEqual(response.status_code, 404)
 
     def test_post_unclose_ticket_as_staff_opens_ticket_as_unsolved(self):
         self.client.login(username=self.staff.username, password="Password123")
