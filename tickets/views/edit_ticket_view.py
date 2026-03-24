@@ -2,12 +2,13 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
+from django.views import View
 from django.views.generic.edit import UpdateView
 
+from clarify.settings import MAX_FILES_PER_TICKET
 from tickets.forms import TicketForm
 from tickets.models import Ticket, User
 from tickets.models.attachment import TicketAttachment
-from clarify.settings import MAX_FILES_PER_TICKET
 
 
 class EditTicketView(LoginRequiredMixin, UpdateView):
@@ -35,10 +36,17 @@ class EditTicketView(LoginRequiredMixin, UpdateView):
 
         return super().dispatch(request, *args, **kwargs)
 
-    def form_valid(self, form):
-        files = self.request.FILES.getlist("attachments")
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["existing_attachments"] = self.object.attachments.all()
+        return context
 
-        if self.object.attachments.count() + len(files) > MAX_FILES_PER_TICKET:
+    def form_valid(self, form):
+        delete_ids = self.request.POST.getlist("delete_attachments")
+        existing_count = self.object.attachments.exclude(pk__in=delete_ids).count()
+        new_files = self.request.FILES.getlist("attachments")
+
+        if existing_count + len(new_files) > MAX_FILES_PER_TICKET:
             form.add_error(
                 "attachments",
                 f"You can upload a maximum of {MAX_FILES_PER_TICKET} files.",
@@ -47,7 +55,10 @@ class EditTicketView(LoginRequiredMixin, UpdateView):
 
         response = super().form_valid(form)
 
-        for f in files:
+        if delete_ids:
+            self.object.attachments.filter(pk__in=delete_ids).delete()
+
+        for f in new_files:
             TicketAttachment.objects.create(ticket=self.object, file=f)
 
         return response
