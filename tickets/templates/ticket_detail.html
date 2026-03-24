@@ -65,6 +65,8 @@
                         {% endif %}
                     </div>
                 </div>
+                <!-- Issue group message -->
+                {% include "partials/issue_group_message.html" with issue_group=ticket.issue_group %}
                 <!-- Comments -->
                 <div class="mt-4">
                     <h5>Comments</h5>
@@ -108,7 +110,7 @@
                                 <div class="mt-2">{{ form.attachments }}</div>
                                 {% if form.attachments.errors %}<div class="text-danger mt-1">{{ form.attachments.errors }}</div>{% endif %}
                                 <button type="submit" class="btn btn-primary mt-2">
-                                    <i class="bi bi-send-fill"></i>
+                                    <i class="bi bi-send-fill me-2"></i> Submit
                                 </button>
                             </form>
                         </div>
