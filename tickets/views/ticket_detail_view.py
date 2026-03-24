@@ -173,20 +173,19 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         if self.ticket.status == Ticket.Status.CLOSED:
             # Only a student comment can reopen a closed ticket.
             # Staff cannot comment on closed tickets (guarded by the 'assigned_to' check above).
-            if not self.is_staff_user:
-                self.ticket.status = Ticket.Status.AWAITING_STAFF
-                self.ticket.closed_reason = None
-                self.ticket.closed_at = None
-                self.ticket.awaiting_student_since = None
-                self.ticket.save(
-                    update_fields=[
-                        "status",
-                        "closed_reason",
-                        "closed_at",
-                        "awaiting_student_since",
-                        "updated_at",
-                    ]
-                )
+            self.ticket.status = Ticket.Status.AWAITING_STAFF
+            self.ticket.closed_reason = None
+            self.ticket.closed_at = None
+            self.ticket.awaiting_student_since = None
+            self.ticket.save(
+                update_fields=[
+                    "status",
+                    "closed_reason",
+                    "closed_at",
+                    "awaiting_student_since",
+                    "updated_at",
+                ]
+            )
 
         else:
             if self.is_staff_user:
