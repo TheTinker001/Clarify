@@ -1,6 +1,6 @@
 """Tests of dashboard view."""
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from clarify.settings import ITEMS_PER_PAGE
 from tickets.models import User
@@ -10,6 +10,7 @@ from django.utils import timezone
 from datetime import timedelta
 
 
+@override_settings(TICKET_STAFF_VISIBILITY_DELAY_MINUTES=0)
 class DashboardViewTestCase(TestCase, LogInTester):
     """Tests of the dashboard view."""
 

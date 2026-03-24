@@ -1,12 +1,13 @@
 """Tests for the ticket detail view."""
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from tickets.forms import TicketFieldsForm
 from tickets.models import Ticket, User
 from tickets.tests.helpers import MenuTesterMixin
 from tickets.views import TicketDetailView
 
 
+@override_settings(TICKET_STAFF_VISIBILITY_DELAY_MINUTES=0)
 class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
     """Test suite for the ticket detail view."""
 

@@ -14,6 +14,7 @@ from datetime import timedelta
 from django.utils import timezone
 
 
+@override_settings(TICKET_STAFF_VISIBILITY_DELAY_MINUTES=0)
 class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
     """Test suite for the ticket detail view."""
 

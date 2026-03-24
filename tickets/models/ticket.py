@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxLengthValidator, FileExtensionValidator
 from django.utils import timezone
+from datetime import timedelta
 from django.urls import reverse
 from tickets.helpers import _validate_file_size
 import secrets
@@ -222,13 +223,17 @@ class Ticket(models.Model):
     def is_editable_by_student(self):
         """True if the ticket was created less than TICKET_EDIT_WINDOW_MINUTES ago."""
         from django.conf import settings as s
+
         window = timedelta(minutes=getattr(s, "TICKET_EDIT_WINDOW_MINUTES", 10))
         return timezone.now() - self.created_at < window
 
     def is_visible_to_staff(self):
         """True if the ticket was created at least TICKET_STAFF_VISIBILITY_DELAY_MINUTES ago."""
         from django.conf import settings as s
-        delay = timedelta(minutes=getattr(s, "TICKET_STAFF_VISIBILITY_DELAY_MINUTES", 15))
+
+        delay = timedelta(
+            minutes=getattr(s, "TICKET_STAFF_VISIBILITY_DELAY_MINUTES", 15)
+        )
         return timezone.now() - self.created_at >= delay
 
     def get_priority_icon(self):

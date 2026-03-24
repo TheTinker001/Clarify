@@ -7,6 +7,7 @@ from tickets.models import Comment
 from tickets.tests.helpers import MenuTesterMixin
 
 
+@override_settings(TICKET_STAFF_VISIBILITY_DELAY_MINUTES=0)
 class TicketDetailCommentEmailTestCase(TestCase, MenuTesterMixin):
     """Test suite for the ticket detail response."""
 

@@ -1,10 +1,11 @@
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from tickets.models import Ticket
 
 User = get_user_model()
 
 
+@override_settings(TICKET_STAFF_VISIBILITY_DELAY_MINUTES=0)
 class AdminFieldsPermissionsTest(TestCase):
     """Tests for admin (is_superuser) permissions on ticket fields."""
 

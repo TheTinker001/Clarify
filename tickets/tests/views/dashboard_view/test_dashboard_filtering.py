@@ -1,12 +1,12 @@
 """Tests of the dashboard filtering feature."""
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
-from tickets.models import User
-from tickets.models.ticket import Ticket
+from tickets.models import User, Ticket
 from tickets.tests.helpers import LogInTester
 
 
+@override_settings(TICKET_STAFF_VISIBILITY_DELAY_MINUTES=0)
 class DashboardFilteringTestCase(TestCase, LogInTester):
     """Tests of the dashboard filtering feature."""
 

@@ -1,4 +1,5 @@
 """Tests for the edit/delete ticket views and 15-minute staff visibility."""
+
 from datetime import timedelta
 from unittest.mock import patch
 
@@ -16,23 +17,36 @@ class EditTicketViewTest(TestCase):
 
     def setUp(self):
         self.student = User.objects.create_user(
-            username="@editstudent", email="edit@test.com",
-            password="Password123", first_name="Edit", last_name="Student",
+            username="@editstudent",
+            email="edit@test.com",
+            password="Password123",
+            first_name="Edit",
+            last_name="Student",
             user_type="student",
         )
         self.other_student = User.objects.create_user(
-            username="@otherstudent", email="other@test.com",
-            password="Password123", first_name="Other", last_name="Student",
+            username="@otherstudent",
+            email="other@test.com",
+            password="Password123",
+            first_name="Other",
+            last_name="Student",
             user_type="student",
         )
         self.staff = User.objects.create_user(
-            username="@editstaff", email="editstaff@test.com",
-            password="Password123", first_name="Staff", last_name="User",
+            username="@editstaff",
+            email="editstaff@test.com",
+            password="Password123",
+            first_name="Staff",
+            last_name="User",
             user_type="staff",
         )
         self.ticket = Ticket.objects.create(
-            student=self.student, faculty="kbs", study_level="undergraduate",
-            category="other", subject="Original subject", body="Original body.",
+            student=self.student,
+            faculty="kbs",
+            study_level="undergraduate",
+            category="other",
+            subject="Original subject",
+            body="Original body.",
         )
         self.url = reverse("edit_ticket", kwargs={"url_code": self.ticket.url_code})
 
@@ -44,11 +58,18 @@ class EditTicketViewTest(TestCase):
 
     def test_student_can_edit_ticket_within_window(self):
         self.client.login(username="@editstudent", password="Password123")
-        response = self.client.post(self.url, {
-            "faculty": "nmes", "study_level": "undergraduate",
-            "category": "assessment", "subject": "Updated subject",
-            "body": "Updated body.",
-        }, follow=True)
+        response = self.client.post(
+            self.url,
+            {
+                "faculty": "nmes",
+                "study_level": "undergraduate",
+                "category": "assessment",
+                "priority": Ticket.Priority.LOW,
+                "subject": "Updated subject",
+                "body": "Updated body.",
+            },
+            follow=True,
+        )
         self.assertEqual(response.status_code, 200)
         self.ticket.refresh_from_db()
         self.assertEqual(self.ticket.subject, "Updated subject")
@@ -82,23 +103,36 @@ class DeleteTicketViewTest(TestCase):
 
     def setUp(self):
         self.student = User.objects.create_user(
-            username="@delstudent", email="del@test.com",
-            password="Password123", first_name="Del", last_name="Student",
+            username="@delstudent",
+            email="del@test.com",
+            password="Password123",
+            first_name="Del",
+            last_name="Student",
             user_type="student",
         )
         self.other_student = User.objects.create_user(
-            username="@delother", email="delother@test.com",
-            password="Password123", first_name="Other", last_name="Student",
+            username="@delother",
+            email="delother@test.com",
+            password="Password123",
+            first_name="Other",
+            last_name="Student",
             user_type="student",
         )
         self.staff = User.objects.create_user(
-            username="@delstaff", email="delstaff@test.com",
-            password="Password123", first_name="Staff", last_name="User",
+            username="@delstaff",
+            email="delstaff@test.com",
+            password="Password123",
+            first_name="Staff",
+            last_name="User",
             user_type="staff",
         )
         self.ticket = Ticket.objects.create(
-            student=self.student, faculty="kbs", study_level="undergraduate",
-            category="other", subject="To delete", body="Body.",
+            student=self.student,
+            faculty="kbs",
+            study_level="undergraduate",
+            category="other",
+            subject="To delete",
+            body="Body.",
         )
         self.url = reverse("delete_ticket", kwargs={"url_code": self.ticket.url_code})
 
@@ -143,19 +177,31 @@ class StaffVisibilityDelayTest(TestCase):
 
     def setUp(self):
         self.student = User.objects.create_user(
-            username="@visstudent", email="vis@test.com",
-            password="Password123", first_name="Vis", last_name="Student",
+            username="@visstudent",
+            email="vis@test.com",
+            password="Password123",
+            first_name="Vis",
+            last_name="Student",
             user_type="student",
         )
         self.staff = User.objects.create_user(
-            username="@visstaff", email="visstaff@test.com",
-            password="Password123", first_name="Staff", last_name="User",
+            username="@visstaff",
+            email="visstaff@test.com",
+            password="Password123",
+            first_name="Staff",
+            last_name="User",
             user_type="staff",
-            faculties="kbs", study_levels="undergraduate", categories="other",
+            faculties="kbs",
+            study_levels="undergraduate",
+            categories="other",
         )
         self.ticket = Ticket.objects.create(
-            student=self.student, faculty="kbs", study_level="undergraduate",
-            category="other", subject="New ticket", body="Body.",
+            student=self.student,
+            faculty="kbs",
+            study_level="undergraduate",
+            category="other",
+            subject="New ticket",
+            body="Body.",
         )
 
     @override_settings(TICKET_STAFF_VISIBILITY_DELAY_MINUTES=15)
@@ -205,23 +251,33 @@ class TicketModelHelpersTest(TestCase):
 
     def setUp(self):
         self.student = User.objects.create_user(
-            username="@modelstudent", email="model@test.com",
-            password="Password123", user_type="student",
+            username="@modelstudent",
+            email="model@test.com",
+            password="Password123",
+            user_type="student",
         )
 
     @override_settings(TICKET_EDIT_WINDOW_MINUTES=10)
     def test_is_editable_by_student_within_window(self):
         ticket = Ticket.objects.create(
-            student=self.student, faculty="kbs", study_level="undergraduate",
-            category="other", subject="Test", body="Body.",
+            student=self.student,
+            faculty="kbs",
+            study_level="undergraduate",
+            category="other",
+            subject="Test",
+            body="Body.",
         )
         self.assertTrue(ticket.is_editable_by_student())
 
     @override_settings(TICKET_EDIT_WINDOW_MINUTES=10)
     def test_is_not_editable_after_window(self):
         ticket = Ticket.objects.create(
-            student=self.student, faculty="kbs", study_level="undergraduate",
-            category="other", subject="Test", body="Body.",
+            student=self.student,
+            faculty="kbs",
+            study_level="undergraduate",
+            category="other",
+            subject="Test",
+            body="Body.",
         )
         Ticket.objects.filter(pk=ticket.pk).update(
             created_at=timezone.now() - timedelta(minutes=11)
@@ -232,8 +288,12 @@ class TicketModelHelpersTest(TestCase):
     @override_settings(TICKET_STAFF_VISIBILITY_DELAY_MINUTES=15)
     def test_is_visible_to_staff_after_delay(self):
         ticket = Ticket.objects.create(
-            student=self.student, faculty="kbs", study_level="undergraduate",
-            category="other", subject="Test", body="Body.",
+            student=self.student,
+            faculty="kbs",
+            study_level="undergraduate",
+            category="other",
+            subject="Test",
+            body="Body.",
         )
         Ticket.objects.filter(pk=ticket.pk).update(
             created_at=timezone.now() - timedelta(minutes=16)
@@ -244,7 +304,11 @@ class TicketModelHelpersTest(TestCase):
     @override_settings(TICKET_STAFF_VISIBILITY_DELAY_MINUTES=15)
     def test_is_not_visible_to_staff_before_delay(self):
         ticket = Ticket.objects.create(
-            student=self.student, faculty="kbs", study_level="undergraduate",
-            category="other", subject="Test", body="Body.",
+            student=self.student,
+            faculty="kbs",
+            study_level="undergraduate",
+            category="other",
+            subject="Test",
+            body="Body.",
         )
         self.assertFalse(ticket.is_visible_to_staff())

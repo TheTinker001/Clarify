@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
 from django.utils import timezone
@@ -7,11 +8,7 @@ from django.db.models import Q, Value, Count
 from django.db.models.functions import Concat
 from tickets.models import Ticket, User
 from datetime import timedelta
-from clarify.settings import (
-    ITEMS_PER_PAGE,
-    TICKET_STAFF_VISIBILITY_DELAY_MINUTES,
-    MAX_TICKET_CLAIMANTS,
-)
+from clarify.settings import ITEMS_PER_PAGE, MAX_TICKET_CLAIMANTS
 
 
 class DashboardView(LoginRequiredMixin, TemplateView):
@@ -56,7 +53,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             categories = split_codes(current_user.categories)
 
             visibility_cutoff = timezone.now() - timedelta(
-                minutes=TICKET_STAFF_VISIBILITY_DELAY_MINUTES
+                minutes=getattr(settings, "TICKET_STAFF_VISIBILITY_DELAY_MINUTES", 15)
             )
 
             # Restrict to tickets that fall within a staff member's field preferences
