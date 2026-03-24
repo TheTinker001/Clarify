@@ -10,6 +10,8 @@ User = get_user_model()
 
 
 class IssueUpdate(models.Model):
+    """Model representing an issue update."""
+
     issue = models.ForeignKey(
         IssueGroup, on_delete=models.CASCADE, related_name="issue_updates"
     )
