@@ -22,7 +22,7 @@ class IssueUpdate(models.Model):
     )
 
     class Meta:
-        ordering = ["-created_at"]
+        ordering = ["-created_at", "-pk"]
 
     def clean(self):
         """Validate student/assigned_to types, require closed_reason when CLOSED, and clear closure fields otherwise."""
