@@ -2,14 +2,16 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
 from django.utils import timezone
 from django.views.generic import TemplateView
-from django.db.models import Q, Value
-from tickets.models import Ticket, User
-
+from tickets.helpers import get_page_slots
+from django.db.models import Q, Value, Count
 from django.db.models.functions import Concat
-
+from tickets.models import Ticket, User
 from datetime import timedelta
-
-from clarify.settings import ITEMS_PER_PAGE, TICKET_STAFF_VISIBILITY_DELAY_MINUTES
+from clarify.settings import (
+    ITEMS_PER_PAGE,
+    TICKET_STAFF_VISIBILITY_DELAY_MINUTES,
+    MAX_TICKET_CLAIMANTS,
+)
 
 
 class DashboardView(LoginRequiredMixin, TemplateView):
@@ -25,6 +27,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         "closed_tickets": "Closed",
     }
     default_sorting = "-created_at"
+    default_pk = "-pk"
 
     def get_tab(self):
         """Return the active tab key from the query string, falling back to 'open_tickets'."""
@@ -52,7 +55,9 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             study_levels = split_codes(current_user.study_levels)
             categories = split_codes(current_user.categories)
 
-            visibility_cutoff = timezone.now() - timedelta(minutes=TICKET_STAFF_VISIBILITY_DELAY_MINUTES)
+            visibility_cutoff = timezone.now() - timedelta(
+                minutes=TICKET_STAFF_VISIBILITY_DELAY_MINUTES
+            )
 
             # Restrict to tickets that fall within a staff member's field preferences
             # and are older than the visibility delay
@@ -69,8 +74,10 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             overdue_cutoff = timezone.now() - timedelta(days=5)
 
             groups = {
-                "open_tickets": tickets.filter(
-                    assigned_to__isnull=True,
+                "open_tickets": tickets.annotate(
+                    assigned_count=Count("assigned_to", distinct=True)
+                ).filter(
+                    assigned_count__lt=MAX_TICKET_CLAIMANTS,
                     status__in=[
                         Ticket.Status.AWAITING_STAFF,
                         Ticket.Status.AWAITING_STUDENT,
@@ -103,7 +110,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 "in_progress_tickets": tickets.filter(
                     status=Ticket.Status.AWAITING_STAFF,
                     assigned_to__isnull=False,
-                ),
+                ).distinct(),
                 "need_response_tickets": tickets.filter(
                     status=Ticket.Status.AWAITING_STUDENT,
                 ),
@@ -144,13 +151,27 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             if category_filter and category_filter in dict(Ticket.Category.choices):
                 qs = qs.filter(category=category_filter)
 
-        qs = qs.order_by(self.default_sorting)
+        if current_user.user_type == User.USER_TYPE_STAFF:
+            order_filter = self.request.GET.get("order", "newest")
+            if order_filter == "oldest":
+                qs = qs.order_by("created_at", "pk")
+            else:
+                qs = qs.order_by(self.default_sorting, self.default_pk)
+        else:
+            qs = qs.order_by(self.default_sorting, self.default_pk)
 
         return tab, qs
 
     def get_queryset_for_search_term(self, qs, current_user, search_term):
         """Filter the queryset by search term across subject, body, student username, and full name (staff only)."""
         if current_user.user_type == User.USER_TYPE_STAFF and search_term:
+            order_filter = self.request.GET.get("order", "newest")
+
+            if order_filter == "oldest":
+                ordering = ("created_at", "pk")
+            else:
+                ordering = (self.default_sorting, self.default_pk)
+
             qs = (
                 qs.annotate(
                     student_full_name=Concat(
@@ -163,7 +184,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                     | Q(student__username__icontains=search_term)
                     | Q(student_full_name__icontains=search_term)
                 )
-                .order_by(self.default_sorting)
+                .order_by(*ordering)
             )
         return qs
 
@@ -209,6 +230,9 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         paginator = Paginator(qs, ITEMS_PER_PAGE)
         page_number = self.request.GET.get("page")
         page_obj = paginator.get_page(page_number)
+        cur = page_obj.number
+        max_pages = paginator.num_pages
+        page_slots = get_page_slots(cur, max_pages)
 
         params = self.request.GET.copy()
         params.pop("page", None)
@@ -232,17 +256,20 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 "category": self.TAB_LABELS.get(tab, "N/A"),
                 "page_obj": page_obj,
                 "paginator": paginator,
+                "max_pages": max_pages,
+                "cur": cur,
+                "page_slots": page_slots,
                 "tab": tab,
                 "total": qs.count(),
                 "querystring": querystring,
                 "carry_querystring": carry_querystring,
-                "priority_sort": self.request.GET.get("sort", ""),
                 "searchTerm": search_term,
                 "filters": {
                     "priority": self.request.GET.get("priority", ""),
                     "faculty": self.request.GET.get("faculty", ""),
                     "study_level": self.request.GET.get("study_level", ""),
                     "category": self.request.GET.get("category", ""),
+                    "order": self.request.GET.get("order", "newest"),
                 },
                 "filter_choices": {
                     "priority": Ticket.Priority.choices,

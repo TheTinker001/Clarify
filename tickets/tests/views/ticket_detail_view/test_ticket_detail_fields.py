@@ -21,17 +21,25 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
         self.staff = User.objects.get(username="@janedoe")
         self.ticket = Ticket.objects.create(
             student=self.student,
-            assigned_to=self.staff,
             faculty="nmes",
             study_level="undergraduate",
             category="other",
             subject="Update card access",
             body="Card access not working for lab.",
         )
+        self.ticket.assigned_to.add(self.staff)
         self.url = self.ticket.get_absolute_url()
+        self.admin = User.objects.create_user(
+            username="@adminstaff",
+            email="adminstaff@example.org",
+            password="Password123",
+            user_type=User.USER_TYPE_STAFF,
+            is_staff=True,
+            is_superuser=True,
+        )
 
-    def test_fields_form_in_context_for_staff(self):
-        self.client.login(username=self.staff.username, password="Password123")
+    def test_fields_form_in_context_for_admin(self):
+        self.client.login(username=self.admin.username, password="Password123")
         response = self.client.get(self.url)
         self.assertIn("ticket_fields_form", response.context)
         self.assertIsInstance(response.context["ticket_fields_form"], TicketFieldsForm)
@@ -56,7 +64,7 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
         self.assertEqual(response.status_code, 404)
 
     def test_post_invalid_fields(self):
-        self.client.login(username=self.staff.username, password="Password123")
+        self.client.login(username=self.admin.username, password="Password123")
         initial_faculty = self.ticket.faculty
         initial_study_level = self.ticket.study_level
         initial_category = self.ticket.category
@@ -88,7 +96,7 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
             password="Password123",
             user_type=User.USER_TYPE_STAFF,
         )
-        self.ticket.assigned_to = assigned_staff
+        self.ticket.assigned_to.add(assigned_staff)
         self.ticket.save()
         self.client.login(username=other_staff.username, password="Password123")
         response = self.client.post(
@@ -102,10 +110,8 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
         )
         self.assertEqual(response.status_code, 404)
 
-    def test_edit_fields_as_assigned_staff_success(self):
-        self.client.login(
-            username=self.ticket.assigned_to.username, password="Password123"
-        )
+    def test_edit_fields_as_admin_success(self):
+        self.client.login(username=self.admin.username, password="Password123")
         response = self.client.post(
             self.ticket.get_absolute_url(),
             data={
@@ -126,10 +132,15 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
         form = view.get_fields_form()
         self.assertIsNone(form)
 
-    def test_edit_ticket_fields_as_staff(self):
-        self.client.login(username=self.staff.username, password="Password123")
+    def test_edit_ticket_fields_as_admin(self):
+        self.client.login(username=self.admin.username, password="Password123")
         response = self.client.get(self.url)
         self.assertIn("ticket_fields_form", response.context)
         form = response.context["ticket_fields_form"]
         self.assertIsInstance(form, TicketFieldsForm)
         self.assertEqual(form.instance, self.ticket)
+
+    def test_fields_form_not_in_context_for_staff(self):
+        self.client.login(username=self.staff.username, password="Password123")
+        response = self.client.get(self.url)
+        self.assertIsNone(response.context.get("ticket_fields_form"))

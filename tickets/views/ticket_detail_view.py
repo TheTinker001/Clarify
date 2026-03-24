@@ -12,8 +12,9 @@ from tickets.forms import (
     CommentForm,
     TicketPriorityForm,
     TicketFieldsForm,
+    TicketIssueGroupForm,
 )
-from clarify.settings import EDIT_TIME_LIMIT_MINUTES
+from clarify.settings import EDIT_TIME_LIMIT_MINUTES, MAX_FILES_PER_TICKET
 
 
 class TicketDetailView(LoginRequiredMixin, TemplateView):
@@ -34,7 +35,7 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
             return super().dispatch(request, *args, **kwargs)
 
         self.ticket = get_object_or_404(
-            Ticket.objects.select_related("student", "assigned_to"),
+            Ticket.objects.select_related("student").prefetch_related("assigned_to"),
             url_code=kwargs.get("url_code"),
         )
 
@@ -52,9 +53,22 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
 
     # GET helpers
     def get_priority_form(self):
-        """Return a pre-populated priority form for staff, or None for students."""
-        if self.is_staff_user:
+        """Return a pre-populated priority form for admin (superuser) staff, or None."""
+        if self.is_staff_user and self.request.user.is_superuser:
             return TicketPriorityForm(instance=self.ticket)
+        return None
+
+    def get_ticket_issue_group_form(self):
+        """Return a pre-populated issue-group form for admins or assigned staff."""
+        if not self.is_staff_user:
+            return None
+
+        if (
+            self.request.user.is_superuser
+            or self.ticket.assigned_to.filter(id=self.request.user.id).exists()
+        ):
+            return TicketIssueGroupForm(instance=self.ticket)
+
         return None
 
     def get_comment_form(self):
@@ -62,7 +76,8 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         return CommentForm()
 
     def get_fields_form(self):
-        if self.is_staff_user:
+        """Return a ticket fields form for admin (superuser) staff, or None."""
+        if self.is_staff_user and self.request.user.is_superuser:
             return TicketFieldsForm(instance=self.ticket)
         return None
 
@@ -87,13 +102,20 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         elif action == "set_ticket_fields":
             return self.post_action_edit_ticket_fields(request, *args, **kwargs)
 
+        elif action == "set_issue_group":
+            return self.post_action_edit_ticket_issue_group(request, *args, **kwargs)
+
         raise Http404
 
     # Action handlers
     def post_action_set_priority(self, request, *args, **kwargs):
-        """Update the ticket's priority for staff.
-        Raises Http404 on closed tickets."""
-        if not self.is_staff_user or self.ticket.status == Ticket.Status.CLOSED:
+        """Update the ticket's priority. Only admin (superuser) staff can do this.
+        Raises Http404 on closed tickets or non-admin users."""
+        if (
+            not self.is_staff_user
+            or not request.user.is_superuser
+            or self.ticket.status == Ticket.Status.CLOSED
+        ):
             raise Http404
 
         priority_form = TicketPriorityForm(request.POST, instance=self.ticket)
@@ -111,9 +133,16 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
 
         Staff comment sets the ticket's status to AWAITING_STUDENT
         Student comment sets the ticket's status to AWAITING_STAFF (reopens the ticket if closed).
-        Staff may only comment on tickets assigned to them.
+        Staff may only comment on tickets assigned to them (except admin users).
         """
-        if self.is_staff_user and self.ticket.assigned_to_id != request.user.id:
+        if self.is_staff_user and self.ticket.status == Ticket.Status.CLOSED:
+            raise Http404
+
+        if (
+            self.is_staff_user
+            and not request.user.is_superuser
+            and not self.ticket.assigned_to.filter(id=request.user.id).exists()
+        ):
             raise Http404
 
         comment_form = CommentForm(request.POST, request.FILES)
@@ -121,10 +150,10 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
             return self.render_to_response(self.get_context_data(form=comment_form))
 
         files = comment_form.cleaned_data.get("attachments") or []
-        if len(files) > TicketAttachment.MAX_FILES_PER_TICKET:
+        if len(files) > MAX_FILES_PER_TICKET:
             comment_form.add_error(
                 "attachments",
-                f"You can upload a maximum of {TicketAttachment.MAX_FILES_PER_TICKET} files.",
+                f"You can upload a maximum of {MAX_FILES_PER_TICKET} files.",
             )
             return self.render_to_response(self.get_context_data(form=comment_form))
 
@@ -147,20 +176,19 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         if self.ticket.status == Ticket.Status.CLOSED:
             # Only a student comment can reopen a closed ticket.
             # Staff cannot comment on closed tickets (guarded by the 'assigned_to' check above).
-            if not self.is_staff_user:
-                self.ticket.status = Ticket.Status.AWAITING_STAFF
-                self.ticket.closed_reason = None
-                self.ticket.closed_at = None
-                self.ticket.awaiting_student_since = None
-                self.ticket.save(
-                    update_fields=[
-                        "status",
-                        "closed_reason",
-                        "closed_at",
-                        "awaiting_student_since",
-                        "updated_at",
-                    ]
-                )
+            self.ticket.status = Ticket.Status.AWAITING_STAFF
+            self.ticket.closed_reason = None
+            self.ticket.closed_at = None
+            self.ticket.awaiting_student_since = None
+            self.ticket.save(
+                update_fields=[
+                    "status",
+                    "closed_reason",
+                    "closed_at",
+                    "awaiting_student_since",
+                    "updated_at",
+                ]
+            )
 
         else:
             if self.is_staff_user:
@@ -174,7 +202,10 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
                 update_fields=["status", "awaiting_student_since", "updated_at"]
             )
 
-        messages.success(request, "Comment added.")
+        messages.success(
+            request,
+            f"Comment added. You have {EDIT_TIME_LIMIT_MINUTES} minutes remaining to edit it.",
+        )
         return redirect("ticket_detail", url_code=kwargs.get("url_code"))
 
     def post_action_close_ticket(self, request, *args, **kwargs):
@@ -185,7 +216,10 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         if not self.is_staff_user:
             raise Http404
 
-        if self.ticket.assigned_to_id and self.ticket.assigned_to_id != request.user.id:
+        if (
+            not request.user.is_superuser
+            and not self.ticket.assigned_to.filter(id=request.user.id).exists()
+        ):
             raise Http404
 
         if self.ticket.status == Ticket.Status.CLOSED:
@@ -193,7 +227,7 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
 
         self.ticket.status = Ticket.Status.CLOSED
         self.ticket.closed_reason = Ticket.ClosedReason.ANSWERED
-        self.closed_at = timezone.now()
+        self.ticket.closed_at = timezone.now()
         self.ticket.awaiting_student_since = None
 
         self.ticket.save(
@@ -216,10 +250,14 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
 
     def post_action_unclose_ticket(self, request, *args, **kwargs):
         """Reopen a closed ticket to AWAITING_STAFF."""
+
         if not self.is_staff_user:
             raise Http404
 
-        if self.ticket.assigned_to_id and self.ticket.assigned_to_id != request.user.id:
+        if (
+            not request.user.is_superuser
+            and not self.ticket.assigned_to.filter(id=request.user.id).exists()
+        ):
             raise Http404
 
         if self.ticket.status != Ticket.Status.CLOSED:
@@ -244,10 +282,12 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         return redirect("ticket_detail", url_code=kwargs.get("url_code"))
 
     def post_action_edit_ticket_fields(self, request, *args, **kwargs):
-        if not self.is_staff_user or self.ticket.status == Ticket.Status.CLOSED:
-            raise Http404
-
-        if self.ticket.assigned_to_id and self.ticket.assigned_to_id != request.user.id:
+        """Only admin (superuser) staff can edit ticket fields."""
+        if (
+            not self.is_staff_user
+            or not request.user.is_superuser
+            or self.ticket.status == Ticket.Status.CLOSED
+        ):
             raise Http404
 
         fields_form = TicketFieldsForm(request.POST, instance=self.ticket)
@@ -256,6 +296,27 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
             messages.success(request, "Ticket fields updated.")
         else:
             messages.error(request, "Invalid input for ticket fields.")
+
+        return redirect("ticket_detail", url_code=kwargs.get("url_code"))
+
+    def post_action_edit_ticket_issue_group(self, request, *args, **kwargs):
+        """Update the ticket's issue group for staff.
+        Raises Http404 on closed tickets."""
+        if not self.is_staff_user or self.ticket.status == Ticket.Status.CLOSED:
+            raise Http404
+
+        if (
+            not request.user.is_superuser
+            and not self.ticket.assigned_to.filter(id=request.user.id).exists()
+        ):
+            raise Http404
+
+        issue_group_form = TicketIssueGroupForm(request.POST, instance=self.ticket)
+        if issue_group_form.is_valid():
+            issue_group_form.save()
+            messages.success(request, "Issue group updated.")
+        else:
+            messages.error(request, "Issue group update failed.")
 
         return redirect("ticket_detail", url_code=kwargs.get("url_code"))
 
@@ -271,6 +332,7 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         context["ticket"] = self.ticket
         context["ticket_priority_form"] = self.get_priority_form()
+        context["ticket_issue_group_form"] = self.get_ticket_issue_group_form()
         context["form"] = (
             kwargs.get("form") or kwargs.get("comment_form") or self.get_comment_form()
         )
@@ -288,7 +350,8 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         if self.is_staff_user:
             context["internal_notes"] = self.ticket.internal_notes
             context["can_edit_internal_notes"] = (
-                self.ticket.assigned_to == self.request.user
+                self.request.user.is_superuser
+                or self.ticket.assigned_to.filter(id=self.request.user.id).exists()
             )
             context["ticket_fields_form"] = self.get_fields_form()
 

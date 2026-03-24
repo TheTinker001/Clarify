@@ -11,11 +11,20 @@
                     <a class="page-link"><i class="bi bi-arrow-left"></i></a>
                 {% endif %}
             </li>
-            {% for number in page_obj.paginator.page_range %}
-                <li class="page-item {% if page_obj.number == number %}active{% endif %}">
-                    <a class="page-link"
-                       href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ number }}">{{ number }}</a>
-                </li>
+            {% for slot in page_slots %}
+                {% if slot == '...' %}
+                    <li class="page-item">
+                        <a class="page-link page-jump-trigger"
+                           href="#"
+                           data-max-pages="{{ max_pages }}"
+                           {% if querystring %}data-querystring="{{ querystring }}"{% endif %}>…</a>
+                    </li>
+                {% else %}
+                    <li class="page-item {% if slot == cur %}active{% endif %}">
+                        <a class="page-link"
+                           href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ slot }}">{{ slot }}</a>
+                    </li>
+                {% endif %}
             {% endfor %}
             <li class="page-item">
                 {% if page_obj.has_next %}

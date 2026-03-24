@@ -32,6 +32,7 @@ class CreateTicketViewTest(TestCase):
             "faculty": "kbs",
             "study_level": "undergraduate",
             "category": "health_and_wellbeing",
+            "priority": "high",
             "subject": "Need medical support",
             "body": "I need help with accessing medical services.",
         }
