@@ -52,22 +52,22 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             study_levels = split_codes(current_user.study_levels)
             categories = split_codes(current_user.categories)
 
-            visibility_cutoff = timezone.now() - timedelta(
-                minutes=getattr(settings, "TICKET_STAFF_VISIBILITY_DELAY_MINUTES", 15)
+            delay_minutes = getattr(
+                settings, "TICKET_STAFF_VISIBILITY_DELAY_MINUTES", 15
             )
 
-            # Restrict to tickets that fall within a staff member's field preferences
-            # and are older than the visibility delay
-            tickets = (
-                Ticket.objects.filter(created_at__lte=visibility_cutoff)
-                .order_by("-created_at")
-                .filter(
-                    Q(faculty__in=faculties)
-                    & Q(study_level__in=study_levels)
-                    & Q(category__in=categories)
-                )
-                .distinct()
+            tickets = Ticket.objects.filter(
+                Q(faculty__in=faculties)
+                & Q(study_level__in=study_levels)
+                & Q(category__in=categories)
             )
+
+            if delay_minutes > 0:
+                visibility_cutoff = timezone.now() - timedelta(minutes=delay_minutes)
+                tickets = tickets.filter(created_at__lte=visibility_cutoff)
+
+            tickets = tickets.distinct()
+
             overdue_cutoff = timezone.now() - timedelta(days=5)
 
             groups = {
@@ -120,6 +120,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             # Returns an empty queryset.
             tickets = Ticket.objects.none()
             groups = {"open_tickets": tickets}
+
         return groups
 
     def get_queryset_for_tab_by_filters(self, groups, tab, current_user):

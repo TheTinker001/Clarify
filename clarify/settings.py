@@ -44,7 +44,12 @@ else:
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = ENVIRONMENT == "development"
 
-ALLOWED_HOSTS = ["clarify.pythonanywhere.com", "localhost", "127.0.0.1"]
+ALLOWED_HOSTS = [
+    "clarify.pythonanywhere.com",
+    "localhost",
+    "127.0.0.1",
+    "0.0.0.0",
+]
 
 
 # Application definition
