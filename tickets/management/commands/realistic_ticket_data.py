@@ -996,7 +996,7 @@ INTERNAL_NOTES_BY_CATEGORY = {
         "No urgent risk identified.",
         "Further detail may be needed before full response.",
         "Provide response when required resources are available.",
-        "No further internal action recorded yet",
+        "No further internal action recorded yet.",
     ],
 }
 

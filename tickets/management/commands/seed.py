@@ -488,16 +488,18 @@ class Command(BaseCommand):
                     assigned_to=random_staff,
                 )
             case "NEED_RESPONSE":
+                random_staff = random.choice(staff_qs)
                 t = self.create_ticket(
                     student,
                     status=Ticket.Status.AWAITING_STUDENT,
+                    assigned_to=random_staff,
                 )
                 staff_comment, student_comment = (
                     generate_comment_and_response_by_category(t.category)
                 )
                 self.create_comment(
                     t,
-                    random.choice(staff_qs),
+                    random_staff,
                     body=staff_comment,
                 )
             case "OVERDUE":
