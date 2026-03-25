@@ -11,6 +11,7 @@ from tickets.management.commands.realistic_ticket_data import (
     generate_subject_and_body,
     generate_standalone_student_comment,
     generate_comment_and_response_by_category,
+    generate_internal_note_by_category,
 )
 
 user_fixtures = [
@@ -537,6 +538,11 @@ class Command(BaseCommand):
             "status": Ticket.Status.AWAITING_STAFF,
             "priority": random.choice(self.PRIORITIES),
         }
+
+        if random.random() < 0.2:
+            data.update(
+                {"internal_notes": generate_internal_note_by_category(random_category)}
+            )
 
         data.update(overrides)
         ticket = Ticket.objects.create(**data)
