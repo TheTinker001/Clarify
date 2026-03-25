@@ -7,7 +7,7 @@
   };
 
   outputs = { self, nixpkgs, flake-utils }:
-    flake-utils.lib.eachSystem [ "x86_64-linux" "aarch64-darwin" ] (system:
+    flake-utils.lib.eachSystem [ "x86_64-linux" "aarch64-darwin" "x86_64-darwin" ] (system:
       let
         pkgs = import nixpkgs { inherit system; };
 
@@ -86,6 +86,7 @@
           ps.pillow
           ps."python-dotenv"
           ps."django-widget-tweaks"
+          ps."django-summernote"
           ps.libgravatar
         ]);
 
