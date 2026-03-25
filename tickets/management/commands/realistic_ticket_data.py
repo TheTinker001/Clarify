@@ -1000,6 +1000,29 @@ INTERNAL_NOTES_BY_CATEGORY = {
     ],
 }
 
+GENERIC_ISSUE_GROUP_UPDATE = [
+    "We are currently investigating a number of similar tickets related to this issue.",
+    "This issue has been identified as affecting multiple students and is being reviewed.",
+    "We have grouped this ticket with others reporting the same problem.",
+    "Our team is aware of this issue and is actively working on a resolution.",
+    "This matter has been escalated due to multiple reports of the same concern.",
+    "We are tracking this issue across several tickets to ensure a consistent resolution.",
+    "This ticket has been linked to a broader issue currently under investigation.",
+    "We are coordinating a response as this issue impacts multiple users.",
+    "Resources are being currently prepared. Thank you for your patience.",
+    "We have received several reports regarding this issue and are reviewing them collectively.",
+    "This concern has been raised by multiple students and is being handled as a group case.",
+    "Our team is currently assessing this issue across multiple submissions.",
+    "This ticket forms part of a wider issue currently under review.",
+    "We are working to resolve this issue as part of a broader set of related cases.",
+    "Multiple similar reports have been identified and are being investigated together.",
+    "This issue has been escalated internally due to recurring reports.",
+]
+
+
+def generate_issue_group_update():
+    return random.choice(GENERIC_ISSUE_GROUP_UPDATE)
+
 
 def generate_internal_note_by_category(category):
     internal_note_dict = INTERNAL_NOTES_BY_CATEGORY.get("general")

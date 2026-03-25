@@ -4,7 +4,7 @@ from datetime import timedelta
 from faker import Faker
 import random
 from django.core.management.base import BaseCommand
-from tickets.models import User, Ticket, Comment, IssueGroup
+from tickets.models import User, Ticket, Comment, IssueGroup, IssueUpdate
 from django.utils import timezone
 
 from tickets.management.commands.realistic_ticket_data import (
@@ -12,6 +12,7 @@ from tickets.management.commands.realistic_ticket_data import (
     generate_standalone_student_comment,
     generate_comment_and_response_by_category,
     generate_internal_note_by_category,
+    generate_issue_group_update,
 )
 
 user_fixtures = [
@@ -117,6 +118,7 @@ class Command(BaseCommand):
     FIXTURE_TICKET_COUNT = 10
     STAFF_COMMENT_COUNT = 250
     STUDENT_COMMENT_COUNT = 250
+    ISSUE_GROUP_UPDATE_COUNT = 50
     DEFAULT_PASSWORD = "Password123"
     help = "Seeds the database with sample data"
 
@@ -135,6 +137,7 @@ class Command(BaseCommand):
         self.seed_for_random_users()
         self.seed_for_fixture_users()
         self.seed_issue_groups()
+        self.seed_issue_group_updates()
         self.users = User.objects.all()
 
     def seed_for_random_users(self):
@@ -589,6 +592,27 @@ class Command(BaseCommand):
                 ticket.issue_group = ig
             Ticket.objects.bulk_update(tickets, ["issue_group"])
         print(f"Issue group seeding complete. Total:{count}        ")
+
+    def seed_issue_group_updates(self):
+        count = 0
+        issue_groups = list(IssueGroup.objects.all())
+        staff_users = list(User.objects.filter(user_type=User.USER_TYPE_STAFF))
+        while count < self.ISSUE_GROUP_UPDATE_COUNT:
+            count += 1
+            print(
+                f"Seeding issue group updates {count}/{self.ISSUE_GROUP_UPDATE_COUNT}",
+                end="\r",
+            )
+            random_ig = random.choice(issue_groups)
+            if random_ig.issue_updates.exists():
+                continue
+            random_staff = random.choice(staff_users)
+            IssueUpdate.objects.create(
+                issue=random_ig,
+                message=generate_issue_group_update(),
+                created_by=random_staff,
+            )
+        print("Issue group updates seeding complete.      ")
 
 
 def create_username(first_name, last_name):
