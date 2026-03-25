@@ -553,6 +553,11 @@ class Command(BaseCommand):
             else:
                 ticket.assigned_to.add(assigned_to)
 
+        # Makes seeded tickets visible immediately
+        Ticket.objects.filter(pk=ticket.pk).update(
+            created_at=timezone.now() - timedelta(minutes=20)
+        )
+
         return ticket
 
     def create_comment(self, ticket, author, body):
