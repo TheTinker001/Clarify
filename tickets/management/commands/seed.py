@@ -4,7 +4,7 @@ from datetime import timedelta
 from faker import Faker
 import random
 from django.core.management.base import BaseCommand
-from tickets.models import User, Ticket, Comment
+from tickets.models import User, Ticket, Comment, IssueGroup
 from django.utils import timezone
 
 from tickets.management.commands.realistic_ticket_data import (
@@ -134,6 +134,7 @@ class Command(BaseCommand):
         """
         self.seed_for_random_users()
         self.seed_for_fixture_users()
+        self.seed_issue_groups()
         self.users = User.objects.all()
 
     def seed_for_random_users(self):
@@ -569,6 +570,25 @@ class Command(BaseCommand):
             "body": body,
         }
         return Comment.objects.create(**data)
+
+    def seed_issue_groups(self):
+        groups = {}
+        for ticket in Ticket.objects.all():
+            key = (ticket.faculty, ticket.study_level, ticket.category)
+            groups.setdefault(key, []).append(ticket)
+
+        count = 0
+        for (faculty, study_level, category), tickets in groups.items():
+            if len(tickets) < 2:
+                continue
+            count += 1
+            print(f"Seeding issue group #{count}", end="\r")
+            name = f"{faculty.upper()} · {study_level.replace('_',' ').title()} · {category.replace('_',' ').title()}"
+            ig = IssueGroup.objects.create(name=name)
+            for ticket in tickets:
+                ticket.issue_group = ig
+            Ticket.objects.bulk_update(tickets, ["issue_group"])
+        print(f"Issue group seeding complete. Total:{count}        ")
 
 
 def create_username(first_name, last_name):
