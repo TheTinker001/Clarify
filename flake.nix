@@ -7,7 +7,7 @@
   };
 
   outputs = { self, nixpkgs, flake-utils }:
-    flake-utils.lib.eachSystem [ "x86_64-linux" "aarch64-darwin" ] (system:
+    flake-utils.lib.eachSystem [ "x86_64-linux" "aarch64-darwin" "x86_64-darwin" ] (system:
       let
         pkgs = import nixpkgs { inherit system; };
 
@@ -76,7 +76,30 @@
           PY
         '';
 
-        # Core Python environment for running the app + tests.
+        djangoSummernote = python.pkgs.buildPythonPackage rec {
+          pname = "django-summernote";
+          version = "0.8.20.0";
+
+          pyproject = true;
+
+          src = pkgs.fetchPypi {
+            inherit pname version;
+            hash = "sha256-UumxJDjtnqwNd3KfdY8qrgbkaLXLzhM+JBANWK5OQ6g=";
+          };
+
+          build-system = with python.pkgs; [
+            setuptools
+          ];
+
+          dependencies = with python.pkgs; [
+            django
+            bleach
+          ];
+
+          pythonImportsCheck = [ "django_summernote" ];
+          doCheck = false;
+        };
+
         pythonEnv = python.withPackages (ps: [
           ps.django
           ps.coverage
@@ -86,6 +109,7 @@
           ps.pillow
           ps."python-dotenv"
           ps."django-widget-tweaks"
+          djangoSummernote
           ps.libgravatar
         ]);
 

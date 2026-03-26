@@ -228,13 +228,16 @@ class Ticket(models.Model):
         return timezone.now() - self.created_at < window
 
     def is_visible_to_staff(self):
-        """True if the ticket was created at least TICKET_STAFF_VISIBILITY_DELAY_MINUTES ago."""
+        """True if the ticket is visible to staff after the configured delay."""
         from django.conf import settings as s
 
-        delay = timedelta(
-            minutes=getattr(s, "TICKET_STAFF_VISIBILITY_DELAY_MINUTES", 15)
-        )
-        return timezone.now() - self.created_at >= delay
+        delay_minutes = getattr(s, "TICKET_STAFF_VISIBILITY_DELAY_MINUTES", 15)
+
+        if delay_minutes <= 0:
+            return True
+
+        delay = timedelta(minutes=delay_minutes)
+        return timezone.now() >= self.created_at + delay
 
     def get_priority_icon(self):
         """Return a Bootstrap Icons '<i>' element for the ticket's priority, or '' if unrecognised."""
