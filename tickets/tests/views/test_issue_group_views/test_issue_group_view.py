@@ -5,6 +5,7 @@ from django.urls import reverse
 from clarify.settings import ITEMS_PER_PAGE
 from tickets.helpers import get_page_slots
 from tickets.models import User, IssueGroup
+from tickets.tests.helpers import _reverse_with_next
 
 
 class IssueGroupViewTestCase(TestCase):
@@ -19,6 +20,15 @@ class IssueGroupViewTestCase(TestCase):
             username="@staffuser",
             password="Password123",
             user_type=User.USER_TYPE_STAFF,
+        )
+
+    def test_unauthenticated_user_is_redirected(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(
+            response,
+            _reverse_with_next("log_in", self.url),
+            fetch_redirect_response=False,
         )
 
     def test_issue_group_url(self):
