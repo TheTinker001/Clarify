@@ -2,6 +2,7 @@ from django.test import TestCase
 from django.urls import reverse
 from tickets.models import User, IssueGroup, Ticket, IssueUpdate
 from django.utils import timezone
+from tickets.tests.helpers import _reverse_with_next
 
 
 class IssueGroupDetailViewTestCase(TestCase):
@@ -20,6 +21,15 @@ class IssueGroupDetailViewTestCase(TestCase):
         self.url = reverse(
             "issue_group_detail",
             kwargs={"slug": self.issue_group.slug},
+        )
+
+    def test_unauthenticated_user_is_redirected(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(
+            response,
+            _reverse_with_next("log_in", self.url),
+            fetch_redirect_response=False,
         )
 
     def test_staff_can_access_issue_group_detail(self):
