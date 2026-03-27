@@ -120,40 +120,10 @@
                 </div>
                 <!-- Comment form -->
                 {% if user.user_type == user.USER_TYPE_STUDENT %}
-                    <div class="card mt-3">
-                        <div class="card-body">
-                            <h6 class="card-title">Add a comment</h6>
-                            <form method="post" enctype="multipart/form-data">
-                                {% csrf_token %}
-                                <input type="hidden" name="action" value="add_comment">
-                                {{ form.body }}
-                                {% if form.body.errors %}<div class="text-danger mt-1">{{ form.body.errors }}</div>{% endif %}
-                                <div class="mt-2">{{ form.attachments }}</div>
-                                {% if form.attachments.errors %}<div class="text-danger mt-1">{{ form.attachments.errors }}</div>{% endif %}
-                                <button type="submit" class="btn btn-primary mt-2">
-                                    <i class="bi bi-send-fill me-2"></i> Submit
-                                </button>
-                            </form>
-                        </div>
-                    </div>
+                    {% include "partials/comment_post.html" with show_label=True %}
                 {% elif user.user_type == user.USER_TYPE_STAFF and ticket.status != ticket.Status.CLOSED %}
                     {% if user.is_superuser or user in ticket.assigned_to.all %}
-                        <div class="card mt-3">
-                            <div class="card-body">
-                                <h6 class="card-title">Add a comment</h6>
-                                <form method="post" enctype="multipart/form-data">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="action" value="add_comment">
-                                    {{ form.body }}
-                                    {% if form.body.errors %}<div class="text-danger mt-1">{{ form.body.errors }}</div>{% endif %}
-                                    <div class="mt-2">{{ form.attachments }}</div>
-                                    {% if form.attachments.errors %}<div class="text-danger mt-1">{{ form.attachments.errors }}</div>{% endif %}
-                                    <button type="submit" class="btn btn-primary mt-2">
-                                        <i class="bi bi-send-fill"></i>
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
+                        {% include "partials/comment_post.html" with show_label=False %}
                     {% endif %}
                 {% endif %}
             </div>
