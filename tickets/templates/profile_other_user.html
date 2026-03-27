@@ -53,54 +53,9 @@
                             </p>
                         {% endif %}
                         {% if profile_user.user_type == user.USER_TYPE_STAFF %}
-                            <p>
-                                <strong>Faculty:</strong>
-                                <br>
-                                {% if all_faculties_selected %}
-                                    All
-                                {% elif faculty_labels %}
-                                    {% for label in faculty_labels %}
-                                        {{ label }}
-                                        {% if not forloop.last %}<br>{% endif %}
-                                    {% empty %}
-                                        —
-                                    {% endfor %}
-                                {% else %}
-                                    —
-                                {% endif %}
-                            </p>
-                            <p>
-                                <strong>Study Level:</strong>
-                                <br>
-                                {% if all_study_levels_selected %}
-                                    All
-                                {% elif study_level_labels %}
-                                    {% for label in study_level_labels %}
-                                        {{ label }}
-                                        {% if not forloop.last %}<br>{% endif %}
-                                    {% empty %}
-                                        —
-                                    {% endfor %}
-                                {% else %}
-                                    —
-                                {% endif %}
-                            </p>
-                            <p>
-                                <strong>Categories:</strong>
-                                <br>
-                                {% if all_categories_selected %}
-                                    All
-                                {% elif category_labels %}
-                                    {% for label in category_labels %}
-                                        {{ label }}
-                                        {% if not forloop.last %}<br>{% endif %}
-                                    {% empty %}
-                                        —
-                                    {% endfor %}
-                                {% else %}
-                                    —
-                                {% endif %}
-                            </p>
+                            {% include "partials/other_user_tags_display.html" with title="Faculty" all_selected=all_faculties_selected labels=faculty_labels %}
+                            {% include "partials/other_user_tags_display.html" with title="Study Levels" all_selected=all_study_levels_selected labels=study_level_labels %}
+                            {% include "partials/other_user_tags_display.html" with title="Categories" all_selected=all_categories_selected labels=category_labels %}
                         {% endif %}
                         {% if can_view_email %}
                             <p>
