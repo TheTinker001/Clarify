@@ -2,6 +2,7 @@ from django.test import TestCase
 from django.urls import reverse
 from tickets.models import User, IssueGroup
 from django.contrib.messages import get_messages
+from tickets.tests.helpers import _reverse_with_next
 
 
 class IssueGroupCreateViewTestCase(TestCase):
@@ -21,6 +22,15 @@ class IssueGroupCreateViewTestCase(TestCase):
 
     def test_url(self):
         self.assertEqual(self.url, "/issues/create/")
+
+    def test_unauthenticated_user_is_redirected(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(
+            response,
+            _reverse_with_next("log_in", self.url),
+            fetch_redirect_response=False,
+        )
 
     def test_staff_can_access_create_issue_group_page(self):
         self.client.login(username=self.staff.username, password="Password123")

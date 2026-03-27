@@ -1,10 +1,11 @@
 from django.views.generic import UpdateView
 from tickets.models import User, IssueGroup
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.shortcuts import redirect
 
 
-class UpdateIssueGroupView(UpdateView):
+class UpdateIssueGroupView(LoginRequiredMixin, UpdateView):
     """Update an issue group's name."""
 
     model = IssueGroup
@@ -14,6 +15,8 @@ class UpdateIssueGroupView(UpdateView):
     template_name = "issue_group_edit.html"
 
     def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return super().dispatch(request, *args, **kwargs)
         if request.user.user_type != User.USER_TYPE_STAFF:
             return redirect("dashboard")
         return super().dispatch(request, *args, **kwargs)

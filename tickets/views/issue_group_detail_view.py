@@ -14,6 +14,8 @@ class IssueGroupDetailView(LoginRequiredMixin, TemplateView):
     template_name = "issue_group_detail.html"
 
     def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return super().dispatch(request, *args, **kwargs)
         if request.user.user_type != User.USER_TYPE_STAFF:
             return redirect("dashboard")
 
