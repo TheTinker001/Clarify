@@ -176,14 +176,7 @@
                         <div class="mb-3"></div>
                         <!-- Claiming -->
                         {% if user.user_type == user.USER_TYPE_STAFF %}
-                            {% if user in ticket.assigned_to.all %}
-                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                    <form method="post" action="{{ ticket.get_unclaim_url }}">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-sm btn-outline-primary">Unclaim</button>
-                                    </form>
-                                </div>
-                            {% elif ticket.assigned_to.all|length == 5 %}
+                            {% if ticket.assigned_to.all|length == 5 %}
                                 <div class="alert alert-warning d-flex align-items-center mb-3"
                                      role="alert">
                                     <span class="bi-flag me-2"></span>
@@ -195,9 +188,16 @@
                                 </div>
                             {% else %}
                                 <div class="d-flex justify-content-between align-items-start mb-3">
-                                    <form method="post" action="{{ ticket.get_claim_url }}">
+                                    <form method="post"
+                                          action="{% if user in ticket.assigned_to.all %} {{ ticket.get_unclaim_url }} {% else %} {{ ticket.get_claim_url }} {% endif %}">
                                         {% csrf_token %}
-                                        <button type="submit" class="btn btn-sm btn-outline-primary">Claim</button>
+                                        <button type="submit" class="btn btn-sm btn-outline-primary">
+                                            {% if user in ticket.assigned_to.all %}
+                                                Unclaim
+                                            {% else %}
+                                                Claim
+                                            {% endif %}
+                                        </button>
                                     </form>
                                 </div>
                             {% endif %}
@@ -228,22 +228,22 @@
                                     </form>
                                 {% endif %}
                             {% endif %}
-                            {% if ticket.status == ticket.Status.CLOSED %}
-                                {% if user.is_superuser or user in ticket.assigned_to.all %}
-                                    <form method="post">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="action" value="unclose_ticket">
-                                        <button type="submit" class="btn btn-danger">Unclose</button>
-                                    </form>
-                                {% endif %}
-                            {% else %}
-                                {% if user.is_superuser or user in ticket.assigned_to.all %}
-                                    <form method="post">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="action" value="close_ticket">
-                                        <button type="submit" class="btn btn-success">Close</button>
-                                    </form>
-                                {% endif %}
+                            <!-- Closing/reopening -->
+                            {% if user.is_superuser or user in ticket.assigned_to.all %}
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden"
+                                           name="action"
+                                           value="{% if ticket.status == ticket.Status.CLOSED %}unclose_ticket{% else %}close_ticket{% endif %}">
+                                    <button type="submit"
+                                            class="btn {% if ticket.status == ticket.Status.CLOSED %}btn-danger{% else %}btn-success{% endif %}">
+                                        {% if ticket.status == ticket.Status.CLOSED %}
+                                            Unclose
+                                        {% else %}
+                                            Close
+                                        {% endif %}
+                                    </button>
+                                </form>
                             {% endif %}
                         {% endif %}
                         <!-- Internal notes (staff only) -->
