@@ -15,6 +15,8 @@ class IssueGroupView(LoginRequiredMixin, TemplateView):
     template_name = "issue_group.html"
 
     def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return super().dispatch(request, *args, **kwargs)
         if request.user.user_type != User.USER_TYPE_STAFF:
             raise Http404
 
