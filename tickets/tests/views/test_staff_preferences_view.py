@@ -3,6 +3,8 @@
 from django.test import TestCase
 from django.urls import reverse
 from tickets.models import User, Ticket
+from django.test import RequestFactory
+from tickets.views.staff_preferences_view import StaffPreferencesView
 
 
 class StaffPreferencesViewTestCase(TestCase):
@@ -66,10 +68,6 @@ class StaffPreferencesViewTestCase(TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_get_form_clears_fields_for_non_staff_user(self):
-        from django.test import RequestFactory
-        from tickets.views.staff_preferences_view import (
-            StaffPreferencesView,
-        )
 
         rf = RequestFactory()
         request = rf.get(self.url)

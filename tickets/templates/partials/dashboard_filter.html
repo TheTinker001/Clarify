@@ -1,0 +1,14 @@
+<div class="col-md-3">
+    <label for="{{ id }}" class="form-label small text-muted mb-1">{{ label }}</label>
+    <select class="form-select" name="{{ name }}" id="{{ id }}">
+        {% for value, choice_label in choices %}
+            <option value="{{ value }}" {% if current == value %}selected{% endif %}>
+                {% if value == "" %}
+                    Unselected
+                {% else %}
+                    {{ choice_label }}
+                {% endif %}
+            </option>
+        {% endfor %}
+    </select>
+</div>

@@ -268,7 +268,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                     "order": self.request.GET.get("order", "newest"),
                 },
                 "filter_choices": {
-                    "priority": Ticket.Priority.choices,
+                    "priority": [("", "Unselected")] + list(Ticket.Priority.choices),
                     "faculty": Ticket.Faculty.choices,
                     "study_level": Ticket.StudyLevel.choices,
                     "category": Ticket.Category.choices,
