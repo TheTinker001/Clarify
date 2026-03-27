@@ -66,8 +66,6 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 visibility_cutoff = timezone.now() - timedelta(minutes=delay_minutes)
                 tickets = tickets.filter(created_at__lte=visibility_cutoff)
 
-            tickets = tickets.distinct()
-
             overdue_cutoff = timezone.now() - timedelta(days=5)
 
             groups = {
@@ -81,7 +79,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                     ],
                     created_at__gte=overdue_cutoff,
                 ),
-                "assigned_tickets": tickets.filter(
+                "assigned_tickets": Ticket.objects.filter(
                     assigned_to=current_user,
                     status__in=[
                         Ticket.Status.AWAITING_STAFF,
