@@ -51,7 +51,7 @@ $ python3 manage.py test
 ## Sources
 The packages used by this application are specified in `requirements.txt`
 
-We used the following website as a reference: https://self-service.kcl.ac.uk
+We used the following website as a reference for out Ticket model: https://self-service.kcl.ac.uk
 
 We also used the KEATS Recipify template code as the basis for this project.
 
