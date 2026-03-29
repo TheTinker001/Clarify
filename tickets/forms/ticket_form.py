@@ -12,7 +12,7 @@ from django_summernote.widgets import SummernoteWidget
 
 
 class TicketForm(forms.ModelForm):
-    """Form for creating a support ticket"""
+    """Form for creating a ticket."""
 
     class Meta:
         model = Ticket
