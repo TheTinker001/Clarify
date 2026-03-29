@@ -120,10 +120,10 @@
                 </div>
                 <!-- Comment form -->
                 {% if user.user_type == user.USER_TYPE_STUDENT %}
-                    {% include "partials/comment_post.html" with show_label=True %}
+                    {% include "partials/comment_post.html" %}
                 {% elif user.user_type == user.USER_TYPE_STAFF and ticket.status != ticket.Status.CLOSED %}
                     {% if user.is_superuser or user in ticket.assigned_to.all %}
-                        {% include "partials/comment_post.html" with show_label=False %}
+                        {% include "partials/comment_post.html" %}
                     {% endif %}
                 {% endif %}
             </div>
