@@ -381,6 +381,13 @@ ul.errorlist {
 }
 
 /*
+ * Sign up page
+ */
+.login-card-width {
+  max-width: 520px;
+}
+
+/*
  * Dashboard
  */
 .btn-outline-primary {
