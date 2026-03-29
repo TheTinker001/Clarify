@@ -2,7 +2,7 @@
 
 from django.core.exceptions import ValidationError
 from django.test import TestCase
-from tickets.models import IssueUpdate, IssueGroup, Ticket, User
+from tickets.models import IssueUpdate, IssueGroup, User
 from clarify.settings import BODY_LENGTH_MAX
 
 

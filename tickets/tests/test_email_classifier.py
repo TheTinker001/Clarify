@@ -1,4 +1,5 @@
 """Tests for the email classifier."""
+
 from django.test import TestCase
 from tickets.email_classifier import classify_email, _match_keywords
 from tickets.email_keywords import FACULTY_KEYWORDS
@@ -7,7 +8,9 @@ from tickets.email_keywords import FACULTY_KEYWORDS
 class MatchKeywordsTest(TestCase):
 
     def test_returns_best_match(self):
-        result = _match_keywords("I study computer science and engineering", FACULTY_KEYWORDS)
+        result = _match_keywords(
+            "I study computer science and engineering", FACULTY_KEYWORDS
+        )
         self.assertEqual(result, "nmes")
 
     def test_returns_none_when_no_match(self):
@@ -37,7 +40,9 @@ class ClassifyEmailTest(TestCase):
         self.assertEqual(result["category"], "assessment")
 
     def test_study_level_not_detected(self):
-        result = classify_email("Business school exam", "I have a question about my exam.")
+        result = classify_email(
+            "Business school exam", "I have a question about my exam."
+        )
         self.assertEqual(result["faculty"], "kbs")
         self.assertIsNone(result["study_level"])
         self.assertEqual(result["category"], "assessment")
@@ -63,13 +68,19 @@ class ClassifyEmailTest(TestCase):
         self.assertEqual(result["faculty"], "ioppn")
 
     def test_housing_category(self):
-        result = classify_email("Accommodation issue", "I need help with my halls of residence.")
+        result = classify_email(
+            "Accommodation issue", "I need help with my halls of residence."
+        )
         self.assertEqual(result["category"], "housing_and_accommodation_support")
 
     def test_visa_category(self):
-        result = classify_email("Visa question", "I am an international student needing immigration advice.")
+        result = classify_email(
+            "Visa question", "I am an international student needing immigration advice."
+        )
         self.assertEqual(result["category"], "visas_immigration_and_support")
 
     def test_law_faculty(self):
-        result = classify_email("Legal studies question", "I study law at Dickson Poon.")
+        result = classify_email(
+            "Legal studies question", "I study law at Dickson Poon."
+        )
         self.assertEqual(result["faculty"], "dpsol")
