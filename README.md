@@ -17,7 +17,9 @@ The deployed version of the application can be found at https://clarify.pythonan
 
 ## Access credentials
 Student usernames: @johndoe, @janedoe, @charlie, @student001
+
 Staff usernames: @staff001, @staff002
+
 Admin username: @admin
 
 Password for all users: Password123
