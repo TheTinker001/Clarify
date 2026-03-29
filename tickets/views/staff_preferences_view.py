@@ -20,7 +20,7 @@ class StaffPreferencesView(LoginRequiredMixin, UpdateView):
         return self.request.user
 
     def get_form(self, form_class=None):
-        """Return the form, clearing fields for non-staff (defensive fallback; dispatch already blocks them)."""
+        """Return the form, clearing fields for non-staff users."""
         form = super().get_form(form_class)
 
         if self.request.user.user_type != User.USER_TYPE_STAFF:
