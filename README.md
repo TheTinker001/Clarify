@@ -25,7 +25,9 @@ Admin username: @admin
 Password for all users: Password123
 
 ## Installation instructions
-To install the software and use it in your local development environment, you must first set up and activate a local development environment.  The project source code has been developed using Python 3.12, so you are recommended to use the same version.  From the root of the project:
+To install the software with Nix, follow the instructions in `developers-manual.pdf`.
+
+For local development, first create and activate a virtual environment. This project was developed using Python 3.12, so we recommend using the same version. From the project root:
 
 ```
 $ python3.12 -m venv venv
