@@ -4,102 +4,18 @@ from datetime import timedelta
 from faker import Faker
 import random
 from django.core.management.base import BaseCommand
-from tickets.models import User, Ticket, Comment
+from tickets.models import User, Ticket, Comment, IssueGroup, IssueUpdate
 from django.utils import timezone
+from clarify.settings import TICKET_STAFF_VISIBILITY_DELAY_MINUTES
+from tickets.management.commands.user_fixtures import user_fixtures
 
 from tickets.management.commands.realistic_ticket_data import (
     generate_subject_and_body,
     generate_standalone_student_comment,
     generate_comment_and_response_by_category,
+    generate_internal_note_by_category,
+    generate_issue_group_update,
 )
-
-user_fixtures = [
-    {
-        "username": "@johndoe",
-        "email": "john.doe@example.org",
-        "first_name": "John",
-        "last_name": "Doe",
-        "preferred_name": "John",
-        "pronouns": "he/him",
-        "user_type": User.USER_TYPE_STUDENT,
-        "student_id": "12345678",
-        "phone_number": "+44 0000 000001",
-        "faculty": Ticket.Faculty.FOLSM,
-        "study_level": Ticket.StudyLevel.UNDERGRADUATE,
-        "graduation_year": 2027,
-    },
-    {
-        "username": "@janedoe",
-        "email": "jane.doe@example.org",
-        "first_name": "Jane",
-        "last_name": "Doe",
-        "preferred_name": "Jane",
-        "pronouns": "she/her",
-        "user_type": User.USER_TYPE_STUDENT,
-        "student_id": "12345679",
-        "phone_number": "+44 0000 000002",
-        "faculty": Ticket.Faculty.SSPP,
-        "study_level": Ticket.StudyLevel.POSTGRADUATE_TAUGHT,
-        "graduation_year": 2026,
-    },
-    {
-        "username": "@charlie",
-        "email": "charlie.johnson@example.org",
-        "first_name": "Charlie",
-        "last_name": "Johnson",
-        "preferred_name": "Charlie",
-        "pronouns": "they/them",
-        "user_type": User.USER_TYPE_STUDENT,
-        "student_id": "12345681",
-        "phone_number": "+44 7000 000003",
-        "faculty": Ticket.Faculty.NMES,
-        "study_level": Ticket.StudyLevel.UNDERGRADUATE,
-        "graduation_year": 2028,
-    },
-    {
-        "username": "@student001",
-        "email": "student001@example.org",
-        "first_name": "Student",
-        "last_name": "001",
-        "preferred_name": "Hercules",
-        "pronouns": "he/him",
-        "user_type": User.USER_TYPE_STUDENT,
-        "student_id": "12345682",
-        "phone_number": "",
-        "faculty": Ticket.Faculty.KBS,
-        "study_level": Ticket.StudyLevel.POSTGRADUATE_RESEARCH,
-        "graduation_year": 2029,
-    },
-    {
-        "username": "@staff001",
-        "email": "staff001@example.org",
-        "first_name": "Staff",
-        "last_name": "001",
-        "preferred_name": "Steve",
-        "pronouns": "he/him",
-        "user_type": User.USER_TYPE_STAFF,
-    },
-    {
-        "username": "@staff002",
-        "email": "staff002@example.org",
-        "first_name": "Staff",
-        "last_name": "002",
-        "preferred_name": "Alex",
-        "pronouns": "she/her",
-        "user_type": User.USER_TYPE_STAFF,
-    },
-    {
-        "username": "@admin",
-        "email": "admin@example.org",
-        "first_name": "Admin",
-        "last_name": "User",
-        "preferred_name": "Remy",
-        "pronouns": "they/them",
-        "user_type": User.USER_TYPE_STAFF,
-        "is_superuser": True,
-        "is_staff": True,
-    },
-]
 
 
 class Command(BaseCommand):
@@ -116,6 +32,7 @@ class Command(BaseCommand):
     FIXTURE_TICKET_COUNT = 10
     STAFF_COMMENT_COUNT = 250
     STUDENT_COMMENT_COUNT = 250
+    ISSUE_GROUP_UPDATE_COUNT = 50
     DEFAULT_PASSWORD = "Password123"
     help = "Seeds the database with sample data"
 
@@ -133,6 +50,8 @@ class Command(BaseCommand):
         """
         self.seed_for_random_users()
         self.seed_for_fixture_users()
+        self.seed_issue_groups()
+        self.seed_issue_group_updates()
         self.users = User.objects.all()
 
     def seed_for_random_users(self):
@@ -487,16 +406,18 @@ class Command(BaseCommand):
                     assigned_to=random_staff,
                 )
             case "NEED_RESPONSE":
+                random_staff = random.choice(staff_qs)
                 t = self.create_ticket(
                     student,
                     status=Ticket.Status.AWAITING_STUDENT,
+                    assigned_to=random_staff,
                 )
                 staff_comment, student_comment = (
                     generate_comment_and_response_by_category(t.category)
                 )
                 self.create_comment(
                     t,
-                    random.choice(staff_qs),
+                    random_staff,
                     body=staff_comment,
                 )
             case "OVERDUE":
@@ -538,6 +459,11 @@ class Command(BaseCommand):
             "priority": random.choice(self.PRIORITIES),
         }
 
+        if random.random() < 0.2:
+            data.update(
+                {"internal_notes": generate_internal_note_by_category(random_category)}
+            )
+
         data.update(overrides)
         ticket = Ticket.objects.create(**data)
 
@@ -546,6 +472,12 @@ class Command(BaseCommand):
                 ticket.assigned_to.add(*assigned_to)
             else:
                 ticket.assigned_to.add(assigned_to)
+
+        # Make seeded tickets visible immediately for staff/admin users
+        Ticket.objects.filter(pk=ticket.pk).update(
+            created_at=timezone.now()
+            - timedelta(minutes=TICKET_STAFF_VISIBILITY_DELAY_MINUTES)
+        )
 
         return ticket
 
@@ -556,6 +488,46 @@ class Command(BaseCommand):
             "body": body,
         }
         return Comment.objects.create(**data)
+
+    def seed_issue_groups(self):
+        groups = {}
+        for ticket in Ticket.objects.all():
+            key = (ticket.faculty, ticket.study_level, ticket.category)
+            groups.setdefault(key, []).append(ticket)
+
+        count = 0
+        for (faculty, study_level, category), tickets in groups.items():
+            if len(tickets) < 2:
+                continue
+            count += 1
+            print(f"Seeding issue group #{count}", end="\r")
+            name = f"{faculty.upper()} · {study_level.replace('_',' ').title()} · {category.replace('_',' ').title()}"
+            ig = IssueGroup.objects.create(name=name)
+            for ticket in tickets:
+                ticket.issue_group = ig
+            Ticket.objects.bulk_update(tickets, ["issue_group"])
+        print(f"Issue group seeding complete. Total:{count}        ")
+
+    def seed_issue_group_updates(self):
+        count = 0
+        issue_groups = list(IssueGroup.objects.all())
+        staff_users = list(User.objects.filter(user_type=User.USER_TYPE_STAFF))
+        while count < self.ISSUE_GROUP_UPDATE_COUNT:
+            count += 1
+            print(
+                f"Seeding issue group updates {count}/{self.ISSUE_GROUP_UPDATE_COUNT}",
+                end="\r",
+            )
+            random_ig = random.choice(issue_groups)
+            if random_ig.issue_updates.exists():
+                continue
+            random_staff = random.choice(staff_users)
+            IssueUpdate.objects.create(
+                issue=random_ig,
+                message=generate_issue_group_update(),
+                created_by=random_staff,
+            )
+        print("Issue group updates seeding complete.      ")
 
 
 def create_username(first_name, last_name):

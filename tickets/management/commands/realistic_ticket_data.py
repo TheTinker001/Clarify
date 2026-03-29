@@ -875,6 +875,164 @@ COMMENT_AND_REPLY_BY_CATEGORY = {
     ],
 }
 
+INTERNAL_NOTES_BY_CATEGORY = {
+    Ticket.Category.ASSESSMENT: [
+        "Awaiting clarification on module and deadline if follow-up is needed.",
+        "Likely assessment process issue rather than technical fault.",
+        "May need signposting to faculty guidance depending on student reply.",
+        "Ticket appears to concern coursework",
+        "Follow-up should include signposting to available support options.",
+    ],
+    Ticket.Category.WELFARE: [
+        "Respond sensitively and avoid requesting unnecessary personal detail.",
+        "Ticket suggests personal circumstances may be affecting academic engagement.",
+        "Consider support signposting and check whether academic impact guidance is needed.",
+        "No immediate safeguarding detail disclosed in ticket text.",
+        "Follow-up should include signposting to available support options.",
+    ],
+    Ticket.Category.CAREERS: [
+        "Likely suitable for signposting to careers support, appointments, or application resources.",
+        "Student appears to be seeking general employability guidance rather than urgent casework support.",
+        "Initial triage suggests careers service referral or resource signposting may resolve the enquiry.",
+        "Follow-up should include signposting to available support options.",
+    ],
+    Ticket.Category.FINANCIAL_ISSUES: [
+        "Student appears to be seeking financial support guidance.",
+        "Consider signposting to hardship or finance-related services as appropriate.",
+        "Follow-up may need to distinguish between immediate hardship, funding guidance, or fee-related support.",
+        "Suitable for financial support signposting.",
+        "Follow-up should include signposting to available support options.",
+    ],
+    Ticket.Category.UNI_PROCEDURES_REGULATIONS: [
+        "May require clarification of the student's intended outcome before detailed signposting.",
+        "Ticket appears to concern university process or regulation.",
+        "Response should include signposting to the correct procedure and relevant guidance source.",
+        "Query is procedural in nature and may need referral to the relevant team depending on detail provided.",
+    ],
+    Ticket.Category.ADMINISTRATION: [
+        "Likely relates to student record, portal information, or general process clarification.",
+        "Appears suitable for administrative follow-up or referral depending on whether record changes are required.",
+        "No complex casework identified at this stage.",
+    ],
+    Ticket.Category.APPEALS_COMPLAINTS_AND_MISCONDUCT: [
+        "Student appears to be seeking procedural guidance regarding appeal or complaint routes.",
+        "Response should avoid advising on outcome likelihood.",
+        "Sensitive procedural matter noted.",
+        "Follow-up should include signposting to process, deadlines, and appropriate signposting.",
+        "May require careful signposting to formal guidance and relevant support channels.",
+    ],
+    Ticket.Category.DIGNITY_AND_INCLUSION: [
+        "Potential dignity/inclusion concern identified.",
+        "Response should be supportive, neutral, and signpost appropriate reporting/support options.",
+        "Consider whether this is a support query, reporting query, or request for procedural information.",
+        "Follow-up should include signposting to available support options.",
+    ],
+    Ticket.Category.DISABILITY_SUPPORT: [
+        "Student appears to be seeking information on adjustments or disability support pathways.",
+        "Follow-up should include signposting to available support options.",
+    ],
+    Ticket.Category.DOCUMENT_AND_LETTER_REQUESTS: [
+        "Document request identified. Likely straightforward if required document type is confirmed.",
+        "May need clarification on document purpose, wording, or urgency before response.",
+        "Ticket appears administrative and document-related. No further internal action required at this stage.",
+    ],
+    Ticket.Category.FEES_FUNDING_AND_MONEY_ADVICE: [
+        "Response may need to distinguish between tuition, funding eligibility, and general money advice.",
+        "Suitable for finance-related signposting or referral based on student follow-up.",
+        "No urgent escalation indicated from current information.",
+        "Follow-up should signposting to include available support options.",
+    ],
+    Ticket.Category.GRADUATION: [
+        "Likely suitable for procedural clarification or referral to graduation support.",
+        "Student appears to be asking about graduation eligibility, process, or documentation.",
+        "No complex casework indicated. Follow-up likely administrative in nature.",
+        "Follow-up should signposting to include available support options.",
+    ],
+    Ticket.Category.HEALTH_AND_WELLBEING: [
+        "No immediate safeguarding content identified in ticket text.",
+        "Student appears to be seeking general wellbeing support information rather than a process query.",
+        "Follow-up should include signposting to available support options.",
+    ],
+    Ticket.Category.HOUSING_AND_ACCOMMODATION_SUPPORT: [
+        "May require referral or signposting depending on whether issue is urgent or general advice.",
+        "Ticket appears to concern accommodation difficulty rather than academic procedure.",
+        "Follow-up should clarify urgency and type of housing issue if needed.",
+        "Follow-up should include signposting to available support options.",
+    ],
+    Ticket.Category.INDUSTRIAL_ACTION: [
+        "Response should clarify available guidance and avoid promising academic outcomes.",
+        "Likely suitable for signposting to current disruption guidance or faculty communications.",
+        "Ticket appears informational rather than case-specific at this stage.",
+    ],
+    Ticket.Category.NEW_STUDENTS: [
+        "Likely suitable for signposting to onboarding resources and key services.",
+        "Student appears to need general orientation or systems guidance.",
+        "No complex casework identified. Response should signposting to practical first-step guidance.",
+        "Follow-up should focus include on available support options.",
+    ],
+    Ticket.Category.RETURNING_TO_STUDY: [
+        "May require process clarification or referral depending on interruption history.",
+        "Student appears to be seeking guidance on re-entry or re-enrolment steps.",
+        "Response should include signposting to correct procedure and next steps rather than assumptions about eligibility.",
+        "Follow-up should include signposting to available support options.",
+    ],
+    Ticket.Category.STUDENT_LIFE: [
+        "Suitable for signposting to engagement opportunities, activities, or student groups.",
+        "General information request rather than urgent support matter.",
+        "Follow-up should include signposting to available support options.",
+    ],
+    Ticket.Category.VISAS_IMMIGRATION_AND_SUPPORT: [
+        "Response should remain within service scope and signpost specialist support where appropriate.",
+        "Avoid giving definitive immigration advice if specialist review is required.",
+        "Student appears to need process/support guidance rather than case escalation at this stage.",
+        "Follow-up should include signposting to available support options.",
+    ],
+    Ticket.Category.OTHER: [
+        "Ticket does not yet map clearly to a more specific process or support route.",
+        "Note for follow-up if clarification is received.",
+    ],
+    "general": [
+        "Initial triage completed.",
+        "No urgent risk identified.",
+        "Further detail may be needed before full response.",
+        "Provide response when required resources are available.",
+        "No further internal action recorded yet.",
+    ],
+}
+
+GENERIC_ISSUE_GROUP_UPDATE = [
+    "We are currently investigating a number of similar tickets related to this issue.",
+    "This issue has been identified as affecting multiple students and is being reviewed.",
+    "We have grouped this ticket with others reporting the same problem.",
+    "Our team is aware of this issue and is actively working on a resolution.",
+    "This matter has been escalated due to multiple reports of the same concern.",
+    "We are tracking this issue across several tickets to ensure a consistent resolution.",
+    "This ticket has been linked to a broader issue currently under investigation.",
+    "We are coordinating a response as this issue impacts multiple users.",
+    "Resources are being currently prepared. Thank you for your patience.",
+    "We have received several reports regarding this issue and are reviewing them collectively.",
+    "This concern has been raised by multiple students and is being handled as a group case.",
+    "Our team is currently assessing this issue across multiple submissions.",
+    "This ticket forms part of a wider issue currently under review.",
+    "We are working to resolve this issue as part of a broader set of related cases.",
+    "Multiple similar reports have been identified and are being investigated together.",
+    "This issue has been escalated internally due to recurring reports.",
+]
+
+
+def generate_issue_group_update():
+    return random.choice(GENERIC_ISSUE_GROUP_UPDATE)
+
+
+def generate_internal_note_by_category(category):
+    internal_note_dict = INTERNAL_NOTES_BY_CATEGORY.get("general")
+    category_note_dict = INTERNAL_NOTES_BY_CATEGORY.get(category, [])
+    if category_note_dict:
+        internal_note_dict = category_note_dict + internal_note_dict
+
+    final_note = " ".join(random.sample(internal_note_dict, 3))
+    return final_note
+
 
 def generate_subject_and_body(*, faculty, study_level, category):
     subject = (
