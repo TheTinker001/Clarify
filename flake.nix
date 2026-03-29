@@ -151,7 +151,7 @@
             echo "==> Seeding the database"
             # Make seeding idempotent: the project's seed command always creates
             # a '@staffuser' account, so remove it first if it exists.
-            python manage.py shell -c "from tickets.models import User; User.objects.filter(username='@staffuser').delete()" >/dev/null 2>&1 || true
+            python manage.py shell -c "from tickets.models import User; User.objects.filter(username__in=['@staff001','@staff002','@admin']).exclude(user_type='staff').delete()" >/dev/null 2>&1 || true
             python manage.py seed
 
             echo
@@ -217,15 +217,15 @@
             python manage.py migrate --noinput
 
             # Make seeding robust if run multiple times.
-            python manage.py shell -c "from tickets.models import User; User.objects.filter(username='@staffuser').delete()" >/dev/null 2>&1 || true
+            python manage.py shell -c "from tickets.models import User; User.objects.filter(username__in=['@staff001','@staff002','@admin']).exclude(user_type='staff').delete()" >/dev/null 2>&1 || true
 
             python manage.py seed || {
               echo "Seed command failed; attempting a second run after cleanup..." >&2
-              python manage.py shell -c "from tickets.models import User; User.objects.filter(username='@staffuser').delete()" >/dev/null 2>&1 || true
+              python manage.py shell -c "from tickets.models import User; User.objects.filter(username__in=['@staff001','@staff002','@admin']).exclude(user_type='staff').delete()" >/dev/null 2>&1 || true
               python manage.py seed
             }
 
-            echo "Database seeded (idempotent)."
+            echo "Database seeded."
           '';
         };
 
