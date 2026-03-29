@@ -1,6 +1,14 @@
 @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Source+Sans+3:wght@300;400;500&display=swap");
 
 /*
+ * Global
+ */
+body {
+  background-color: #f5f5f5;
+  font-family: "Source Sans 3", sans-serif;
+}
+
+/*
  * Alerts
  */
 
@@ -9,9 +17,47 @@
 }
 
 /*
+ * 404 page
+ */
+.error-page {
+  min-height: calc(100vh - 56px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #f5f5f5;
+  text-align: center;
+  padding: 2rem;
+}
+
+.error-page-icon {
+  font-size: 4rem;
+  color: #ac202d;
+  margin-bottom: 1.5rem;
+}
+
+.error-page h1 {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 1rem;
+}
+
+.error-page p {
+  font-size: 1.1rem;
+  color: #888;
+  max-width: 420px;
+  margin-bottom: 2rem;
+}
+
+.error-page .btn-clarify {
+  width: auto;
+  padding: 0.85rem 2.5rem;
+}
+
+/*
  * Cover page
  */
-
 .content {
   padding-top: 10px;
 }
@@ -48,19 +94,6 @@ p.cover-text {
 }
 
 /*
- * Forms
- */
-.nolabel label {
-  display: none;
-}
-
-ul.errorlist {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-}
-
-/*
  * Typefaces
  */
 
@@ -72,45 +105,6 @@ ul.errorlist {
 .list-title {
   margin-top: 10px;
   margin-bottom: 20px;
-}
-
-/*
- * Profile
- */
-.profile-image {
-  width: 120px;
-  clear: both;
-  float: left;
-}
-
-.profile-text {
-  overflow: hidden;
-  padding-left: 20px;
-}
-
-h3.profile-title {
-  margin-bottom: 0px;
-}
-
-.profile-username {
-  color: #777777;
-  font-weight: 300;
-  font-style: italic;
-}
-
-.profile-initials {
-  width: 150px;
-  height: 150px;
-  font-size: 60px;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background-color: #0066ff;
-  color: #fff;
-  margin: 0 auto;
-  /* Bootstrap primary */
 }
 
 .default-profile-picture {
@@ -131,38 +125,21 @@ h3.profile-title {
 }
 
 /*
- * Tickets
+ * Forms
  */
-.ticket-card,
-.issue-group-card {
-  text-decoration: none;
-  color: inherit;
-  border: 1px solid #e2e2e2;
-  transition:
-    transform 0.15s ease,
-    box-shadow 0.15s ease;
+.nolabel label {
+  display: none;
 }
 
-.ticket-card:hover,
-.issue-group-card:hover {
-  text-decoration: none;
-  color: inherit;
-  transform: translateY(-2px);
-  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.08);
-}
-
-.ticket-card-detail {
-  border: 1px solid #e2e2e2;
-}
-
-.ticket-header h1 {
-  font-size: 2.2rem;
+ul.errorlist {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
 }
 
 /*
- * Welcome / Landing page
+ * Landing page
  */
-
 .welcome-page {
   background-color: #f8f8f8;
   min-height: 100vh;
@@ -222,6 +199,10 @@ h3.profile-title {
   color: white;
 }
 
+.welcome-subtext-size {
+  font-size: 0.8rem;
+}
+
 /*
  * Navbar
  */
@@ -245,14 +226,6 @@ h3.profile-title {
 
 .bg-red-hover:hover {
   background-color: #ab0011;
-}
-
-/*
- * Global
- */
-body {
-  background-color: #f5f5f5;
-  font-family: "Source Sans 3", sans-serif;
 }
 
 /*
@@ -466,48 +439,6 @@ body {
   border-color: #8b1a23;
 }
 
-/*
- * 404 page
- */
-.error-page {
-  min-height: calc(100vh - 56px);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: #f5f5f5;
-  text-align: center;
-  padding: 2rem;
-}
-
-.error-page-icon {
-  font-size: 4rem;
-  color: #ac202d;
-  margin-bottom: 1.5rem;
-}
-
-.error-page h1 {
-  font-size: 3rem;
-  font-weight: 700;
-  color: #222;
-  margin-bottom: 1rem;
-}
-
-.error-page p {
-  font-size: 1.1rem;
-  color: #888;
-  max-width: 420px;
-  margin-bottom: 2rem;
-}
-
-.error-page .btn-clarify {
-  width: auto;
-  padding: 0.85rem 2.5rem;
-}
-
-/*
- * Dashboard
- */
 .dashboard-heading {
   font-size: 1.8rem;
   font-weight: 600;
@@ -532,6 +463,43 @@ body {
 
 .dashboard-subheading a:hover {
   text-decoration: underline;
+}
+
+/*
+ * Tickets
+ */
+.ticket-card,
+.issue-group-card {
+  text-decoration: none;
+  color: inherit;
+  border: 1px solid #e2e2e2;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.ticket-card:hover,
+.issue-group-card:hover {
+  text-decoration: none;
+  color: inherit;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.08);
+}
+
+.ticket-card-detail {
+  border: 1px solid #e2e2e2;
+}
+
+.ticket-header h1 {
+  font-size: 2.2rem;
+}
+
+/*
+ * Ticket tags
+ */
+.ticket-tags .badge {
+  font-size: 0.9rem;
+  padding: 0.5em 0.75em;
 }
 
 /*
@@ -576,14 +544,6 @@ body {
 
 .card-header-primary {
   background-color: #ac202d;
-}
-
-/*
- * Ticket tags
- */
-.ticket-tags .badge {
-  font-size: 0.9rem;
-  padding: 0.5em 0.75em;
 }
 
 /*
@@ -638,6 +598,7 @@ input[type="file"]::file-selector-button {
 input[type="file"]::file-selector-button:hover {
   background-color: #e9ecef;
 }
+
 /*
  * Profile user type badge
  */
@@ -672,4 +633,42 @@ input[type="file"]::file-selector-button:hover {
   padding: 0.5rem 0.8rem;
   margin-top: 0;
   width: fit-content;
+}
+
+/*
+ * Profile
+ */
+.profile-image {
+  width: 120px;
+  clear: both;
+  float: left;
+}
+
+.profile-text {
+  overflow: hidden;
+  padding-left: 20px;
+}
+
+h3.profile-title {
+  margin-bottom: 0px;
+}
+
+.profile-username {
+  color: #777777;
+  font-weight: 300;
+  font-style: italic;
+}
+
+.profile-initials {
+  width: 150px;
+  height: 150px;
+  font-size: 60px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: #0066ff;
+  color: #fff;
+  margin: 0 auto;
 }
