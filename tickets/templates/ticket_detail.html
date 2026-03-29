@@ -176,7 +176,14 @@
                         <div class="mb-3"></div>
                         <!-- Claiming -->
                         {% if user.user_type == user.USER_TYPE_STAFF %}
-                            {% if ticket.assigned_to.all|length == 5 %}
+                            {% if user in ticket.assigned_to.all %}
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <form method="post" action="{{ ticket.get_unclaim_url }}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-primary">Unclaim</button>
+                                    </form>
+                                </div>
+                            {% elif ticket.assigned_to.all|length == 5 %}
                                 <div class="alert alert-warning d-flex align-items-center mb-3"
                                      role="alert">
                                     <span class="bi-flag me-2"></span>
@@ -188,16 +195,9 @@
                                 </div>
                             {% else %}
                                 <div class="d-flex justify-content-between align-items-start mb-3">
-                                    <form method="post"
-                                          action="{% if user in ticket.assigned_to.all %} {{ ticket.get_unclaim_url }} {% else %} {{ ticket.get_claim_url }} {% endif %}">
+                                    <form method="post" action="{{ ticket.get_claim_url }}">
                                         {% csrf_token %}
-                                        <button type="submit" class="btn btn-sm btn-outline-primary">
-                                            {% if user in ticket.assigned_to.all %}
-                                                Unclaim
-                                            {% else %}
-                                                Claim
-                                            {% endif %}
-                                        </button>
+                                        <button type="submit" class="btn btn-sm btn-outline-primary">Claim</button>
                                     </form>
                                 </div>
                             {% endif %}
