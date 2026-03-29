@@ -1,9 +1,8 @@
 """Tests for the staff preferences view."""
 
-from django.test import TestCase
+from django.test import TestCase, RequestFactory
 from django.urls import reverse
 from tickets.models import User, Ticket
-from django.test import RequestFactory
 from tickets.views.staff_preferences_view import StaffPreferencesView
 
 
