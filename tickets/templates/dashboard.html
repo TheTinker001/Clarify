@@ -98,63 +98,10 @@
                              id="filterSelectionGroup">
                             <div class="pt-3">
                                 <div class="row g-3">
-                                    <div class="col-md-3">
-                                        <label for="facultyFilter" class="form-label small text-muted mb-1">Faculty</label>
-                                        <select class="form-select" name="faculty" id="facultyFilter">
-                                            {% for value, label in filter_choices.faculty %}
-                                                <option value="{{ value }}"
-                                                        {% if filters.faculty == value %}selected{% endif %}>
-                                                    {% if value == "" %}
-                                                        All faculties
-                                                    {% else %}
-                                                        {{ label }}
-                                                    {% endif %}
-                                                </option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label for="studyLevelFilter" class="form-label small text-muted mb-1">Study level</label>
-                                        <select class="form-select" name="study_level" id="studyLevelFilter">
-                                            {% for value, label in filter_choices.study_level %}
-                                                <option value="{{ value }}"
-                                                        {% if filters.study_level == value %}selected{% endif %}>
-                                                    {% if value == "" %}
-                                                        All study levels
-                                                    {% else %}
-                                                        {{ label }}
-                                                    {% endif %}
-                                                </option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label for="categoryFilter" class="form-label small text-muted mb-1">Category</label>
-                                        <select class="form-select" name="category" id="categoryFilter">
-                                            {% for value, label in filter_choices.category %}
-                                                <option value="{{ value }}"
-                                                        {% if filters.category == value %}selected{% endif %}>
-                                                    {% if value == "" %}
-                                                        All categories
-                                                    {% else %}
-                                                        {{ label }}
-                                                    {% endif %}
-                                                </option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label for="priorityFilter" class="form-label small text-muted mb-1">Priority</label>
-                                        <select class="form-select" name="priority" id="priorityFilter">
-                                            <option value="" {% if filters.priority == "" %}selected{% endif %}>All priorities</option>
-                                            {% for value, label in filter_choices.priority %}
-                                                <option value="{{ value }}"
-                                                        {% if filters.priority == value %}selected{% endif %}>
-                                                    {{ label }}
-                                                </option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
+                                    {% include "partials/dashboard_filter.html" with label="Faculty" name="faculty" id="facultyFilter" choices=filter_choices.faculty current=filters.faculty %}
+                                    {% include "partials/dashboard_filter.html" with label="Study level" name="study_level" id="studyLevelFilter" choices=filter_choices.study_level current=filters.study_level %}
+                                    {% include "partials/dashboard_filter.html" with label="Category" name="category" id="categoryFilter" choices=filter_choices.category current=filters.category %}
+                                    {% include "partials/dashboard_filter.html" with label="Priority" name="priority" id="priorityFilter" choices=filter_choices.priority current=filters.priority %}
                                 </div>
                             </div>
                         </div>

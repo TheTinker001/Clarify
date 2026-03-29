@@ -81,7 +81,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                     ],
                     created_at__gte=overdue_cutoff,
                 ),
-                "assigned_tickets": tickets.filter(
+                "assigned_tickets": Ticket.objects.filter(
                     assigned_to=current_user,
                     status__in=[
                         Ticket.Status.AWAITING_STAFF,
@@ -270,7 +270,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                     "order": self.request.GET.get("order", "newest"),
                 },
                 "filter_choices": {
-                    "priority": Ticket.Priority.choices,
+                    "priority": [("", "Select")] + list(Ticket.Priority.choices),
                     "faculty": Ticket.Faculty.choices,
                     "study_level": Ticket.StudyLevel.choices,
                     "category": Ticket.Category.choices,

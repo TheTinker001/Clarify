@@ -1,0 +1,16 @@
+<p>
+    <strong>{{ title }}</strong>
+    <br>
+    {% if all_selected %}
+        All
+    {% elif labels %}
+        {% for label in labels %}
+            {{ label }}
+            {% if not forloop.last %}<br>{% endif %}
+        {% empty %}
+            —
+        {% endfor %}
+    {% else %}
+        —
+    {% endif %}
+</p>
