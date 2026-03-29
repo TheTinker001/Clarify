@@ -5,8 +5,6 @@ from django.conf import settings
 from django.core.mail import send_mail
 from django.core.validators import FileExtensionValidator
 from django import forms
-from datetime import timedelta
-from django.utils import timezone
 
 
 def _validate_file_size(file):
@@ -14,26 +12,6 @@ def _validate_file_size(file):
     max_size_mb = 5
     if file.size > max_size_mb * 1024 * 1024:
         raise ValidationError(f"File size cannot exceed {max_size_mb}MB")
-
-
-def _close_inactive_tickets(days=14):
-    from tickets.models import Ticket
-
-    cutoff = timezone.now() - timedelta(days=days)
-    now = timezone.now()
-
-    qs = Ticket.objects.filter(
-        status=Ticket.Status.AWAITING_STUDENT,
-        awaiting_student_since__isnull=False,
-        awaiting_student_since__lte=cutoff,
-    ).exclude(status=Ticket.Status.CLOSED)
-
-    return qs.update(
-        status=Ticket.Status.CLOSED,
-        closed_reason=Ticket.ClosedReason.INACTIVITY,
-        closed_at=now,
-        awaiting_student_since=None,
-    )
 
 
 def _send_ticket_created_email(ticket):

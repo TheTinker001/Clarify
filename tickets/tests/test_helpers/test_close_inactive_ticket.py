@@ -3,7 +3,7 @@ from datetime import timedelta
 from django.test import TestCase
 from django.utils import timezone
 
-from tickets.helpers import _close_inactive_tickets
+from tickets.conditional_emails import close_inactive_tickets_with_email
 from tickets.models import Ticket, User
 
 
@@ -62,7 +62,7 @@ class CloseInactiveTicketsTests(TestCase):
             awaiting_student_since=None,
         )
 
-        updated = _close_inactive_tickets(days=14)
+        updated = close_inactive_tickets_with_email(days=14)
         self.assertEqual(updated, 2)
 
         # Refresh and assert the two were closed correctly
@@ -94,7 +94,7 @@ class CloseInactiveTicketsTests(TestCase):
         self.assertEqual(t_already_closed.closed_reason, Ticket.ClosedReason.ANSWERED)
 
     def test_returns_zero_when_no_matching_tickets(self):
-        updated = _close_inactive_tickets(days=14)
+        updated = close_inactive_tickets_with_email(days=14)
         self.assertEqual(updated, 0)
 
     def make_ticket(self, **overrides):
