@@ -1,4 +1,4 @@
-# Team *bug-hunters* Small Group project
+# Team *bug-hunters* Major Group project
 
 ## Team members
 The members of the team are:
@@ -14,6 +14,13 @@ The project is called `clarify`.  It currently consists of a single app `tickets
 
 ## Deployed version of the application
 The deployed version of the application can be found at https://clarify.pythonanywhere.com
+
+## Access credentials
+Student usernames: @johndoe, @janedoe, @charlie, @student001
+Staff usernames: @staff001, @staff002
+Admin username: @admin
+
+Password for all users: Password123
 
 ## Installation instructions
 To install the software and use it in your local development environment, you must first set up and activate a local development environment.  The project source code has been developed using Python 3.12, so you are recommended to use the same version.  From the root of the project:
