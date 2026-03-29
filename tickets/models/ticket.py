@@ -82,6 +82,12 @@ class Ticket(models.Model):
         )
         OTHER = "other", "Other"
 
+    class Priority(models.TextChoices):
+        PENDING_PRIORITY = "pending priority", "Pending Priority"
+        LOW = "low", "Low"
+        MEDIUM = "medium", "Medium"
+        HIGH = "high", "High"
+
     class Status(models.TextChoices):
         AWAITING_STAFF = "awaiting_staff", "Awaiting staff"
         AWAITING_STUDENT = "awaiting_student", "Awaiting student"
@@ -90,12 +96,6 @@ class Ticket(models.Model):
     class ClosedReason(models.TextChoices):
         ANSWERED = "answered", "Answered"
         INACTIVITY = "inactivity", "Inactivity"
-
-    class Priority(models.TextChoices):
-        PENDING_PRIORITY = "pending priority", "Pending Priority"
-        LOW = "low", "Low"
-        MEDIUM = "medium", "Medium"
-        HIGH = "high", "High"
 
     student = models.ForeignKey(
         User,
