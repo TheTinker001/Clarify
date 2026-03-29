@@ -41,7 +41,7 @@ class IssueGroupCreateViewTestCase(TestCase):
     def test_non_staff_redirected_from_create_page(self):
         self.client.login(username=self.student.username, password="Password123")
         response = self.client.get(self.url)
-        self.assertRedirects(response, reverse("dashboard"))
+        self.assertEqual(response.status_code, 404)
 
     def test_create_valid_issue_group(self):
         self.client.login(username=self.staff.username, password="Password123")

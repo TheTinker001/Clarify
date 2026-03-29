@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404, redirect
+from django.http import Http404
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from tickets.models import User, IssueGroup, Ticket, IssueUpdate
@@ -17,7 +18,7 @@ class IssueGroupDetailView(LoginRequiredMixin, TemplateView):
         if not request.user.is_authenticated:
             return super().dispatch(request, *args, **kwargs)
         if request.user.user_type != User.USER_TYPE_STAFF:
-            return redirect("dashboard")
+            raise Http404
 
         self.issue_group = get_object_or_404(IssueGroup, slug=kwargs["slug"])
         return super().dispatch(request, *args, **kwargs)

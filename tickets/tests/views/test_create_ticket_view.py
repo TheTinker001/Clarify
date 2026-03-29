@@ -45,7 +45,7 @@ class CreateTicketViewTest(TestCase):
     def test_redirect_if_staff_user(self):
         self.client.login(username="staff1", password="testpass123")
         response = self.client.get(self.url)
-        self.assertRedirects(response, reverse("dashboard"))
+        self.assertEqual(response.status_code, 404)
 
     def test_student_can_access_form(self):
         self.client.login(username="student1", password="testpass123")
@@ -106,7 +106,7 @@ class CreateTicketViewTest(TestCase):
         self.client.login(username="staff1", password="testpass123")
         initial_count = Ticket.objects.count()
         response = self.client.post(self.url, self.valid_ticket_data)
-        self.assertRedirects(response, reverse("dashboard"))
+        self.assertEqual(response.status_code, 404)
         self.assertEqual(Ticket.objects.count(), initial_count)
 
     @override_settings(
