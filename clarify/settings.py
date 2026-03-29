@@ -258,3 +258,7 @@ TICKET_CREATED_EMAIL_BODY = os.getenv(
         "Clarify Team"
     ),
 )
+
+# Inactive ticket reminder settings (in days)
+INACTIVE_TICKET_FIRST_REMINDER = 7
+INACTIVE_TICKET_FINAL_REMINDER = 14

@@ -7,6 +7,7 @@ from django.test import TestCase, override_settings
 
 from tickets.conditional_emails import _send_reminder_email
 from tickets.models import Ticket
+from clarify.settings import INACTIVE_TICKET_FIRST_REMINDER
 
 User = get_user_model()
 
@@ -65,5 +66,6 @@ class SendReminderEmailTest(TestCase):
             kw = mock_send.call_args.kwargs
             self.assertIn("remind@test.com", kw["recipient_list"])
             self.assertIn("Reminder", kw["subject"])
-            self.assertIn(self.ticket.url_code, kw["message"])
             self.assertIn("Need help", kw["subject"])
+            self.assertIn(self.ticket.url_code, kw["message"])
+            self.assertIn(str(INACTIVE_TICKET_FIRST_REMINDER), kw["message"])

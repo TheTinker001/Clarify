@@ -5,7 +5,14 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
-from tickets.conditional_emails import close_inactive_tickets_with_email, send_reminder_emails
+from tickets.conditional_emails import (
+    close_inactive_tickets_with_email,
+    send_reminder_emails,
+)
+from clarify.settings import (
+    INACTIVE_TICKET_FIRST_REMINDER,
+    INACTIVE_TICKET_FINAL_REMINDER,
+)
 
 
 def _authorized(token):
@@ -14,6 +21,8 @@ def _authorized(token):
 
 @method_decorator(csrf_exempt, name="dispatch")
 class CloseInactiveTicketsTaskView(View):
+    """Close inactive tickets after a certain amount of time."""
+
     http_method_names = ["get", "post"]
 
     def dispatch(self, request, *args, **kwargs):
@@ -23,11 +32,11 @@ class CloseInactiveTicketsTaskView(View):
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
-        reminders = send_reminder_emails(days=7)
-        closed = close_inactive_tickets_with_email(days=14)
+        reminders = send_reminder_emails(days=INACTIVE_TICKET_FIRST_REMINDER)
+        closed = close_inactive_tickets_with_email(days=INACTIVE_TICKET_FINAL_REMINDER)
         return JsonResponse({"reminders_sent": reminders, "closed": closed})
 
     def post(self, request, *args, **kwargs):
-        reminders = send_reminder_emails(days=7)
-        closed = close_inactive_tickets_with_email(days=14)
+        reminders = send_reminder_emails(days=INACTIVE_TICKET_FIRST_REMINDER)
+        closed = close_inactive_tickets_with_email(days=INACTIVE_TICKET_FINAL_REMINDER)
         return JsonResponse({"reminders_sent": reminders, "closed": closed})

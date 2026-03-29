@@ -27,7 +27,7 @@ def _send_reminder_email(ticket):
         "Dear {first_name},\n\n"
         "This is a reminder that your support ticket is awaiting your response.\n\n"
         "Ticket Subject: {ticket_subject}\n\n"
-        "If we do not hear from you within 7 days, your ticket will be "
+        "If we do not hear from you within {reminder_days} days, your ticket will be "
         "automatically closed due to inactivity.\n\n"
         "Please respond here:\n{ticket_url}\n\n"
         "Kind regards,\n"
@@ -36,6 +36,7 @@ def _send_reminder_email(ticket):
         first_name=first_name,
         ticket_subject=ticket.subject,
         ticket_url=ticket_url,
+        reminder_days=settings.INACTIVE_TICKET_FIRST_REMINDER,
     )
 
     send_mail(
@@ -68,9 +69,7 @@ def _send_ticket_closed_email(ticket, reason):
             "We did not receive a response within the required timeframe."
         )
     else:
-        reason_text = (
-            "Your ticket has been closed as your query has been answered."
-        )
+        reason_text = "Your ticket has been closed as your query has been answered."
 
     body = (
         "Dear {first_name},\n\n"
@@ -101,12 +100,16 @@ def send_reminder_emails(days=7):
     from tickets.models import Ticket
 
     cutoff = timezone.now() - timedelta(days=days)
-    tickets = Ticket.objects.filter(
-        status=Ticket.Status.AWAITING_STUDENT,
-        awaiting_student_since__isnull=False,
-        awaiting_student_since__lte=cutoff,
-        reminder_sent_at__isnull=True,
-    ).exclude(status=Ticket.Status.CLOSED).select_related("student")
+    tickets = (
+        Ticket.objects.filter(
+            status=Ticket.Status.AWAITING_STUDENT,
+            awaiting_student_since__isnull=False,
+            awaiting_student_since__lte=cutoff,
+            reminder_sent_at__isnull=True,
+        )
+        .exclude(status=Ticket.Status.CLOSED)
+        .select_related("student")
+    )
 
     count = 0
     for ticket in tickets:
@@ -127,11 +130,15 @@ def close_inactive_tickets_with_email(days=14):
     cutoff = timezone.now() - timedelta(days=days)
     now = timezone.now()
 
-    tickets = Ticket.objects.filter(
-        status=Ticket.Status.AWAITING_STUDENT,
-        awaiting_student_since__isnull=False,
-        awaiting_student_since__lte=cutoff,
-    ).exclude(status=Ticket.Status.CLOSED).select_related("student")
+    tickets = (
+        Ticket.objects.filter(
+            status=Ticket.Status.AWAITING_STUDENT,
+            awaiting_student_since__isnull=False,
+            awaiting_student_since__lte=cutoff,
+        )
+        .exclude(status=Ticket.Status.CLOSED)
+        .select_related("student")
+    )
 
     count = 0
     for ticket in tickets:
@@ -140,10 +147,16 @@ def close_inactive_tickets_with_email(days=14):
         ticket.closed_at = now
         ticket.awaiting_student_since = None
         ticket.reminder_sent_at = None
-        ticket.save(update_fields=[
-            "status", "closed_reason", "closed_at",
-            "awaiting_student_since", "reminder_sent_at", "updated_at",
-        ])
+        ticket.save(
+            update_fields=[
+                "status",
+                "closed_reason",
+                "closed_at",
+                "awaiting_student_since",
+                "reminder_sent_at",
+                "updated_at",
+            ]
+        )
         try:
             _send_ticket_closed_email(ticket, "inactivity")
         except Exception:
