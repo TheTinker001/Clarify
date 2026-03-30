@@ -2,7 +2,7 @@
 
 from django.test import TestCase, override_settings
 from unittest.mock import patch
-from tickets.helpers.email.ticket_maintenance import send_ticket_closed_email
+from tickets.helpers.email.email_notifications import send_ticket_closed_email
 from tickets.models import Ticket
 from django.contrib.auth import get_user_model
 

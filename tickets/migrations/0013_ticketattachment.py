@@ -2,7 +2,7 @@
 
 import django.core.validators
 import django.db.models.deletion
-import tickets.helpers
+from tickets.helpers.validators import validate_file_size
 from django.db import migrations, models
 
 
@@ -41,7 +41,7 @@ class Migration(migrations.Migration):
                                     "png",
                                 ]
                             ),
-                            tickets.helpers.validators.validate_file_size,
+                            validate_file_size,
                         ],
                     ),
                 ),

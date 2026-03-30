@@ -1,10 +1,5 @@
 """Pagination helper functions."""
 
-from django.core.validators import FileExtensionValidator
-from django.core.exceptions import ValidationError
-from django import forms
-from django.conf import settings
-
 
 def get_page_slots(cur, max_pages):
     if max_pages <= 9:
