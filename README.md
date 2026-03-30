@@ -1,8 +1,5 @@
 # Team *bug-hunters* Major Group project
 
-### Title: Ticketing system for student queries
-### Tech stack: Python Django Web Framework
-
 ## Team members
 The members of the team are:
 - *Patrick Dunham*
@@ -13,6 +10,10 @@ The members of the team are:
 - *Chen-Han Yen*
 
 ## Project structure
+Title: Ticketing system for student queries
+
+Tech stack: Python Django Web Framework
+
 The project is called `Clarify`.  It consists of a single app `tickets`.
 
 The project aims to create a ticketing system for programme officers to manage incoming student queries as "tickets".
