@@ -1,4 +1,4 @@
-# Team *bug-hunters* major group project
+# Team *bug-hunters* Major Group Project
 
 ## Team members
 The members of the team are:
@@ -11,14 +11,15 @@ The members of the team are:
 
 ## Project structure
 **Title:** Ticketing system for student queries
+
 **Tech stack:** Django web framework
 
-The project is called `Clarify`.  It consists of a single app `tickets`.
+The project is called `Clarify`. It consists of a single app `tickets`.
 
-The aim of the project is to provide a ticketing system for programme officers to manage incoming student queries as "tickets".
+The aim of the project is to provide a ticketing system for programme officers to manage incoming student queries as tickets.
 
 ## Deployed version of the application
-The deployed version of the application can be found at `https://clarify.pythonanywhere.com`
+The deployed version of the application can be found at https://clarify.pythonanywhere.com
 
 ## Access credentials
 **Student usernames:** `@johndoe`, `@janedoe`, `@charlie`, `@student001`
@@ -41,7 +42,7 @@ $ python3.12 -m venv venv
 $ source venv/bin/activate
 ```
 
-If your system does not have `python3.12` installed and you are unable to install Python 3.12 as a version you can explicitly refer to from the CLI, then replace `python3.12` by `python3` or `python`, provide this employs a relatively recent version of Python.
+If your system does not have `python3.12` installed and you are unable to install Python 3.12 as a version you can explicitly refer to from the CLI, then replace `python3.12` by `python3` or `python`, provided it uses a relatively recent version of Python.
 
 Install all required packages:
 
@@ -69,7 +70,7 @@ $ python3 manage.py test
 ## Sources
 The packages used by this application are specified in `requirements.txt`
 
-We used the following website as a reference for our Ticket model: `https://self-service.kcl.ac.uk`
+We used the following website as a reference for our Ticket model: https://self-service.kcl.ac.uk
 
 We also used the KEATS Recipify template code as the basis for this project.
 
