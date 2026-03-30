@@ -6,7 +6,7 @@ from tickets.forms import InternalNoteEditForm
 
 
 class InternalNoteEditView(LoginRequiredMixin, UpdateView):
-    """Allow the claiming staff member to edit a ticket's internal notes."""
+    """Allow a superuser or claiming staff member to edit a ticket's internal notes."""
 
     model = Ticket
     form_class = InternalNoteEditForm
@@ -21,10 +21,16 @@ class InternalNoteEditView(LoginRequiredMixin, UpdateView):
 
         self.object = self.get_object()
 
-        if request.user.user_type != User.USER_TYPE_STAFF:
+        if (
+            not request.user.is_superuser
+            and request.user.user_type != User.USER_TYPE_STAFF
+        ):
             raise Http404
 
-        if not self.object.assigned_to.filter(id=request.user.id).exists():
+        if (
+            not request.user.is_superuser
+            and not self.object.assigned_to.filter(id=request.user.id).exists()
+        ):
             raise Http404
 
         return super().dispatch(request, *args, **kwargs)
