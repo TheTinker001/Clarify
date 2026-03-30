@@ -1,5 +1,8 @@
 # Team *bug-hunters* Major Group project
 
+### Title: Ticketing system for student queries
+### Tech stack: Python Django Web Framework
+
 ## Team members
 The members of the team are:
 - *Patrick Dunham*
@@ -10,19 +13,21 @@ The members of the team are:
 - *Chen-Han Yen*
 
 ## Project structure
-The project is called `clarify`.  It currently consists of a single app `tickets`.
+The project is called `Clarify`.  It consists of a single app `tickets`.
+
+The project aims to create a ticketing system for programme officers to manage incoming student queries as "tickets".
 
 ## Deployed version of the application
 The deployed version of the application can be found at https://clarify.pythonanywhere.com
 
 ## Access credentials
-Student usernames: @johndoe, @janedoe, @charlie, @student001
+Student usernames: `@johndoe`, `@janedoe`, `@charlie`, `@student001`
 
-Staff usernames: @staff001, @staff002
+Staff usernames: `@staff001`, `@staff002`
 
-Admin username: @admin
+Admin username: `@admin`
 
-Password for all users: Password123
+Password for all users: `Password123`
 
 ## Installation instructions
 To install the software with Nix, follow the instructions in `developers-manual.pdf`.
