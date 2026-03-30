@@ -5,11 +5,11 @@ from unittest.mock import patch, MagicMock
 from email.mime.text import MIMEText
 from io import StringIO
 from django.core.management import call_command
-from tickets.management.commands.check_inbox import (
+from tickets.helpers.email.inbox_processing import (
     process_email,
-    _decode_header_value,
-    _extract_body,
-    _extract_sender_email,
+    decode_header_value,
+    extract_body,
+    extract_sender_email,
 )
 from tickets.models import Ticket
 from django.contrib.auth import get_user_model
@@ -27,31 +27,31 @@ def _make_email(from_addr, subject, body):
 
 class DecodeHeaderValueTest(TestCase):
     def test_plain_string(self):
-        self.assertEqual(_decode_header_value("Hello"), "Hello")
+        self.assertEqual(decode_header_value("Hello"), "Hello")
 
     def test_none_returns_empty(self):
-        self.assertEqual(_decode_header_value(None), "")
+        self.assertEqual(decode_header_value(None), "")
 
     def test_encoded_bytes_header(self):
         encoded = "=?utf-8?b?w5xuw69jw7Zkw6kgU8O8YmplY3Q=?="
-        result = _decode_header_value(encoded)
+        result = decode_header_value(encoded)
         self.assertEqual(result, "Ünïcödé Sübject")
 
 
 class ExtractSenderEmailTest(TestCase):
     def test_with_angle_brackets(self):
         msg = _make_email("Jane Doe <jane@test.com>", "Hi", "Body")
-        self.assertEqual(_extract_sender_email(msg), "jane@test.com")
+        self.assertEqual(extract_sender_email(msg), "jane@test.com")
 
     def test_plain_email(self):
         msg = _make_email("jane@test.com", "Hi", "Body")
-        self.assertEqual(_extract_sender_email(msg), "jane@test.com")
+        self.assertEqual(extract_sender_email(msg), "jane@test.com")
 
 
 class ExtractBodyTest(TestCase):
     def test_plain_text(self):
         msg = _make_email("a@b.com", "Sub", "Hello body")
-        self.assertEqual(_extract_body(msg), "Hello body")
+        self.assertEqual(extract_body(msg), "Hello body")
 
     def test_multipart(self):
         from email.mime.multipart import MIMEMultipart
@@ -63,7 +63,7 @@ class ExtractBodyTest(TestCase):
         html_part = MIMEText("<p>HTML body</p>", "html")
         outer.attach(text_part)
         outer.attach(html_part)
-        self.assertEqual(_extract_body(outer), "Plain text body")
+        self.assertEqual(extract_body(outer), "Plain text body")
 
 
 class ExtractBodyEdgeCasesTest(TestCase):
@@ -75,7 +75,7 @@ class ExtractBodyEdgeCasesTest(TestCase):
         outer["Subject"] = "Test"
         html_part = MIMEText("<p>HTML only</p>", "html")
         outer.attach(html_part)
-        self.assertEqual(_extract_body(outer), "")
+        self.assertEqual(extract_body(outer), "")
 
     def test_multipart_with_none_payload(self):
         from email.mime.multipart import MIMEMultipart
@@ -88,7 +88,7 @@ class ExtractBodyEdgeCasesTest(TestCase):
         attachment.set_payload(b"binary data")
         attachment.add_header("Content-Disposition", "attachment", filename="file.bin")
         outer.attach(attachment)
-        self.assertEqual(_extract_body(outer), "")
+        self.assertEqual(extract_body(outer), "")
 
 
 class ProcessEmailTest(TestCase):
@@ -148,7 +148,7 @@ class ProcessEmailTest(TestCase):
     )
     def test_missing_fields_sends_reply(self):
         msg = _make_email("student@test.com", "Hello", "Just a generic question.")
-        with patch("tickets.management.commands.check_inbox.send_mail") as mock_send:
+        with patch("tickets.helpers.email.email_notifications.send_mail") as mock_send:
             action, detail = process_email(msg)
             self.assertEqual(action, "missing_fields")
             self.assertEqual(Ticket.objects.count(), 0)
@@ -160,7 +160,7 @@ class ProcessEmailTest(TestCase):
     def test_missing_fields_reply_failure_doesnt_crash(self):
         msg = _make_email("student@test.com", "Hello", "Just a generic question.")
         with patch(
-            "tickets.management.commands.check_inbox.send_mail",
+            "tickets.helpers.email.email_notifications.send_mail",
             side_effect=Exception("SMTP fail"),
         ):
             action, detail = process_email(msg)

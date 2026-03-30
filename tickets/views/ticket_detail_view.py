@@ -5,8 +5,10 @@ from datetime import timedelta
 from django.http import Http404
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect
-from tickets.conditional_emails import _send_ticket_closed_email
-from tickets.helpers import _send_staff_comment_email
+from tickets.helpers.email.email_notifications import (
+    send_staff_comment_email,
+    send_ticket_closed_email,
+)
 from tickets.models import User, Ticket, TicketAttachment
 from tickets.forms import (
     CommentForm,
@@ -167,7 +169,7 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
 
         if self.is_staff_user:
             try:
-                _send_staff_comment_email(self.ticket, comment)
+                send_staff_comment_email(self.ticket, comment)
             except Exception:
                 pass
 
@@ -241,7 +243,7 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         )
 
         try:
-            _send_ticket_closed_email(self.ticket, "answered")
+            send_ticket_closed_email(self.ticket, "answered")
         except Exception:
             pass
 

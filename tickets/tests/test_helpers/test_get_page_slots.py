@@ -1,5 +1,5 @@
 from django.test import TestCase
-from tickets.helpers import get_page_slots
+from tickets.helpers.pagination import get_page_slots
 
 
 class GetPageSlotsTests(TestCase):

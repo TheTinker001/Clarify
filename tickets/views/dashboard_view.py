@@ -3,7 +3,8 @@ from django.views.generic import TemplateView
 from django.utils import timezone
 from datetime import timedelta
 from django.core.paginator import Paginator
-from tickets.helpers import get_page_slots
+from tickets.helpers.preferences import split_codes
+from tickets.helpers.pagination import get_page_slots
 from django.db.models import Q, Value, Count
 from django.db.models.functions import Concat
 from tickets.models import Ticket, User
@@ -43,10 +44,6 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         'need_response_tickets' (AWAITING_STUDENT), 'closed_tickets'.
         """
         if current_user.user_type == User.USER_TYPE_STAFF:
-
-            def split_codes(s):
-                return [c.strip() for c in s.split(",") if c.strip()]
-
             faculties = split_codes(current_user.faculties)
             study_levels = split_codes(current_user.study_levels)
             categories = split_codes(current_user.categories)

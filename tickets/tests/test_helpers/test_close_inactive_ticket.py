@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.utils import timezone
 from datetime import timedelta
 
-from tickets.conditional_emails import close_inactive_tickets_with_email
+from tickets.helpers.email.ticket_maintenance import close_inactive_tickets_with_email
 from tickets.models import Ticket, User
 
 

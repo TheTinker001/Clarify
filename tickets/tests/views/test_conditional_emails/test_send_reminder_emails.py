@@ -4,7 +4,7 @@ from django.test import TestCase, override_settings
 from datetime import timedelta
 from django.utils import timezone
 from unittest.mock import patch
-from tickets.conditional_emails import send_reminder_emails
+from tickets.helpers.email.ticket_maintenance import send_reminder_emails
 from tickets.models import Ticket
 from django.contrib.auth import get_user_model
 
@@ -48,7 +48,7 @@ class SendReminderEmailsTest(TestCase):
     )
     def test_sends_reminder_for_7_day_old_ticket(self):
         self._create_awaiting_ticket(days_ago=8)
-        with patch("tickets.conditional_emails.send_mail"):
+        with patch("tickets.helpers.email.email_notifications.send_mail"):
             count = send_reminder_emails(days=7)
             self.assertEqual(count, 1)
 
@@ -60,7 +60,7 @@ class SendReminderEmailsTest(TestCase):
     )
     def test_skips_ticket_with_reminder_already_sent(self):
         self._create_awaiting_ticket(days_ago=8, reminder_sent=True)
-        with patch("tickets.conditional_emails.send_mail"):
+        with patch("tickets.helpers.email.email_notifications.send_mail"):
             count = send_reminder_emails(days=7)
             self.assertEqual(count, 0)
 
@@ -72,7 +72,7 @@ class SendReminderEmailsTest(TestCase):
     )
     def test_skips_ticket_less_than_7_days(self):
         self._create_awaiting_ticket(days_ago=5)
-        with patch("tickets.conditional_emails.send_mail"):
+        with patch("tickets.helpers.email.email_notifications.send_mail"):
             count = send_reminder_emails(days=7)
             self.assertEqual(count, 0)
 
@@ -84,7 +84,7 @@ class SendReminderEmailsTest(TestCase):
     )
     def test_sets_reminder_sent_at_after_sending(self):
         ticket = self._create_awaiting_ticket(days_ago=8)
-        with patch("tickets.conditional_emails.send_mail"):
+        with patch("tickets.helpers.email.email_notifications.send_mail"):
             send_reminder_emails(days=7)
             ticket.refresh_from_db()
             self.assertIsNotNone(ticket.reminder_sent_at)
@@ -98,7 +98,8 @@ class SendReminderEmailsTest(TestCase):
     def test_email_failure_doesnt_crash(self):
         self._create_awaiting_ticket(days_ago=8)
         with patch(
-            "tickets.conditional_emails.send_mail", side_effect=Exception("fail")
+            "tickets.helpers.email.email_notifications.send_mail",
+            side_effect=Exception("fail"),
         ):
             count = send_reminder_emails(days=7)
             self.assertEqual(count, 0)
@@ -118,6 +119,6 @@ class SendReminderEmailsTest(TestCase):
         Ticket.objects.filter(pk=ticket.pk).update(
             awaiting_student_since=timezone.now() - timedelta(days=10),
         )
-        with patch("tickets.conditional_emails.send_mail"):
+        with patch("tickets.helpers.email.email_notifications.send_mail"):
             count = send_reminder_emails(days=7)
             self.assertEqual(count, 0)

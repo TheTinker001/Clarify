@@ -1,8 +1,8 @@
-"""Tests for conditional email helper: _send_ticket_closed_email"""
+"""Tests for conditional email helper: send_ticket_closed_email"""
 
 from django.test import TestCase, override_settings
 from unittest.mock import patch
-from tickets.conditional_emails import _send_ticket_closed_email
+from tickets.helpers.email.ticket_maintenance import send_ticket_closed_email
 from tickets.models import Ticket
 from django.contrib.auth import get_user_model
 
@@ -10,7 +10,7 @@ User = get_user_model()
 
 
 class SendClosedTicketEmailTest(TestCase):
-    """Tests for conditional email helper: _send_ticket_closed_email"""
+    """Tests for conditional email helper: send_ticket_closed_email"""
 
     def setUp(self):
         self.student = User.objects.create_user(
@@ -32,8 +32,8 @@ class SendClosedTicketEmailTest(TestCase):
 
     @override_settings(EMAIL_HOST_USER="", EMAIL_HOST_PASSWORD="")
     def test_no_email_when_no_credentials(self):
-        with patch("tickets.conditional_emails.send_mail") as mock_send:
-            _send_ticket_closed_email(self.ticket, "answered")
+        with patch("tickets.helpers.email.email_notifications.send_mail") as mock_send:
+            send_ticket_closed_email(self.ticket, "answered")
             mock_send.assert_not_called()
 
     @override_settings(
@@ -46,8 +46,8 @@ class SendClosedTicketEmailTest(TestCase):
         self.student.email = ""
         self.student.save()
         self.ticket.refresh_from_db()
-        with patch("tickets.conditional_emails.send_mail") as mock_send:
-            _send_ticket_closed_email(self.ticket, "answered")
+        with patch("tickets.helpers.email.email_notifications.send_mail") as mock_send:
+            send_ticket_closed_email(self.ticket, "answered")
             mock_send.assert_not_called()
 
     @override_settings(
@@ -57,8 +57,8 @@ class SendClosedTicketEmailTest(TestCase):
         SITE_URL="http://testserver",
     )
     def test_closed_answered_email(self):
-        with patch("tickets.conditional_emails.send_mail") as mock_send:
-            _send_ticket_closed_email(self.ticket, "answered")
+        with patch("tickets.helpers.email.email_notifications.send_mail") as mock_send:
+            send_ticket_closed_email(self.ticket, "answered")
             mock_send.assert_called_once()
             kw = mock_send.call_args.kwargs
             self.assertIn("close@test.com", kw["recipient_list"])
@@ -72,8 +72,8 @@ class SendClosedTicketEmailTest(TestCase):
         SITE_URL="http://testserver",
     )
     def test_closed_inactivity_email(self):
-        with patch("tickets.conditional_emails.send_mail") as mock_send:
-            _send_ticket_closed_email(self.ticket, "inactivity")
+        with patch("tickets.helpers.email.email_notifications.send_mail") as mock_send:
+            send_ticket_closed_email(self.ticket, "inactivity")
             mock_send.assert_called_once()
             kw = mock_send.call_args.kwargs
             self.assertIn("inactivity", kw["message"].lower())
@@ -85,6 +85,6 @@ class SendClosedTicketEmailTest(TestCase):
         SITE_URL="http://testserver",
     )
     def test_falls_back_to_host_user_when_no_default_from(self):
-        with patch("tickets.conditional_emails.send_mail") as mock_send:
-            _send_ticket_closed_email(self.ticket, "answered")
+        with patch("tickets.helpers.email.email_notifications.send_mail") as mock_send:
+            send_ticket_closed_email(self.ticket, "answered")
             self.assertEqual(mock_send.call_args.kwargs["from_email"], "c@e.com")

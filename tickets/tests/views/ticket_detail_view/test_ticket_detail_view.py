@@ -346,7 +346,7 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
     def test_close_ticket_sends_answered_email(self):
         self.client.login(username=self.staff.username, password="Password123")
         with patch(
-            "tickets.views.ticket_detail_view._send_ticket_closed_email"
+            "tickets.views.ticket_detail_view.send_ticket_closed_email"
         ) as mock_send:
             self.client.post(self.url, data={"action": "close_ticket"})
             mock_send.assert_called_once()
@@ -361,7 +361,7 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
     def test_close_ticket_still_works_when_email_fails(self):
         self.client.login(username=self.staff.username, password="Password123")
         with patch(
-            "tickets.views.ticket_detail_view._send_ticket_closed_email",
+            "tickets.views.ticket_detail_view.send_ticket_closed_email",
             side_effect=Exception("fail"),
         ):
             self.client.post(self.url, data={"action": "close_ticket"})

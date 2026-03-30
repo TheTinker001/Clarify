@@ -1,8 +1,8 @@
-"""Tests for conditional email helper: _send_reminder_email"""
+"""Tests for conditional email helper: send_reminder_email"""
 
 from django.test import TestCase, override_settings
 from unittest.mock import patch
-from tickets.conditional_emails import _send_reminder_email
+from tickets.helpers.email.email_notifications import send_reminder_email
 from tickets.models import Ticket
 from clarify.settings import INACTIVE_TICKET_FIRST_REMINDER
 from django.contrib.auth import get_user_model
@@ -11,7 +11,7 @@ User = get_user_model()
 
 
 class SendReminderEmailTest(TestCase):
-    """Tests for conditional email helper: _send_reminder_email"""
+    """Tests for conditional email helper: send_reminder_email"""
 
     def setUp(self):
         self.student = User.objects.create_user(
@@ -33,8 +33,8 @@ class SendReminderEmailTest(TestCase):
 
     @override_settings(EMAIL_HOST_USER="", EMAIL_HOST_PASSWORD="")
     def test_no_email_when_no_credentials(self):
-        with patch("tickets.conditional_emails.send_mail") as mock_send:
-            _send_reminder_email(self.ticket)
+        with patch("tickets.helpers.email.email_notifications.send_mail") as mock_send:
+            send_reminder_email(self.ticket)
             mock_send.assert_not_called()
 
     @override_settings(
@@ -47,8 +47,8 @@ class SendReminderEmailTest(TestCase):
         self.student.email = ""
         self.student.save()
         self.ticket.refresh_from_db()
-        with patch("tickets.conditional_emails.send_mail") as mock_send:
-            _send_reminder_email(self.ticket)
+        with patch("tickets.helpers.email.email_notifications.send_mail") as mock_send:
+            send_reminder_email(self.ticket)
             mock_send.assert_not_called()
 
     @override_settings(
@@ -58,8 +58,8 @@ class SendReminderEmailTest(TestCase):
         SITE_URL="http://testserver",
     )
     def test_reminder_email_sent(self):
-        with patch("tickets.conditional_emails.send_mail") as mock_send:
-            _send_reminder_email(self.ticket)
+        with patch("tickets.helpers.email.email_notifications.send_mail") as mock_send:
+            send_reminder_email(self.ticket)
             mock_send.assert_called_once()
             kw = mock_send.call_args.kwargs
             self.assertIn("remind@test.com", kw["recipient_list"])

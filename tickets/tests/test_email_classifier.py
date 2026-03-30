@@ -1,24 +1,27 @@
 """Tests for the email classifier."""
 
 from django.test import TestCase
-from tickets.email_classifier import classify_email, _match_keywords
-from tickets.email_keywords import FACULTY_KEYWORDS
+from tickets.helpers.email.email_classifier import (
+    classify_email,
+    match_keywords,
+)
+from tickets.helpers.email.email_keywords import FACULTY_KEYWORDS
 
 
 class MatchKeywordsTest(TestCase):
 
     def test_returns_best_match(self):
-        result = _match_keywords(
+        result = match_keywords(
             "I study computer science and engineering", FACULTY_KEYWORDS
         )
         self.assertEqual(result, "nmes")
 
     def test_returns_none_when_no_match(self):
-        result = _match_keywords("hello world", FACULTY_KEYWORDS)
+        result = match_keywords("hello world", FACULTY_KEYWORDS)
         self.assertIsNone(result)
 
     def test_case_insensitive(self):
-        result = _match_keywords("COMPUTER SCIENCE", FACULTY_KEYWORDS)
+        result = match_keywords("COMPUTER SCIENCE", FACULTY_KEYWORDS)
         self.assertEqual(result, "nmes")
 
 

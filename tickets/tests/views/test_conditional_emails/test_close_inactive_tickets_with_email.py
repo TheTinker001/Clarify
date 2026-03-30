@@ -4,7 +4,7 @@ from django.test import TestCase, override_settings
 from django.utils import timezone
 from datetime import timedelta
 from unittest.mock import patch
-from tickets.conditional_emails import close_inactive_tickets_with_email
+from tickets.helpers.email.ticket_maintenance import close_inactive_tickets_with_email
 from tickets.models import Ticket
 from django.contrib.auth import get_user_model
 
@@ -47,7 +47,7 @@ class CloseInactiveTicketsWithEmailTest(TestCase):
     )
     def test_closes_14_day_old_ticket(self):
         ticket = self._create_awaiting_ticket(days_ago=15)
-        with patch("tickets.conditional_emails.send_mail"):
+        with patch("tickets.helpers.email.email_notifications.send_mail"):
             count = close_inactive_tickets_with_email(days=14)
             self.assertEqual(count, 1)
             ticket.refresh_from_db()
@@ -65,7 +65,7 @@ class CloseInactiveTicketsWithEmailTest(TestCase):
     )
     def test_sends_inactivity_email_on_close(self):
         self._create_awaiting_ticket(days_ago=15)
-        with patch("tickets.conditional_emails.send_mail") as mock_send:
+        with patch("tickets.helpers.email.email_notifications.send_mail") as mock_send:
             close_inactive_tickets_with_email(days=14)
             mock_send.assert_called_once()
             self.assertIn("inactivity", mock_send.call_args.kwargs["message"].lower())
@@ -78,7 +78,7 @@ class CloseInactiveTicketsWithEmailTest(TestCase):
     )
     def test_skips_ticket_less_than_14_days(self):
         self._create_awaiting_ticket(days_ago=10)
-        with patch("tickets.conditional_emails.send_mail"):
+        with patch("tickets.helpers.email.email_notifications.send_mail"):
             count = close_inactive_tickets_with_email(days=14)
             self.assertEqual(count, 0)
 
@@ -91,7 +91,8 @@ class CloseInactiveTicketsWithEmailTest(TestCase):
     def test_email_failure_doesnt_prevent_close(self):
         ticket = self._create_awaiting_ticket(days_ago=15)
         with patch(
-            "tickets.conditional_emails.send_mail", side_effect=Exception("fail")
+            "tickets.helpers.email.email_notifications.send_mail",
+            side_effect=Exception("fail"),
         ):
             count = close_inactive_tickets_with_email(days=14)
             self.assertEqual(count, 1)
@@ -113,6 +114,6 @@ class CloseInactiveTicketsWithEmailTest(TestCase):
         Ticket.objects.filter(pk=ticket.pk).update(
             awaiting_student_since=timezone.now() - timedelta(days=20),
         )
-        with patch("tickets.conditional_emails.send_mail"):
+        with patch("tickets.helpers.email.email_notifications.send_mail"):
             count = close_inactive_tickets_with_email(days=14)
             self.assertEqual(count, 0)

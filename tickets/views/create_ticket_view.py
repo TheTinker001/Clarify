@@ -3,7 +3,7 @@ from django.views.generic.edit import CreateView
 from django.http import Http404
 from django.contrib import messages
 from django.urls import reverse_lazy
-from tickets.helpers import _send_ticket_created_email
+from tickets.helpers.email.email_notifications import send_ticket_created_email
 from tickets.models import Ticket, TicketAttachment
 from tickets.forms import TicketForm
 from clarify.settings import MAX_FILES_PER_TICKET, TICKET_EDIT_WINDOW_MINUTES
@@ -46,7 +46,7 @@ class CreateTicketView(LoginRequiredMixin, CreateView):
             TicketAttachment.objects.create(ticket=self.object, file=f)
 
         try:
-            _send_ticket_created_email(self.object)
+            send_ticket_created_email(self.object)
         except Exception:
             pass
 

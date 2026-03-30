@@ -3,7 +3,7 @@ from django.views.generic import TemplateView
 from django.http import Http404
 from django.core.paginator import Paginator
 from django.db.models import Q
-from tickets.helpers import get_page_slots
+from tickets.helpers.pagination import get_page_slots
 from tickets.models import User, IssueGroup
 from clarify.settings import ITEMS_PER_PAGE
 

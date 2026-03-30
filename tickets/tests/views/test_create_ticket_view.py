@@ -116,7 +116,7 @@ class CreateTicketViewTest(TestCase):
     )
     def test_email_sent_on_ticket_creation(self):
         self.client.login(username="student1", password="testpass123")
-        with patch("tickets.helpers.send_mail") as mock_send:
+        with patch("tickets.helpers.email.email_notifications.send_mail") as mock_send:
             self.client.post(self.url, self.valid_ticket_data)
             self.assertEqual(mock_send.call_count, 1)
 
@@ -129,7 +129,10 @@ class CreateTicketViewTest(TestCase):
         """Ticket is created even if email sending raises an exception (lines 30-31)."""
         self.client.login(username="student1", password="testpass123")
         initial_count = Ticket.objects.count()
-        with patch("tickets.helpers.send_mail", side_effect=Exception("SMTP error")):
+        with patch(
+            "tickets.helpers.email.email_notifications.send_mail",
+            side_effect=Exception("SMTP error"),
+        ):
             response = self.client.post(self.url, self.valid_ticket_data)
             self.assertEqual(Ticket.objects.count(), initial_count + 1)
             self.assertRedirects(response, reverse("dashboard"))
@@ -142,7 +145,10 @@ class CreateTicketViewTest(TestCase):
     def test_success_message_shown_when_email_fails(self):
         """Success message is still shown even if email sending fails."""
         self.client.login(username="student1", password="testpass123")
-        with patch("tickets.helpers.send_mail", side_effect=Exception("SMTP error")):
+        with patch(
+            "tickets.helpers.email.email_notifications.send_mail",
+            side_effect=Exception("SMTP error"),
+        ):
             response = self.client.post(self.url, self.valid_ticket_data, follow=True)
             message_list = list(response.context["messages"])
             self.assertEqual(len(message_list), 1)
@@ -153,7 +159,7 @@ class CreateTicketViewTest(TestCase):
     )
     def test_no_email_sent_without_email_settings(self):
         self.client.login(username="student1", password="testpass123")
-        with patch("tickets.helpers.send_mail") as mock_send:
+        with patch("tickets.helpers.email.email_notifications.send_mail") as mock_send:
             self.client.post(self.url, self.valid_ticket_data)
             self.assertEqual(mock_send.call_count, 0)
 

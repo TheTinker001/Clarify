@@ -40,7 +40,7 @@ class TicketDetailCommentEmailTestCase(TestCase, MenuTesterMixin):
     )
     def test_email_sent_to_student_when_staff_responds(self):
         self.client.login(username=self.staff.username, password="Password123")
-        with patch("tickets.helpers.send_mail") as mock_send:
+        with patch("tickets.helpers.email.email_notifications.send_mail") as mock_send:
             self.client.post(
                 self.url,
                 {"action": "add_comment", "body": "Here is your answer.."},
@@ -62,7 +62,7 @@ class TicketDetailCommentEmailTestCase(TestCase, MenuTesterMixin):
         self.ticket.status = Ticket.Status.AWAITING_STUDENT
         self.ticket.save()
         self.client.login(username=self.student.username, password="Password123")
-        with patch("tickets.helpers.send_mail") as mock_send:
+        with patch("tickets.helpers.email.email_notifications.send_mail") as mock_send:
             self.client.post(self.url, {"body": "Follow-up."})
             mock_send.assert_not_called()
 
@@ -73,7 +73,10 @@ class TicketDetailCommentEmailTestCase(TestCase, MenuTesterMixin):
     )
     def test_ticket_still_saved_when_email_fails(self):
         self.client.login(username=self.staff.username, password="Password123")
-        with patch("tickets.helpers.send_mail", side_effect=Exception("SMTP fail")):
+        with patch(
+            "tickets.helpers.email.email_notifications.send_mail",
+            side_effect=Exception("SMTP fail"),
+        ):
             resp = self.client.post(
                 self.url, {"action": "add_comment", "body": "Answer."}, follow=True
             )
@@ -83,7 +86,7 @@ class TicketDetailCommentEmailTestCase(TestCase, MenuTesterMixin):
 
     def test_no_email_sent_without_email_settings(self):
         self.client.login(username=self.staff.username, password="Password123")
-        with patch("tickets.helpers.send_mail") as mock_send:
+        with patch("tickets.helpers.email.email_notifications.send_mail") as mock_send:
             self.client.post(self.url, {"body": "Answer."})
             mock_send.assert_not_called()
 
