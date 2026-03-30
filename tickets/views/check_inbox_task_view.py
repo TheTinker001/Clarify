@@ -1,12 +1,11 @@
 import secrets
 from io import StringIO
-
-from django.conf import settings
-from django.core.management import call_command
+from django.views import View
 from django.http import JsonResponse, Http404
 from django.utils.decorators import method_decorator
-from django.views import View
 from django.views.decorators.csrf import csrf_exempt
+from django.core.management import call_command
+from django.conf import settings
 
 
 def _authorized(token: str) -> bool:

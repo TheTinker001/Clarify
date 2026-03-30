@@ -1,9 +1,8 @@
-from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import Http404
-from django.shortcuts import get_object_or_404, redirect
 from django.views import View
-
+from django.http import Http404
+from django.contrib import messages
+from django.shortcuts import get_object_or_404, redirect
 from tickets.models import Ticket, User
 
 

@@ -1,5 +1,5 @@
-from django.contrib.auth.hashers import check_password
 from django.test import TestCase
+from django.contrib.auth.hashers import check_password
 from tickets.models import User
 from tickets.forms import PasswordForm
 

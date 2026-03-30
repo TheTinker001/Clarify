@@ -1,9 +1,9 @@
-from django.core.exceptions import ValidationError
 from django.test import TestCase
-from unittest.mock import patch
-from django.contrib.auth import get_user_model
 from django.utils import timezone
+from django.core.exceptions import ValidationError
+from unittest.mock import patch
 from tickets.models import Ticket
+from django.contrib.auth import get_user_model
 
 User = get_user_model()
 

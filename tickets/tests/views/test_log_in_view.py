@@ -1,11 +1,11 @@
 """Tests of the log in view."""
 
-from django.contrib import messages
 from django.test import TestCase
+from django.contrib import messages
 from django.urls import reverse
-from tickets.forms import LogInForm
-from tickets.models import User
 from tickets.tests.helpers import LogInTester, MenuTesterMixin, _reverse_with_next
+from tickets.models import User
+from tickets.forms import LogInForm
 
 
 class LogInViewTestCase(TestCase, LogInTester, MenuTesterMixin):

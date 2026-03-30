@@ -1,11 +1,11 @@
 """Tests for the profile view."""
 
-from django.contrib import messages
 from django.test import TestCase
+from django.contrib import messages
 from django.urls import reverse
-from tickets.forms import UserForm
-from tickets.models import User
 from tickets.tests.helpers import _reverse_with_next
+from tickets.models import User
+from tickets.forms import UserForm
 
 
 class ProfileViewTest(TestCase):

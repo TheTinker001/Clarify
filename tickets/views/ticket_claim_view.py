@@ -1,11 +1,11 @@
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.shortcuts import get_object_or_404, redirect
-from django.utils.decorators import method_decorator
-from django.views.decorators.http import require_POST
 from django.views import View
-from tickets.models import Ticket, User
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
 from django.db import transaction
+from tickets.models import Ticket, User
 from clarify.settings import MAX_TICKET_CLAIMANTS
 
 

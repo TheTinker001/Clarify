@@ -1,11 +1,10 @@
-from django.shortcuts import get_object_or_404, redirect
-from django.http import Http404
-from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from tickets.models import User, IssueGroup, Ticket, IssueUpdate
-from django.core.paginator import Paginator
+from django.views.generic import TemplateView
+from django.http import Http404
 from django.contrib import messages
-
+from django.core.paginator import Paginator
+from django.shortcuts import get_object_or_404, redirect
+from tickets.models import User, IssueGroup, Ticket, IssueUpdate
 from clarify.settings import ITEMS_PER_PAGE
 
 

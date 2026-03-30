@@ -1,9 +1,7 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import FileResponse, Http404
 from django.views import View
-
-from tickets.models.attachment import TicketAttachment
-from tickets.models.user import User
+from django.http import FileResponse, Http404
+from tickets.models import User, TicketAttachment
 
 
 class ServeAttachmentView(LoginRequiredMixin, View):

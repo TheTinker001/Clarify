@@ -1,5 +1,5 @@
 from django import forms
-from tickets.models.issue_group import IssueGroup
+from tickets.models import IssueGroup
 
 
 class IssueGroupForm(forms.ModelForm):

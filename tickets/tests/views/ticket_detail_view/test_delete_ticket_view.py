@@ -1,13 +1,11 @@
 """Tests for DeleteTicketView."""
 
-from datetime import timedelta
-
-from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
-from django.urls import reverse
 from django.utils import timezone
-
+from datetime import timedelta
+from django.urls import reverse
 from tickets.models import Ticket
+from django.contrib.auth import get_user_model
 
 User = get_user_model()
 

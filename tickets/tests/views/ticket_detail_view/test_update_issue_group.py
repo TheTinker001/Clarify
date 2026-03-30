@@ -1,11 +1,10 @@
 """Tests for the ticket detail view for changing issue group field."""
 
 from django.test import TestCase, override_settings
-from tickets.forms import TicketIssueGroupForm
-from tickets.models import Ticket, User, IssueGroup
-from tickets.tests.helpers import MenuTesterMixin
-
 from django.utils import timezone
+from tickets.tests.helpers import MenuTesterMixin
+from tickets.models import User, Ticket, IssueGroup
+from tickets.forms import TicketIssueGroupForm
 
 
 @override_settings(TICKET_STAFF_VISIBILITY_DELAY_MINUTES=0)

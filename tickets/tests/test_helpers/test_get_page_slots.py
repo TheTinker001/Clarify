@@ -1,5 +1,3 @@
-from datetime import timedelta
-
 from django.test import TestCase
 from tickets.helpers import get_page_slots
 

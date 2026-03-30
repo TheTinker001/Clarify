@@ -2,8 +2,8 @@
 
 from django.test import TestCase
 from django.urls import reverse
-from tickets.models import User
 from tickets.tests.helpers import LogInTester
+from tickets.models import User
 
 
 class LogOutViewTestCase(TestCase, LogInTester):

@@ -1,9 +1,8 @@
 from django.db import models
-from tickets.models import IssueGroup
-from clarify.settings import BODY_LENGTH_MAX
 from django.core.validators import MaxLengthValidator
 from django.core.exceptions import ValidationError
-
+from tickets.models import IssueGroup
+from clarify.settings import BODY_LENGTH_MAX
 from django.contrib.auth import get_user_model
 
 User = get_user_model()

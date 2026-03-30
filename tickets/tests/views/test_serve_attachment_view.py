@@ -1,13 +1,11 @@
+from django.test import TestCase, override_settings
 import os
 import tempfile
-
-from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase, override_settings
 from django.urls import reverse
-
-from tickets.models import Ticket, TicketAttachment, Comment
 from tickets.tests.helpers import _reverse_with_next
+from tickets.models import Ticket, TicketAttachment, Comment
+from django.contrib.auth import get_user_model
 
 User = get_user_model()
 

@@ -1,9 +1,9 @@
 """Unit tests of the log in form."""
 
-from django import forms
 from django.test import TestCase
-from tickets.forms import LogInForm
+from django import forms
 from tickets.models import User
+from tickets.forms import LogInForm
 
 
 class LogInFormTestCase(TestCase):

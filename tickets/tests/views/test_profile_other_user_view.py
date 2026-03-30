@@ -1,10 +1,8 @@
 """Tests for the profile other user view."""
 
-from django.http import Http404
 from django.test import TestCase
 from django.urls import reverse
 from tickets.models import User
-from tickets.views.profile_other_user_view import ProfileOtherUserView
 
 
 class ProfileOtherUserViewTest(TestCase):

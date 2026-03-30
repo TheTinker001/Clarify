@@ -2,8 +2,7 @@
 
 from django.test import TestCase, override_settings
 from django.urls import reverse
-from tickets.models import User
-from tickets.models.ticket import Ticket
+from tickets.models import User, Ticket
 from tickets.tests.helpers import LogInTester
 
 

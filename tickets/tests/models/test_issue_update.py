@@ -1,7 +1,7 @@
 """Tests for the issue update model."""
 
-from django.core.exceptions import ValidationError
 from django.test import TestCase
+from django.core.exceptions import ValidationError
 from tickets.models import IssueUpdate, IssueGroup, User
 from clarify.settings import BODY_LENGTH_MAX
 

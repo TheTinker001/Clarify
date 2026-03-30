@@ -1,17 +1,16 @@
 """Tests for the ticket detail view."""
 
 from django.test import TestCase, override_settings
+from django.utils import timezone
+from datetime import timedelta
 from unittest.mock import patch
-from tickets.forms import TicketPriorityForm
-from tickets.models import Ticket, User
 from tickets.tests.helpers import (
     MenuTesterMixin,
     _reverse_with_next,
     _valid_comment_post_data,
 )
-
-from datetime import timedelta
-from django.utils import timezone
+from tickets.models import Ticket, User
+from tickets.forms import TicketPriorityForm
 
 
 @override_settings(TICKET_STAFF_VISIBILITY_DELAY_MINUTES=0)

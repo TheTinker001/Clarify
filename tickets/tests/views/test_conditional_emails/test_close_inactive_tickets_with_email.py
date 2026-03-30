@@ -1,14 +1,12 @@
 """Tests for conditional email helper: close_inactive_tickets_with_email"""
 
-from datetime import timedelta
-from unittest.mock import patch
-
-from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
 from django.utils import timezone
-
+from datetime import timedelta
+from unittest.mock import patch
 from tickets.conditional_emails import close_inactive_tickets_with_email
 from tickets.models import Ticket
+from django.contrib.auth import get_user_model
 
 User = get_user_model()
 

@@ -1,12 +1,10 @@
 """Tests for conditional email helper: _send_ticket_closed_email"""
 
-from unittest.mock import patch
-
-from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
-
+from unittest.mock import patch
 from tickets.conditional_emails import _send_ticket_closed_email
 from tickets.models import Ticket
+from django.contrib.auth import get_user_model
 
 User = get_user_model()
 

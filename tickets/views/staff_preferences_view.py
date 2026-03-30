@@ -1,10 +1,10 @@
-from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import UpdateView
-from django.urls import reverse
-from tickets.forms import StaffPreferenceForm
-from tickets.models import User
 from django.http import Http404
+from django.contrib import messages
+from django.urls import reverse
+from tickets.models import User
+from tickets.forms import StaffPreferenceForm
 
 
 class StaffPreferencesView(LoginRequiredMixin, UpdateView):

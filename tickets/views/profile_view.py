@@ -1,9 +1,9 @@
-from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import UpdateView
+from django.contrib import messages
 from django.urls import reverse
-from tickets.forms import UserForm
 from tickets.models import User, Ticket
+from tickets.forms import UserForm
 
 
 class UserProfileContext:

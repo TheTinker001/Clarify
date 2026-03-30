@@ -1,12 +1,11 @@
 """Tests for the password view."""
 
-from django.contrib import messages
-from django.contrib.auth.hashers import check_password
 from django.test import TestCase
+from django.contrib.auth.hashers import check_password
 from django.urls import reverse
-from tickets.forms import PasswordForm
-from tickets.models import User
 from tickets.tests.helpers import _reverse_with_next
+from tickets.models import User
+from tickets.forms import PasswordForm
 
 
 class PasswordViewTest(TestCase):

@@ -1,8 +1,6 @@
 from django.urls import reverse
 from with_asserts.mixin import AssertHTMLMixin
-
 from tickets.forms import CommentForm
-from tickets.helpers import _send_ticket_created_email
 
 
 def _reverse_with_next(url_name, next_url):

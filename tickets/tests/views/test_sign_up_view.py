@@ -1,11 +1,11 @@
 """Tests of the sign up view."""
 
-from django.contrib.auth.hashers import check_password
 from django.test import TestCase
+from django.contrib.auth.hashers import check_password
 from django.urls import reverse
+from tickets.tests.helpers import LogInTester
 from tickets.forms import SignUpForm
 from tickets.models import Ticket, User
-from tickets.tests.helpers import LogInTester
 
 
 class SignUpViewTestCase(TestCase, LogInTester):

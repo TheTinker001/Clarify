@@ -1,10 +1,10 @@
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, Client, override_settings
 from unittest.mock import patch
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
-from django.contrib.auth import get_user_model
 from tickets.models import Ticket
 from tickets.forms import TicketForm
+from django.contrib.auth import get_user_model
 
 User = get_user_model()
 

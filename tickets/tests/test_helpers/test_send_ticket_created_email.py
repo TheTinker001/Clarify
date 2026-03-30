@@ -2,11 +2,9 @@
 
 from django.test import TestCase, override_settings
 from unittest.mock import patch
-from django.contrib.auth import get_user_model
-from tickets.models import Ticket
-from tickets.models import Comment
+from tickets.models import Ticket, Comment
 from tickets.helpers import _send_ticket_created_email, _send_staff_comment_email
-
+from django.contrib.auth import get_user_model
 
 User = get_user_model()
 

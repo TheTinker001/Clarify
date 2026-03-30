@@ -1,11 +1,11 @@
 """Tests of dashboard searching feature."""
 
 from django.test import TestCase, override_settings
-from django.urls import reverse
-from tickets.models import User, Ticket
-from tickets.tests.helpers import LogInTester
 from django.utils import timezone
 from datetime import timedelta
+from django.urls import reverse
+from tickets.tests.helpers import LogInTester
+from tickets.models import User, Ticket
 
 
 @override_settings(TICKET_STAFF_VISIBILITY_DELAY_MINUTES=0)

@@ -1,11 +1,10 @@
 """Unit tests of the user form."""
 
-from django import forms
 from django.test import TestCase
-from tickets.forms import UserForm, StaffPreferenceForm
-from tickets.models import User
-from tickets.models import Ticket
+from django import forms
 from django.core.files.uploadedfile import SimpleUploadedFile
+from tickets.models import User, Ticket
+from tickets.forms import UserForm, StaffPreferenceForm
 
 
 class UserFormTestCase(TestCase):

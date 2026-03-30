@@ -1,5 +1,5 @@
-from django import forms
 from django.contrib.auth import authenticate
+from django import forms
 
 
 class LogInForm(forms.Form):

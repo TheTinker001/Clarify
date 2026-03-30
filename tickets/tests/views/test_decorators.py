@@ -1,5 +1,5 @@
-from django.core.exceptions import ImproperlyConfigured
 from django.test import TestCase
+from django.core.exceptions import ImproperlyConfigured
 from tickets.views import LoginProhibitedMixin
 
 

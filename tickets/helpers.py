@@ -1,10 +1,10 @@
 """Shared file validation helpers, email utilities, and multi-file upload field for the tickets app."""
 
-from django.core.exceptions import ValidationError
-from django.conf import settings
-from django.core.mail import send_mail
 from django.core.validators import FileExtensionValidator
+from django.core.exceptions import ValidationError
+from django.core.mail import send_mail
 from django import forms
+from django.conf import settings
 
 
 def _validate_file_size(file):

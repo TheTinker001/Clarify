@@ -1,8 +1,8 @@
-from django.views.generic import UpdateView
-from tickets.models import User, IssueGroup
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib import messages
+from django.views.generic import UpdateView
 from django.http import Http404
+from django.contrib import messages
+from tickets.models import User, IssueGroup
 
 
 class UpdateIssueGroupView(LoginRequiredMixin, UpdateView):

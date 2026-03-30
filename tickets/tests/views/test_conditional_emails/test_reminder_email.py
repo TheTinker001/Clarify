@@ -1,13 +1,11 @@
 """Tests for conditional email helper: _send_reminder_email"""
 
-from unittest.mock import patch
-
-from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
-
+from unittest.mock import patch
 from tickets.conditional_emails import _send_reminder_email
 from tickets.models import Ticket
 from clarify.settings import INACTIVE_TICKET_FIRST_REMINDER
+from django.contrib.auth import get_user_model
 
 User = get_user_model()
 

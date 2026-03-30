@@ -1,10 +1,8 @@
 import secrets
-from django.conf import settings
+from django.views import View
 from django.http import JsonResponse, Http404
 from django.utils.decorators import method_decorator
-from django.views import View
 from django.views.decorators.csrf import csrf_exempt
-
 from tickets.conditional_emails import (
     close_inactive_tickets_with_email,
     send_reminder_emails,
@@ -13,6 +11,7 @@ from clarify.settings import (
     INACTIVE_TICKET_FIRST_REMINDER,
     INACTIVE_TICKET_FINAL_REMINDER,
 )
+from django.conf import settings
 
 
 def _authorized(token):

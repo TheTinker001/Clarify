@@ -1,20 +1,18 @@
 """Tests for the check_inbox management command."""
 
+from django.test import TestCase, override_settings
+from unittest.mock import patch, MagicMock
 from email.mime.text import MIMEText
 from io import StringIO
-from unittest.mock import patch, MagicMock
-
-from django.test import TestCase, override_settings
 from django.core.management import call_command
-from django.contrib.auth import get_user_model
-
-from tickets.models import Ticket
 from tickets.management.commands.check_inbox import (
     process_email,
     _decode_header_value,
     _extract_body,
     _extract_sender_email,
 )
+from tickets.models import Ticket
+from django.contrib.auth import get_user_model
 
 User = get_user_model()
 

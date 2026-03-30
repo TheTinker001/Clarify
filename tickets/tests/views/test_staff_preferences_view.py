@@ -3,7 +3,7 @@
 from django.test import TestCase, RequestFactory
 from django.urls import reverse
 from tickets.models import User, Ticket
-from tickets.views.staff_preferences_view import StaffPreferencesView
+from tickets.views import StaffPreferencesView
 
 
 class StaffPreferencesViewTestCase(TestCase):

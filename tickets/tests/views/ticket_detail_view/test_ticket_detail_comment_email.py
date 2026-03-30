@@ -2,9 +2,8 @@
 
 from django.test import TestCase, override_settings
 from unittest.mock import patch
-from tickets.models import Ticket, User
-from tickets.models import Comment
 from tickets.tests.helpers import MenuTesterMixin
+from tickets.models import User, Ticket, Comment
 
 
 @override_settings(TICKET_STAFF_VISIBILITY_DELAY_MINUTES=0)

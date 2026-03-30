@@ -1,7 +1,6 @@
 from django.test import TestCase
-from tickets.models import Ticket
+from tickets.models import User, Ticket
 from tickets.forms import TicketFieldsForm
-from tickets.models import User
 
 
 class TicketFieldsFormTest(TestCase):

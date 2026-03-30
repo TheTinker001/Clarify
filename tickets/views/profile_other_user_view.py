@@ -1,8 +1,8 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import Http404
-from django.views.generic import DetailView
-from tickets.models import User
 from tickets.views.profile_view import UserProfileContext
+from django.views.generic import DetailView
+from django.http import Http404
+from tickets.models import User
 
 
 class ProfileOtherUserView(LoginRequiredMixin, UserProfileContext, DetailView):

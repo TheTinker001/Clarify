@@ -1,10 +1,10 @@
-from django.conf import settings
+from tickets.views.decorators import LoginProhibitedMixin
+from django.views import View
 from django.contrib import messages
 from django.contrib.auth import login
 from django.shortcuts import redirect, render
-from django.views import View
 from tickets.forms import LogInForm
-from tickets.views.decorators import LoginProhibitedMixin
+from clarify.settings import REDIRECT_URL_WHEN_LOGGED_IN
 
 
 class LogInView(LoginProhibitedMixin, View):
@@ -12,7 +12,7 @@ class LogInView(LoginProhibitedMixin, View):
     Authenticated users are redirected via 'LoginProhibitedMixin'."""
 
     http_method_names = ["get", "post"]
-    redirect_when_logged_in_url = settings.REDIRECT_URL_WHEN_LOGGED_IN
+    redirect_when_logged_in_url = REDIRECT_URL_WHEN_LOGGED_IN
 
     def get(self, request):
         """Render the login form."""
@@ -25,7 +25,7 @@ class LogInView(LoginProhibitedMixin, View):
         Redirect on success or re-render with an error."""
 
         form = LogInForm(request.POST)
-        self.next = request.POST.get("next") or settings.REDIRECT_URL_WHEN_LOGGED_IN
+        self.next = request.POST.get("next") or REDIRECT_URL_WHEN_LOGGED_IN
         user = form.get_user()
         if user is not None:
             login(request, user)

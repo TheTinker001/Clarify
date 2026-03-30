@@ -1,13 +1,13 @@
-from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import TemplateView
+from django.utils import timezone
+from datetime import timedelta
 from django.http import Http404
+from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect
 from tickets.conditional_emails import _send_ticket_closed_email
 from tickets.helpers import _send_staff_comment_email
 from tickets.models import User, Ticket, TicketAttachment
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import TemplateView
-from datetime import timedelta
-from django.utils import timezone
 from tickets.forms import (
     CommentForm,
     TicketPriorityForm,

@@ -1,10 +1,8 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import Http404
 from django.views.generic.edit import UpdateView
-
-from tickets.forms.internal_note_edit_form import InternalNoteEditForm
-from tickets.models.ticket import Ticket
-from tickets.models.user import User
+from django.http import Http404
+from tickets.models import User, Ticket
+from tickets.forms import InternalNoteEditForm
 
 
 class InternalNoteEditView(LoginRequiredMixin, UpdateView):

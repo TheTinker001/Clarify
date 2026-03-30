@@ -1,10 +1,8 @@
 """Tests for the CommentForm."""
 
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
-
+from django.core.files.uploadedfile import SimpleUploadedFile
 from tickets.forms import CommentForm
-from tickets.models import Comment
 from clarify.settings import BODY_LENGTH_MAX
 
 

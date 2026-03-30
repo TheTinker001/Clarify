@@ -2,10 +2,10 @@
 
 from django.test import TestCase
 from django.urls import reverse
-from clarify.settings import ITEMS_PER_PAGE
 from tickets.helpers import get_page_slots
-from tickets.models import User, IssueGroup
 from tickets.tests.helpers import _reverse_with_next
+from tickets.models import User, IssueGroup
+from clarify.settings import ITEMS_PER_PAGE
 
 
 class IssueGroupViewTestCase(TestCase):
