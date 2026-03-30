@@ -1,6 +1,7 @@
 """Email notifiction helper functions."""
 
 from django.core.mail import send_mail
+from django.utils.html import strip_tags
 from django.conf import settings
 
 
@@ -66,6 +67,9 @@ def send_staff_comment_email(ticket, comment):
     subject = "Response to Your Support Ticket - {subject}".format(
         subject=ticket.subject
     )
+
+    tagless_comment = strip_tags(comment.body).strip()
+
     body = (
         "Dear {first_name},\n\n"
         "We are writing to inform you that a member of our academic staff has responded to your support request.\n\n"
@@ -80,7 +84,7 @@ def send_staff_comment_email(ticket, comment):
     ).format(
         first_name=first_name,
         ticket_subject=ticket.subject,
-        comment_body=comment.body,
+        comment_body=tagless_comment,
         ticket_url=ticket_url,
     )
 
