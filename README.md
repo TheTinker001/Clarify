@@ -1,4 +1,4 @@
-# Team *bug-hunters* Major Group project
+# Team *bug-hunters* major group project
 
 ## Team members
 The members of the team are:
@@ -10,30 +10,31 @@ The members of the team are:
 - *Chen-Han Yen*
 
 ## Project structure
-Title: Ticketing system for student queries
-
-Tech stack: Python Django Web Framework
+**Title:** Ticketing system for student queries
+**Tech stack:** Django web framework
 
 The project is called `Clarify`.  It consists of a single app `tickets`.
 
-The project aims to create a ticketing system for programme officers to manage incoming student queries as "tickets".
+The aim of the project is to provide a ticketing system for programme officers to manage incoming student queries as "tickets".
 
 ## Deployed version of the application
-The deployed version of the application can be found at https://clarify.pythonanywhere.com
+The deployed version of the application can be found at `https://clarify.pythonanywhere.com`
 
 ## Access credentials
-Student usernames: `@johndoe`, `@janedoe`, `@charlie`, `@student001`
+**Student usernames:** `@johndoe`, `@janedoe`, `@charlie`, `@student001`
 
-Staff usernames: `@staff001`, `@staff002`
+**Staff usernames:** `@staff001`, `@staff002`
 
-Admin username: `@admin`
+**Admin username:** `@admin`
 
-Password for all users: `Password123`
+**Password for all users:** `Password123`
 
 ## Installation instructions
 To install the software with Nix, follow the instructions in `developers-manual.pdf`.
 
-For local development, first create and activate a virtual environment. This project was developed using Python 3.12, so we recommend using the same version. From the project root:
+For local development, first create and activate a virtual environment.
+This project was developed using Python 3.12, so we recommend using the same version.
+From the project root:
 
 ```
 $ python3.12 -m venv venv
@@ -68,9 +69,9 @@ $ python3 manage.py test
 ## Sources
 The packages used by this application are specified in `requirements.txt`
 
-We used the following website as a reference for out Ticket model: https://self-service.kcl.ac.uk
+We used the following website as a reference for our Ticket model: `https://self-service.kcl.ac.uk`
 
 We also used the KEATS Recipify template code as the basis for this project.
 
 ## More information
-This project uses 'clarifyticketing@gmail.com' for email management.
+This project uses `clarifyticketing@gmail.com` for email-related functionality.
