@@ -1,14 +1,14 @@
-from django.db import models
-from django.core.exceptions import ValidationError
-from django.contrib.auth import get_user_model
-from django.core.validators import MaxLengthValidator, FileExtensionValidator
+import secrets
 from django.utils import timezone
 from datetime import timedelta
+from django.db import models
+from django.core.exceptions import ValidationError
+from django.core.validators import MaxLengthValidator, FileExtensionValidator
 from django.urls import reverse
-from tickets.helpers import _validate_file_size
-import secrets
+from tickets.helpers.validators import validate_file_size
 from clarify.settings import ALLOWED_EXTENSIONS, BODY_LENGTH_MAX, MAX_TICKET_CLAIMANTS
 from tickets.models.issue_group import IssueGroup
+from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
@@ -130,7 +130,7 @@ class Ticket(models.Model):
         blank=True,
         validators=[
             FileExtensionValidator(allowed_extensions=ALLOWED_EXTENSIONS),
-            _validate_file_size,
+            validate_file_size,
         ],
     )
     status = models.CharField(

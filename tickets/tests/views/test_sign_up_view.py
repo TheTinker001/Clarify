@@ -1,11 +1,11 @@
 """Tests of the sign up view."""
 
-from django.contrib.auth.hashers import check_password
 from django.test import TestCase
+from django.contrib.auth.hashers import check_password
 from django.urls import reverse
+from tickets.tests.support import LogInTester
 from tickets.forms import SignUpForm
 from tickets.models import Ticket, User
-from tickets.tests.helpers import LogInTester
 
 
 class SignUpViewTestCase(TestCase, LogInTester):
@@ -64,7 +64,7 @@ class SignUpViewTestCase(TestCase, LogInTester):
         form = response.context["form"]
         self.assertTrue(isinstance(form, SignUpForm))
         self.assertTrue(form.is_bound)
-        self.assertFalse(self._is_logged_in())
+        self.assertFalse(self.is_logged_in())
 
     def test_unsuccessful_student_sign_up_without_required_student_fields(self):
         self.form_input["student_id"] = ""
@@ -104,7 +104,7 @@ class SignUpViewTestCase(TestCase, LogInTester):
         self.assertEqual(user.graduation_year, 2027)
         is_password_correct = check_password("Password123", user.password)
         self.assertTrue(is_password_correct)
-        self.assertTrue(self._is_logged_in())
+        self.assertTrue(self.is_logged_in())
 
     def test_succesful_sign_up_as_staff_redirects_to_staffedit(self):
         self.form_input["user_type"] = User.USER_TYPE_STAFF
@@ -128,7 +128,7 @@ class SignUpViewTestCase(TestCase, LogInTester):
         self.assertEqual(user.faculty, "")
         self.assertEqual(user.study_level, "")
         self.assertIsNone(user.graduation_year)
-        self.assertTrue(self._is_logged_in())
+        self.assertTrue(self.is_logged_in())
 
     def test_post_sign_up_redirects_when_logged_in(self):
         self.client.login(username=self.user.username, password="Password123")

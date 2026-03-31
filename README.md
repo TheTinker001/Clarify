@@ -1,4 +1,4 @@
-# Team *bug-hunters* Small Group project
+# Team *bug-hunters* Major Group Project
 
 ## Team members
 The members of the team are:
@@ -10,20 +10,39 @@ The members of the team are:
 - *Chen-Han Yen*
 
 ## Project structure
-The project is called `clarify`.  It currently consists of a single app `tickets`.
+**Title:** Ticketing system for student queries
+
+**Tech stack:** Django web framework
+
+The project is called `Clarify`. It consists of a single app `tickets`.
+
+The aim of the project is to provide a ticketing system for programme officers to manage incoming student queries as tickets.
 
 ## Deployed version of the application
 The deployed version of the application can be found at https://clarify.pythonanywhere.com
 
+## Access credentials
+**Student usernames:** `@johndoe`, `@janedoe`, `@charlie`, `@student001`
+
+**Staff usernames:** `@staff001`, `@staff002`
+
+**Admin username:** `@admin`
+
+**Password for all users:** `Password123`
+
 ## Installation instructions
-To install the software and use it in your local development environment, you must first set up and activate a local development environment.  The project source code has been developed using Python 3.12, so you are recommended to use the same version.  From the root of the project:
+To install the software with Nix, follow the instructions in `developers-manual.pdf`.
+
+For local development, first create and activate a virtual environment.
+This project was developed using Python 3.12, so we recommend using the same version.
+From the project root:
 
 ```
 $ python3.12 -m venv venv
 $ source venv/bin/activate
 ```
 
-If your system does not have `python3.12` installed and you are unable to install Python 3.12 as a version you can explicitly refer to from the CLI, then replace `python3.12` by `python3` or `python`, provide this employs a relatively recent version of Python.
+If your system does not have `python3.12` installed and you are unable to install Python 3.12 as a version you can explicitly refer to from the CLI, then replace `python3.12` by `python3` or `python`, provided it uses a relatively recent version of Python.
 
 Install all required packages:
 
@@ -49,11 +68,17 @@ $ python3 manage.py test
 ```
 
 ## Sources
-The packages used by this application are specified in `requirements.txt`
+* The Django documentation was used as a reference: https://docs.djangoproject.com/en/5.2
 
-We used the following website as a reference: https://self-service.kcl.ac.uk
+* The packages used by this application are specified in `requirements.txt`
 
-We also used the KEATS Recipify template code as the basis for this project.
+* This project was developed using the KEATS Recipify template code as a starting point.
+
+* The KCL Student Services website was used as inspiration for the Ticket model: https://self-service.kcl.ac.uk
+
+* The pagination design originated from Atlassian's pagination examples: https://atlassian.design/components/pagination/examples
+
+* As suggested in the KEATS SEG instructions, `flake.nix` was made using generative AI and then reviewed by the team.
 
 ## More information
-This project uses 'clarifyticketing@gmail.com' for email management.
+This project uses `clarifyticketing@gmail.com` for email-related functionality.

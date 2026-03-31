@@ -1,8 +1,8 @@
-from django.views.generic import UpdateView
-from tickets.models import User, IssueGroup
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import UpdateView
+from django.http import Http404
 from django.contrib import messages
-from django.shortcuts import redirect
+from tickets.models import User, IssueGroup
 
 
 class UpdateIssueGroupView(LoginRequiredMixin, UpdateView):
@@ -18,7 +18,7 @@ class UpdateIssueGroupView(LoginRequiredMixin, UpdateView):
         if not request.user.is_authenticated:
             return super().dispatch(request, *args, **kwargs)
         if request.user.user_type != User.USER_TYPE_STAFF:
-            return redirect("dashboard")
+            raise Http404
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):

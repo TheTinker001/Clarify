@@ -1,8 +1,8 @@
 """Unit tests for the User model."""
 
+from django.test import TestCase
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase
 from tickets.models import User
 
 

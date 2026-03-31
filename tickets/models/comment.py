@@ -1,8 +1,7 @@
-from django.contrib.auth import get_user_model
-from django.core.validators import MaxLengthValidator
-from django.db import models
-from django.urls import reverse
 import secrets
+from django.urls import reverse
+from django.db import models
+from django.contrib.auth import get_user_model
 
 User = get_user_model()
 

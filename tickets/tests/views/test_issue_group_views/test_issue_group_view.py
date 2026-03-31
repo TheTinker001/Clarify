@@ -2,32 +2,31 @@
 
 from django.test import TestCase
 from django.urls import reverse
-from clarify.settings import ITEMS_PER_PAGE
-from tickets.helpers import get_page_slots
+from tickets.helpers.pagination import get_page_slots
+from tickets.tests.support import reverse_with_next
 from tickets.models import User, IssueGroup
-from tickets.tests.helpers import _reverse_with_next
+from clarify.settings import ITEMS_PER_PAGE
 
 
 class IssueGroupViewTestCase(TestCase):
     """Tests for IssueGroupView."""
 
-    fixtures = ["tickets/tests/fixtures/default_user.json"]
+    fixtures = [
+        "tickets/tests/fixtures/default_user.json",
+        "tickets/tests/fixtures/other_users.json",
+    ]
 
     def setUp(self):
         self.url = reverse("issue_group")
         self.student = User.objects.get(username="@johndoe")
-        self.staff = User.objects.create_user(
-            username="@staffuser",
-            password="Password123",
-            user_type=User.USER_TYPE_STAFF,
-        )
+        self.staff = User.objects.get(username="@janedoe")
 
     def test_unauthenticated_user_is_redirected(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(
             response,
-            _reverse_with_next("log_in", self.url),
+            reverse_with_next("log_in", self.url),
             fetch_redirect_response=False,
         )
 

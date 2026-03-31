@@ -1,16 +1,14 @@
-from datetime import timedelta
-
-from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import Http404
-from django.shortcuts import get_object_or_404, redirect, render
-from django.utils import timezone
 from django.views import View
+from django.utils import timezone
+from datetime import timedelta
+from django.http import Http404
+from django.contrib import messages
+from django.shortcuts import get_object_or_404, redirect, render
 
-from tickets.forms.comment_form import CommentForm
-from tickets.models import Comment
-from clarify.settings import EDIT_TIME_LIMIT_MINUTES, MAX_FILES_PER_TICKET
 from tickets.models import Comment, TicketAttachment
+from tickets.forms import CommentForm
+from clarify.settings import EDIT_TIME_LIMIT_MINUTES, MAX_FILES_PER_TICKET
 
 
 class EditCommentView(LoginRequiredMixin, View):
@@ -82,7 +80,6 @@ class EditCommentView(LoginRequiredMixin, View):
             if delete_ids:
                 comment.attachments.filter(pk__in=delete_ids).delete()
 
-            # Add new attachments
             new_files = request.FILES.getlist("attachments")
             for f in new_files:
                 TicketAttachment.objects.create(comment=comment, file=f)

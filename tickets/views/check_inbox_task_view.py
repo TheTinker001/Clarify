@@ -1,25 +1,21 @@
-import secrets
 from io import StringIO
-
-from django.conf import settings
-from django.core.management import call_command
+from django.views import View
 from django.http import JsonResponse, Http404
 from django.utils.decorators import method_decorator
-from django.views import View
 from django.views.decorators.csrf import csrf_exempt
-
-
-def _authorized(token: str) -> bool:
-    return bool(token) and secrets.compare_digest(token, settings.CRON_TOKEN)
+from django.core.management import call_command
+from tickets.helpers.task_auth import authorized
 
 
 @method_decorator(csrf_exempt, name="dispatch")
 class CheckInboxTaskView(View):
+    """View that activates the 'check_inbox' command."""
+
     http_method_names = ["get", "post"]
 
     def dispatch(self, request, *args, **kwargs):
         token = request.headers.get("X-CRON-TOKEN") or request.GET.get("token", "")
-        if not _authorized(token):
+        if not authorized(token):
             raise Http404
         return super().dispatch(request, *args, **kwargs)
 

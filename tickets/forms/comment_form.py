@@ -1,9 +1,8 @@
 from django import forms
-from django.utils.html import strip_tags
 from django_summernote.widgets import SummernoteWidget
-
+from django.utils.html import strip_tags
+from tickets.helpers.ticket_files import MultipleFileInput, MultipleFileField
 from tickets.models import Comment
-from tickets.helpers import MultipleFileInput, MultipleFileField
 from clarify.settings import (
     ALLOWED_EXTENSIONS_ACCEPT,
     ALLOWED_EXTENSIONS_LABEL,

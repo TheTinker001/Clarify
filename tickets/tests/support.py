@@ -1,32 +1,39 @@
 from django.urls import reverse
 from with_asserts.mixin import AssertHTMLMixin
-
 from tickets.forms import CommentForm
-from tickets.helpers import _send_ticket_created_email
+from email.mime.text import MIMEText
 
 
-def _reverse_with_next(url_name, next_url):
+def reverse_with_next(url_name, next_url):
     """Extended version of reverse to generate URLs with redirects"""
     url = reverse(url_name)
     url += f"?next={next_url}"
     return url
 
 
-def _valid_comment_post_data(self, text="Test comment"):
+def valid_comment_post_data(text="Test comment"):
     """
     Build POST data for CommentForm without assuming the text field name.
     Uses the first non-attachment field as the comment text field.
     """
     form = CommentForm()
     # Select the first non-attachment field as the comment text field
-    field_name = next(name for name in form.fields.keys() if name != "attachments")
+    field_name = next(name for name in form.fields if name != "attachments")
     return {"action": "add_comment", field_name: text}
+
+
+def make_email(from_addr, subject, body):
+    msg = MIMEText(body)
+    msg["From"] = from_addr
+    msg["Subject"] = subject
+    msg["To"] = "clarify@example.com"
+    return msg
 
 
 class LogInTester:
     """Class support login in tests."""
 
-    def _is_logged_in(self):
+    def is_logged_in(self):
         """Returns True if a user is logged in.  False otherwise."""
 
         return "_auth_user_id" in self.client.session.keys()

@@ -2,9 +2,8 @@
 
 from django.test import TestCase, override_settings
 from django.urls import reverse
-from tickets.models import User
-from tickets.models.ticket import Ticket
-from tickets.tests.helpers import LogInTester
+from tickets.models import User, Ticket
+from tickets.tests.support import LogInTester
 
 
 @override_settings(TICKET_STAFF_VISIBILITY_DELAY_MINUTES=0)
@@ -88,7 +87,9 @@ class DashboardOrderingTestCase(TestCase, LogInTester):
         self.assertEqual(tickets[1], self.ticket_old)
 
     def test_student_ordering_unaffected_by_order_param(self):
-        """Students are not affected by the order param; their tickets use default ordering."""
+        """
+        Students are not affected by the order paramaters.
+        Their tickets use default ordering."""
         self.client.login(username="@johndoe", password="Password123")
         response = self.client.get(self.url, {"tab": "open_tickets", "order": "oldest"})
         self.assertEqual(response.status_code, 200)

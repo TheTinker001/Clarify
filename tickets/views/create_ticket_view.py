@@ -1,12 +1,11 @@
-from django.shortcuts import redirect
-from django.views.generic.edit import CreateView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic.edit import CreateView
+from django.http import Http404
 from django.contrib import messages
 from django.urls import reverse_lazy
-from tickets.models import Ticket
+from tickets.helpers.email.email_notifications import send_ticket_created_email
+from tickets.models import Ticket, TicketAttachment
 from tickets.forms import TicketForm
-from tickets.helpers import _send_ticket_created_email
-from tickets.models.attachment import TicketAttachment
 from clarify.settings import MAX_FILES_PER_TICKET, TICKET_EDIT_WINDOW_MINUTES
 
 
@@ -27,7 +26,7 @@ class CreateTicketView(LoginRequiredMixin, CreateView):
         if not request.user.is_authenticated:
             return super().dispatch(request, *args, **kwargs)
         if request.user.user_type != "student":
-            return redirect("dashboard")
+            raise Http404
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
@@ -47,7 +46,7 @@ class CreateTicketView(LoginRequiredMixin, CreateView):
             TicketAttachment.objects.create(ticket=self.object, file=f)
 
         try:
-            _send_ticket_created_email(self.object)
+            send_ticket_created_email(self.object)
         except Exception:
             pass
 

@@ -1,6 +1,5 @@
 """Tests for the Comment model."""
 
-from django.core.exceptions import ValidationError
 from django.test import TestCase
 from tickets.models import Comment, Ticket, User
 from unittest.mock import patch

@@ -1,17 +1,16 @@
 """Tests for the ticket detail view."""
 
 from django.test import TestCase, override_settings
-from unittest.mock import patch
-from tickets.forms import TicketPriorityForm
-from tickets.models import Ticket, User
-from tickets.tests.helpers import (
-    MenuTesterMixin,
-    _reverse_with_next,
-    _valid_comment_post_data,
-)
-
-from datetime import timedelta
 from django.utils import timezone
+from datetime import timedelta
+from unittest.mock import patch
+from tickets.tests.support import (
+    MenuTesterMixin,
+    reverse_with_next,
+    valid_comment_post_data,
+)
+from tickets.models import Ticket, User
+from tickets.forms import TicketPriorityForm
 
 
 @override_settings(TICKET_STAFF_VISIBILITY_DELAY_MINUTES=0)
@@ -50,7 +49,7 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
         self.assertEqual(self.url, f"/ticket/{self.ticket.url_code}/")
 
     def test_get_ticket_detail_redirects_when_not_logged_in(self):
-        redirect_url = _reverse_with_next("log_in", self.url)
+        redirect_url = reverse_with_next("log_in", self.url)
         response = self.client.get(self.url)
         self.assertRedirects(
             response, redirect_url, status_code=302, target_status_code=200
@@ -206,7 +205,7 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
 
         before = timezone.now()
         response = self.client.post(
-            self.url, data=_valid_comment_post_data("Staff reply")
+            self.url, data=valid_comment_post_data("Staff reply")
         )
         after = timezone.now()
 
@@ -225,7 +224,7 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
 
         self.client.login(username=self.student.username, password="Password123")
         response = self.client.post(
-            self.url, data=_valid_comment_post_data("Student reply")
+            self.url, data=valid_comment_post_data("Student reply")
         )
         self.assertEqual(response.status_code, 302)
 
@@ -242,7 +241,7 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
 
         self.client.login(username=self.staff.username, password="Password123")
         response = self.client.post(
-            self.url, data=_valid_comment_post_data("Staff comment")
+            self.url, data=valid_comment_post_data("Staff comment")
         )
         self.assertEqual(response.status_code, 404)
 
@@ -328,7 +327,7 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
         self.client.login(username=self.student.username, password="Password123")
         response = self.client.post(
             self.url,
-            data=_valid_comment_post_data("Student follow-up on closed ticket"),
+            data=valid_comment_post_data("Student follow-up on closed ticket"),
         )
         self.assertEqual(response.status_code, 302)
 
@@ -347,7 +346,7 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
     def test_close_ticket_sends_answered_email(self):
         self.client.login(username=self.staff.username, password="Password123")
         with patch(
-            "tickets.views.ticket_detail_view._send_ticket_closed_email"
+            "tickets.views.ticket_detail_view.send_ticket_closed_email"
         ) as mock_send:
             self.client.post(self.url, data={"action": "close_ticket"})
             mock_send.assert_called_once()
@@ -362,7 +361,7 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
     def test_close_ticket_still_works_when_email_fails(self):
         self.client.login(username=self.staff.username, password="Password123")
         with patch(
-            "tickets.views.ticket_detail_view._send_ticket_closed_email",
+            "tickets.views.ticket_detail_view.send_ticket_closed_email",
             side_effect=Exception("fail"),
         ):
             self.client.post(self.url, data={"action": "close_ticket"})

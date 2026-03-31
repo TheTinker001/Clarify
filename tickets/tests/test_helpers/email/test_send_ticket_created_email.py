@@ -1,18 +1,17 @@
-"""Unit tests for the helpers module."""
-
 from django.test import TestCase, override_settings
 from unittest.mock import patch
+from tickets.models import Ticket, Comment
+from tickets.helpers.email.email_notifications import (
+    send_ticket_created_email,
+    send_staff_comment_email,
+)
 from django.contrib.auth import get_user_model
-from tickets.models import Ticket
-from tickets.models import Comment
-from tickets.helpers import _send_ticket_created_email, _send_staff_comment_email
-
 
 User = get_user_model()
 
 
 class SendTicketCreatedEmailTest(TestCase):
-    """Tests for the _send_ticket_created_email helper function."""
+    """Tests for the send_ticket_created_email and send_staff_comment_email helper function."""
 
     def setUp(self):
         self.student = User.objects.create_user(
@@ -35,8 +34,8 @@ class SendTicketCreatedEmailTest(TestCase):
     @override_settings(EMAIL_HOST_USER="", EMAIL_HOST_PASSWORD="")
     def test_no_email_sent_when_email_host_user_is_empty(self):
         """Email is not sent when EMAIL_HOST_USER is empty."""
-        with patch("tickets.helpers.send_mail") as mock_send:
-            _send_ticket_created_email(self.ticket)
+        with patch("tickets.helpers.email.email_notifications.send_mail") as mock_send:
+            send_ticket_created_email(self.ticket)
             mock_send.assert_not_called()
 
     @override_settings(
@@ -45,8 +44,8 @@ class SendTicketCreatedEmailTest(TestCase):
     )
     def test_no_email_sent_when_email_host_password_is_empty(self):
         """Email is not sent when EMAIL_HOST_PASSWORD is empty."""
-        with patch("tickets.helpers.send_mail") as mock_send:
-            _send_ticket_created_email(self.ticket)
+        with patch("tickets.helpers.email.email_notifications.send_mail") as mock_send:
+            send_ticket_created_email(self.ticket)
             mock_send.assert_not_called()
 
     @override_settings(
@@ -59,8 +58,8 @@ class SendTicketCreatedEmailTest(TestCase):
         self.student.email = ""
         self.student.save()
         self.ticket.refresh_from_db()
-        with patch("tickets.helpers.send_mail") as mock_send:
-            _send_ticket_created_email(self.ticket)
+        with patch("tickets.helpers.email.email_notifications.send_mail") as mock_send:
+            send_ticket_created_email(self.ticket)
             mock_send.assert_not_called()
 
     @override_settings(
@@ -70,8 +69,8 @@ class SendTicketCreatedEmailTest(TestCase):
     )
     def test_email_sent_with_correct_subject(self):
         """Email is sent with the correct subject line."""
-        with patch("tickets.helpers.send_mail") as mock_send:
-            _send_ticket_created_email(self.ticket)
+        with patch("tickets.helpers.email.email_notifications.send_mail") as mock_send:
+            send_ticket_created_email(self.ticket)
             mock_send.assert_called_once()
             call_kwargs = mock_send.call_args.kwargs
             self.assertIn(str(self.ticket.pk), call_kwargs["subject"])
@@ -84,8 +83,8 @@ class SendTicketCreatedEmailTest(TestCase):
     )
     def test_email_sent_with_correct_body(self):
         """Email body contains ticket details and student name."""
-        with patch("tickets.helpers.send_mail") as mock_send:
-            _send_ticket_created_email(self.ticket)
+        with patch("tickets.helpers.email.email_notifications.send_mail") as mock_send:
+            send_ticket_created_email(self.ticket)
             mock_send.assert_called_once()
             call_kwargs = mock_send.call_args.kwargs
             body = call_kwargs["message"]
@@ -100,8 +99,8 @@ class SendTicketCreatedEmailTest(TestCase):
     )
     def test_email_sent_to_student_email(self):
         """Email is sent to the student's email address."""
-        with patch("tickets.helpers.send_mail") as mock_send:
-            _send_ticket_created_email(self.ticket)
+        with patch("tickets.helpers.email.email_notifications.send_mail") as mock_send:
+            send_ticket_created_email(self.ticket)
             mock_send.assert_called_once()
             call_kwargs = mock_send.call_args.kwargs
             self.assertEqual(call_kwargs["recipient_list"], ["student@test.com"])
@@ -113,8 +112,8 @@ class SendTicketCreatedEmailTest(TestCase):
     )
     def test_email_sent_from_default_from_email(self):
         """Email is sent from the DEFAULT_FROM_EMAIL address."""
-        with patch("tickets.helpers.send_mail") as mock_send:
-            _send_ticket_created_email(self.ticket)
+        with patch("tickets.helpers.email.email_notifications.send_mail") as mock_send:
+            send_ticket_created_email(self.ticket)
             mock_send.assert_called_once()
             call_kwargs = mock_send.call_args.kwargs
             self.assertEqual(call_kwargs["from_email"], "clarify@example.com")
@@ -126,8 +125,8 @@ class SendTicketCreatedEmailTest(TestCase):
     )
     def test_email_falls_back_to_host_user_when_no_default_from(self):
         """Email uses EMAIL_HOST_USER when DEFAULT_FROM_EMAIL is empty."""
-        with patch("tickets.helpers.send_mail") as mock_send:
-            _send_ticket_created_email(self.ticket)
+        with patch("tickets.helpers.email.email_notifications.send_mail") as mock_send:
+            send_ticket_created_email(self.ticket)
             mock_send.assert_called_once()
             call_kwargs = mock_send.call_args.kwargs
             self.assertEqual(call_kwargs["from_email"], "clarify@example.com")
@@ -141,8 +140,8 @@ class SendTicketCreatedEmailTest(TestCase):
         """Email body uses 'stiudent' when student has no first name."""
         self.student.first_name = ""
         self.student.save()
-        with patch("tickets.helpers.send_mail") as mock_send:
-            _send_ticket_created_email(self.ticket)
+        with patch("tickets.helpers.email.email_notifications.send_mail") as mock_send:
+            send_ticket_created_email(self.ticket)
             mock_send.assert_called_once()
             call_kwargs = mock_send.call_args.kwargs
             body = call_kwargs["message"]
@@ -150,7 +149,7 @@ class SendTicketCreatedEmailTest(TestCase):
 
 
 class SendStaffResponseEmailTest(TestCase):
-    """Tests for the _send_staff_comment_email helper function."""
+    """Tests for the send_staff_comment_email helper function."""
 
     def setUp(self):
         self.student = User.objects.create_user(
@@ -185,8 +184,8 @@ class SendStaffResponseEmailTest(TestCase):
 
     @override_settings(EMAIL_HOST_USER="", EMAIL_HOST_PASSWORD="")
     def test_no_email_when_host_user_empty(self):
-        with patch("tickets.helpers.send_mail") as mock_send:
-            _send_staff_comment_email(self.ticket, self.response_obj)
+        with patch("tickets.helpers.email.email_notifications.send_mail") as mock_send:
+            send_staff_comment_email(self.ticket, self.response_obj)
             mock_send.assert_not_called()
 
     @override_settings(
@@ -199,8 +198,8 @@ class SendStaffResponseEmailTest(TestCase):
         self.student.email = ""
         self.student.save()
         self.ticket.refresh_from_db()
-        with patch("tickets.helpers.send_mail") as mock_send:
-            _send_staff_comment_email(self.ticket, self.response_obj)
+        with patch("tickets.helpers.email.email_notifications.send_mail") as mock_send:
+            send_staff_comment_email(self.ticket, self.response_obj)
             mock_send.assert_not_called()
 
     @override_settings(
@@ -210,8 +209,8 @@ class SendStaffResponseEmailTest(TestCase):
         SITE_URL="http://testserver",
     )
     def test_email_sent_to_student(self):
-        with patch("tickets.helpers.send_mail") as mock_send:
-            _send_staff_comment_email(self.ticket, self.response_obj)
+        with patch("tickets.helpers.email.email_notifications.send_mail") as mock_send:
+            send_staff_comment_email(self.ticket, self.response_obj)
             mock_send.assert_called_once()
             call_kwargs = mock_send.call_args.kwargs
             self.assertEqual(call_kwargs["recipient_list"], ["student2@test.com"])
@@ -223,8 +222,8 @@ class SendStaffResponseEmailTest(TestCase):
         SITE_URL="http://testserver",
     )
     def test_email_subject_contains_ticket_subject(self):
-        with patch("tickets.helpers.send_mail") as mock_send:
-            _send_staff_comment_email(self.ticket, self.response_obj)
+        with patch("tickets.helpers.email.email_notifications.send_mail") as mock_send:
+            send_staff_comment_email(self.ticket, self.response_obj)
             call_kwargs = mock_send.call_args.kwargs
             self.assertIn("My query", call_kwargs["subject"])
 
@@ -235,8 +234,8 @@ class SendStaffResponseEmailTest(TestCase):
         SITE_URL="http://testserver",
     )
     def test_email_body_contains_response_text(self):
-        with patch("tickets.helpers.send_mail") as mock_send:
-            _send_staff_comment_email(self.ticket, self.response_obj)
+        with patch("tickets.helpers.email.email_notifications.send_mail") as mock_send:
+            send_staff_comment_email(self.ticket, self.response_obj)
             call_kwargs = mock_send.call_args.kwargs
             self.assertIn("Here is your answer.", call_kwargs["message"])
 
@@ -247,8 +246,8 @@ class SendStaffResponseEmailTest(TestCase):
         SITE_URL="http://testserver",
     )
     def test_email_body_contains_ticket_link(self):
-        with patch("tickets.helpers.send_mail") as mock_send:
-            _send_staff_comment_email(self.ticket, self.response_obj)
+        with patch("tickets.helpers.email.email_notifications.send_mail") as mock_send:
+            send_staff_comment_email(self.ticket, self.response_obj)
             call_kwargs = mock_send.call_args.kwargs
             expected_url = f"http://testserver/ticket/{self.ticket.url_code}/"
             self.assertIn(expected_url, call_kwargs["message"])
@@ -262,8 +261,8 @@ class SendStaffResponseEmailTest(TestCase):
     def test_email_body_uses_student_when_no_first_name(self):
         self.student.first_name = ""
         self.student.save()
-        with patch("tickets.helpers.send_mail") as mock_send:
-            _send_staff_comment_email(self.ticket, self.response_obj)
+        with patch("tickets.helpers.email.email_notifications.send_mail") as mock_send:
+            send_staff_comment_email(self.ticket, self.response_obj)
             call_kwargs = mock_send.call_args.kwargs
             self.assertIn("Dear student", call_kwargs["message"])
 
@@ -274,7 +273,7 @@ class SendStaffResponseEmailTest(TestCase):
         SITE_URL="http://testserver",
     )
     def test_email_falls_back_to_host_user_when_no_default_from(self):
-        with patch("tickets.helpers.send_mail") as mock_send:
-            _send_staff_comment_email(self.ticket, self.response_obj)
+        with patch("tickets.helpers.email.email_notifications.send_mail") as mock_send:
+            send_staff_comment_email(self.ticket, self.response_obj)
             call_kwargs = mock_send.call_args.kwargs
             self.assertEqual(call_kwargs["from_email"], "clarify@example.com")

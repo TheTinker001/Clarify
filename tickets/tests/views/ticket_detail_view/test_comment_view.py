@@ -1,14 +1,12 @@
 """Tests for comment submission in the ticket detail view."""
 
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
-
-from tickets.models import Comment, Ticket, User
-from tickets.models.attachment import TicketAttachment
-from tickets.tests.helpers import _reverse_with_next, _valid_comment_post_data
-
-from datetime import timedelta
 from django.utils import timezone
+from datetime import timedelta
+from django.core.files.uploadedfile import SimpleUploadedFile
+from tickets.models.attachment import TicketAttachment
+from tickets.tests.support import reverse_with_next, valid_comment_post_data
+from tickets.models import Comment, Ticket, User
 
 
 @override_settings(TICKET_STAFF_VISIBILITY_DELAY_MINUTES=0)
@@ -109,7 +107,7 @@ class CommentViewTestCase(TestCase):
         self.assertEqual(Comment.objects.filter(ticket=self.ticket).count(), 0)
 
     def test_unauthenticated_cannot_comment(self):
-        redirect_url = _reverse_with_next("log_in", self.url)
+        redirect_url = reverse_with_next("log_in", self.url)
         response = self.client.post(
             self.url, {"action": "add_comment", "body": "Anonymous comment."}
         )
@@ -318,7 +316,7 @@ class CommentViewTestCase(TestCase):
         self.client.login(username=self.student.username, password="Password123")
         response = self.client.post(
             self.url,
-            data=_valid_comment_post_data("Student follow-up"),
+            data=valid_comment_post_data("Student follow-up"),
         )
 
         self.assertEqual(response.status_code, 302)
@@ -336,7 +334,7 @@ class CommentViewTestCase(TestCase):
         self.client.login(username=self.staff.username, password="Password123")
         response = self.client.post(
             self.url,
-            data=_valid_comment_post_data("Staff reply"),
+            data=valid_comment_post_data("Staff reply"),
         )
 
         self.assertEqual(response.status_code, 302)
@@ -352,7 +350,7 @@ class CommentViewTestCase(TestCase):
         self.client.login(username=self.student.username, password="Password123")
         response = self.client.post(
             self.url,
-            data=_valid_comment_post_data("Student reply"),
+            data=valid_comment_post_data("Student reply"),
         )
 
         self.assertEqual(response.status_code, 302)
@@ -364,7 +362,7 @@ class CommentViewTestCase(TestCase):
         self.client.login(username=self.student.username, password="Password123")
         response = self.client.post(
             self.url,
-            data=_valid_comment_post_data("Student reply"),
+            data=valid_comment_post_data("Student reply"),
             follow=True,
         )
 

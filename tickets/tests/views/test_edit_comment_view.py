@@ -1,13 +1,11 @@
 """Tests for the Edit Comment feature."""
 
+from django.test import TestCase
 from datetime import timedelta
 from unittest.mock import patch
-
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase
 from django.urls import reverse
-
-from tickets.models import Comment, Ticket, User, TicketAttachment
+from tickets.models import User, Ticket, TicketAttachment, Comment
 from clarify.settings import EDIT_TIME_LIMIT_MINUTES
 
 

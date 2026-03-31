@@ -2,7 +2,6 @@
 
 from django.test import TestCase, override_settings
 from django.urls import reverse
-
 from tickets.models import Ticket, User
 
 
@@ -19,6 +18,14 @@ class TicketInternalNotesTestCase(TestCase):
         self.student = User.objects.get(username="@johndoe")
         self.staff = User.objects.get(username="@janedoe")
         self.other_staff = User.objects.get(username="@jonrain")
+        self.admin = User.objects.create_user(
+            username="@noteadmin",
+            email="noteadmin@example.com",
+            password="Password123",
+            user_type=User.USER_TYPE_STAFF,
+            is_staff=True,
+            is_superuser=True,
+        )
         self.ticket = Ticket.objects.create(
             student=self.student,
             faculty="nmes",
@@ -47,6 +54,11 @@ class TicketInternalNotesTestCase(TestCase):
 
     def test_claiming_staff_sees_edit_button(self):
         self.client.login(username=self.staff.username, password="Password123")
+        response = self.client.get(self.url)
+        self.assertContains(response, self.edit_url)
+
+    def test_superuser_sees_edit_button_without_claiming_ticket(self):
+        self.client.login(username=self.admin.username, password="Password123")
         response = self.client.get(self.url)
         self.assertContains(response, self.edit_url)
 
@@ -91,6 +103,13 @@ class TicketInternalNotesTestCase(TestCase):
         response = self.client.get(self.edit_url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "internal_note_edit.html")
+
+    def test_superuser_can_save_internal_notes_without_claiming_ticket(self):
+        self.client.login(username=self.admin.username, password="Password123")
+        response = self.client.post(self.edit_url, {"internal_notes": "Admin note."})
+        self.assertRedirects(response, self.url)
+        self.ticket.refresh_from_db()
+        self.assertEqual(self.ticket.internal_notes, "Admin note.")
 
     def test_other_staff_gets_404_on_edit_page(self):
         self.client.login(username=self.other_staff.username, password="Password123")

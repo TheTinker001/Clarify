@@ -1,9 +1,8 @@
 from django.test import TestCase
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.contrib.auth import get_user_model
 from tickets.models import Ticket, TicketAttachment, Comment
 from clarify.settings import MAX_FILES_PER_TICKET
-
+from django.contrib.auth import get_user_model
 
 User = get_user_model()
 

@@ -1,13 +1,13 @@
-"""Classify email text into Ticket field values using keyword matching."""
+"""Email classifier helper functions."""
 
-from tickets.email_keywords import (
+from .email_keywords import (
     FACULTY_KEYWORDS,
     STUDY_LEVEL_KEYWORDS,
     CATEGORY_KEYWORDS,
 )
 
 
-def _match_keywords(text, keyword_map):
+def match_keywords(text, keyword_map):
     """Return the best matching key from keyword_map, or None."""
     text_lower = text.lower()
     best_match = None
@@ -31,7 +31,7 @@ def classify_email(subject, body):
     """
     text = f"{subject} {body}"
     return {
-        "faculty": _match_keywords(text, FACULTY_KEYWORDS),
-        "study_level": _match_keywords(text, STUDY_LEVEL_KEYWORDS),
-        "category": _match_keywords(text, CATEGORY_KEYWORDS),
+        "faculty": match_keywords(text, FACULTY_KEYWORDS),
+        "study_level": match_keywords(text, STUDY_LEVEL_KEYWORDS),
+        "category": match_keywords(text, CATEGORY_KEYWORDS),
     }

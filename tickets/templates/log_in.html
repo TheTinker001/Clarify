@@ -1,24 +1,24 @@
 {% extends 'base_content.html' %}
 {% block content %}
-<div class="login-wrapper">
-  <div class="login-card">
-    <div class="login-card-header">
-      <div class="brand">
-        <i class="bi bi-door-open-fill"></i>
-        LOG IN
+  <div class="login-wrapper">
+    <div class="login-card">
+      <div class="login-card-header">
+        <div class="brand">
+          <i class="bi bi-door-open-fill"></i>
+          LOG IN
+        </div>
+      </div>
+      <div class="login-card-body">
+        <form action="{% url 'log_in' %}" method="post">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ next }}">
+          {% include 'partials/bootstrap_form.html' with form=form %}
+          <button type="submit" class="btn btn-clarify">Log in</button>
+        </form>
+      </div>
+      <div class="login-card-footer">
+        Don't have an account? <a href="{% url 'sign_up' %}">Sign up</a>
       </div>
     </div>
-    <div class="login-card-body">
-      <form action="{% url 'log_in' %}" method="post">
-        {% csrf_token %}
-        <input type="hidden" name="next" value="{{ next }}">
-        {% include 'partials/bootstrap_form.html' with form=form %}
-        <button type="submit" class="btn btn-clarify">Log in</button>
-      </form>
-    </div>
-    <div class="login-card-footer">
-      Don't have an account? <a href="{% url 'sign_up' %}">Sign up</a>
-    </div>
   </div>
-</div>
 {% endblock %}

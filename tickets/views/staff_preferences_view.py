@@ -1,10 +1,10 @@
-from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import UpdateView
-from django.urls import reverse
-from tickets.forms import StaffPreferenceForm
-from tickets.models import User
 from django.http import Http404
+from django.contrib import messages
+from django.urls import reverse
+from tickets.models import User
+from tickets.forms import StaffPreferenceForm
 
 
 class StaffPreferencesView(LoginRequiredMixin, UpdateView):
@@ -20,7 +20,7 @@ class StaffPreferencesView(LoginRequiredMixin, UpdateView):
         return self.request.user
 
     def get_form(self, form_class=None):
-        """Return the form, clearing fields for non-staff (defensive fallback; dispatch already blocks them)."""
+        """Return the form, clearing fields for non-staff users."""
         form = super().get_form(form_class)
 
         if self.request.user.user_type != User.USER_TYPE_STAFF:

@@ -1,6 +1,5 @@
 from django import forms
 from django_summernote.widgets import SummernoteWidget
-
 from tickets.models.ticket import Ticket
 
 

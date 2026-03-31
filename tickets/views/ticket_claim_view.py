@@ -1,22 +1,17 @@
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.shortcuts import get_object_or_404, redirect
-from django.utils.decorators import method_decorator
-from django.views.decorators.http import require_POST
 from django.views import View
-from tickets.models import Ticket, User
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
 from django.db import transaction
+from tickets.models import Ticket, User
 from clarify.settings import MAX_TICKET_CLAIMANTS
 
 
 @method_decorator([login_required, require_POST], name="dispatch")
 class TicketClaimView(View):
-    """
-    Let staff assign themselves to an unassigned ticket.
-
-    Uses a filtered '.update(assigned_to__isnull=True)' to avoid race conditions.
-    If zero rows are updated, the DB is re-read to determine who claimed it first.
-    """
+    """Let staff and admins users assign themselves to an unassigned ticket."""
 
     def post(self, request, url_code):
         """Process the claim request and redirect back to the ticket detail page."""

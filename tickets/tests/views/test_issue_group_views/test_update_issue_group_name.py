@@ -1,6 +1,6 @@
 from django.test import TestCase
 from django.urls import reverse
-from tickets.tests.helpers import _reverse_with_next
+from tickets.tests.support import reverse_with_next
 from tickets.models import IssueGroup, User
 
 
@@ -26,7 +26,7 @@ class UpdateIssueGroupViewTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(
             response,
-            _reverse_with_next("log_in", self.url),
+            reverse_with_next("log_in", self.url),
             fetch_redirect_response=False,
         )
 
@@ -42,7 +42,7 @@ class UpdateIssueGroupViewTests(TestCase):
     def test_non_staff_redirected_from_edit_page(self):
         self.client.login(username=self.student.username, password="Password123")
         response = self.client.get(self.url)
-        self.assertRedirects(response, reverse("dashboard"))
+        self.assertEqual(response.status_code, 404)
 
     def test_post_valid_data(self):
         self.client.login(username=self.staff.username, password="Password123")

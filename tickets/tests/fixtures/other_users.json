@@ -10,6 +10,9 @@
       "username": "@janedoe",
       "email": "janedoe@example.org",
       "user_type": "staff",
+      "faculties": "kbs,nmes",
+      "study_levels": "undergraduate",
+      "categories": "other,assessment",
       "student_id": "",
       "phone_number": "",
       "faculty": "",
@@ -81,6 +84,31 @@
       "is_active": true,
       "is_staff": true,
       "is_superuser": false
+    }
+  },
+  {
+    "model": "tickets.user",
+    "pk": 6,
+    "fields": {
+      "first_name": "Admin",
+      "last_name": "User",
+      "preferred_name": "Admin",
+      "pronouns": "they/them",
+      "username": "@admin",
+      "email": "admin@example.org",
+      "user_type": "staff",
+      "faculties": "kbs,nmes",
+      "study_levels": "undergraduate",
+      "categories": "other,assessment",
+      "student_id": "",
+      "phone_number": "",
+      "faculty": "",
+      "study_level": "",
+      "graduation_year": null,
+      "password": "pbkdf2_sha256$260000$4BNvFuAWoTT1XVU8D6hCay$KqDCG+bHl8TwYcvA60SGhOMluAheVOnF1PMz0wClilc=",
+      "is_active": true,
+      "is_staff": true,
+      "is_superuser": true
     }
   }
 ]

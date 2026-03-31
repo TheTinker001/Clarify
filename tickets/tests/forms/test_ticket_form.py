@@ -1,10 +1,9 @@
 from django.test import TestCase
 from django_summernote.widgets import SummernoteWidget
-
-from clarify.settings import BODY_LENGTH_MAX
+from django.core.files.uploadedfile import SimpleUploadedFile
 from tickets.models import Ticket
 from tickets.forms import TicketForm
-from django.core.files.uploadedfile import SimpleUploadedFile
+from clarify.settings import BODY_LENGTH_MAX
 
 
 class TicketFormTest(TestCase):

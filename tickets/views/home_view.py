@@ -1,5 +1,5 @@
-from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
+from django.utils.decorators import method_decorator
 from tickets.views.decorators import login_prohibited
 
 
