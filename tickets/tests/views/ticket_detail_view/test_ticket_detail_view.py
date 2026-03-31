@@ -4,7 +4,7 @@ from django.test import TestCase, override_settings
 from django.utils import timezone
 from datetime import timedelta
 from unittest.mock import patch
-from tickets.tests.test_support import (
+from tickets.tests.support import (
     MenuTesterMixin,
     reverse_with_next,
     valid_comment_post_data,

@@ -5,7 +5,7 @@ from django.utils import timezone
 from datetime import timedelta
 from django.core.files.uploadedfile import SimpleUploadedFile
 from tickets.models.attachment import TicketAttachment
-from tickets.tests.test_support import reverse_with_next, valid_comment_post_data
+from tickets.tests.support import reverse_with_next, valid_comment_post_data
 from tickets.models import Comment, Ticket, User
 
 

@@ -4,7 +4,7 @@ from django.test import TestCase, override_settings
 from unittest.mock import patch, MagicMock
 from io import StringIO
 from django.core.management import call_command
-from tickets.tests.test_support import make_email
+from tickets.tests.support import make_email
 from tickets.models import Ticket
 from django.contrib.auth import get_user_model
 

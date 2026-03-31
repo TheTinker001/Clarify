@@ -2,7 +2,7 @@
 
 from django.test import TestCase
 from django.urls import reverse
-from tickets.tests.test_support import LogInTester
+from tickets.tests.support import LogInTester
 from tickets.models import User
 
 

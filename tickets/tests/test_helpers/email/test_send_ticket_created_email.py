@@ -1,5 +1,3 @@
-"""Unit tests for the helpers module."""
-
 from django.test import TestCase, override_settings
 from unittest.mock import patch
 from tickets.models import Ticket, Comment
@@ -13,7 +11,7 @@ User = get_user_model()
 
 
 class SendTicketCreatedEmailTest(TestCase):
-    """Tests for the send_ticket_created_email helper function."""
+    """Tests for the send_ticket_created_email and send_staff_comment_email helper function."""
 
     def setUp(self):
         self.student = User.objects.create_user(

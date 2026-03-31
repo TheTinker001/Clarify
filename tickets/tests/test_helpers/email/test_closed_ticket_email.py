@@ -1,5 +1,3 @@
-"""Tests for conditional email helper: send_ticket_closed_email"""
-
 from django.test import TestCase, override_settings
 from unittest.mock import patch
 from tickets.helpers.email.email_notifications import send_ticket_closed_email

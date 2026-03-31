@@ -2,7 +2,7 @@
 
 from django.test import TestCase, override_settings
 from unittest.mock import patch
-from tickets.tests.test_support import MenuTesterMixin
+from tickets.tests.support import MenuTesterMixin
 from tickets.models import User, Ticket, Comment
 
 

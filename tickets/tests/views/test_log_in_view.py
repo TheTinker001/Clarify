@@ -3,7 +3,7 @@
 from django.test import TestCase
 from django.contrib import messages
 from django.urls import reverse
-from tickets.tests.test_support import LogInTester, MenuTesterMixin, reverse_with_next
+from tickets.tests.support import LogInTester, MenuTesterMixin, reverse_with_next
 from tickets.models import User
 from tickets.forms import LogInForm
 

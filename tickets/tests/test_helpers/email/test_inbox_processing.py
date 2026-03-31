@@ -9,7 +9,7 @@ from tickets.helpers.email.inbox_processing import (
     extract_body,
     extract_sender_email,
 )
-from tickets.tests.test_support import make_email
+from tickets.tests.support import make_email
 from tickets.models import Ticket
 from django.contrib.auth import get_user_model
 

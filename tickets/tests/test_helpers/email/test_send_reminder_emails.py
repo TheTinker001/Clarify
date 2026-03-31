@@ -1,5 +1,3 @@
-"""Tests for conditional email helper: send_reminder_emails"""
-
 from django.test import TestCase, override_settings
 from datetime import timedelta
 from django.utils import timezone

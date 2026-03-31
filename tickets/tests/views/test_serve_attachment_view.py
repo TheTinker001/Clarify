@@ -3,7 +3,7 @@ import os
 import tempfile
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
-from tickets.tests.test_support import reverse_with_next
+from tickets.tests.support import reverse_with_next
 from tickets.models import Ticket, TicketAttachment, Comment
 from django.contrib.auth import get_user_model
 

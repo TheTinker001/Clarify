@@ -2,7 +2,7 @@
 
 from django.test import TestCase, override_settings
 from django.utils import timezone
-from tickets.tests.test_support import MenuTesterMixin
+from tickets.tests.support import MenuTesterMixin
 from tickets.models import User, Ticket, IssueGroup
 from tickets.forms import TicketIssueGroupForm
 

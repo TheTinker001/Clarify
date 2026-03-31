@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
 from django.contrib.messages import get_messages
-from tickets.tests.test_support import reverse_with_next
+from tickets.tests.support import reverse_with_next
 from tickets.models import User, IssueGroup
 
 

@@ -3,7 +3,7 @@
 from django.test import TestCase
 from django.urls import reverse
 from tickets.helpers.pagination import get_page_slots
-from tickets.tests.test_support import reverse_with_next
+from tickets.tests.support import reverse_with_next
 from tickets.models import User, IssueGroup
 from clarify.settings import ITEMS_PER_PAGE
 

@@ -3,7 +3,7 @@
 from django.test import TestCase
 from django.contrib.auth.hashers import check_password
 from django.urls import reverse
-from tickets.tests.test_support import LogInTester
+from tickets.tests.support import LogInTester
 from tickets.forms import SignUpForm
 from tickets.models import Ticket, User
 

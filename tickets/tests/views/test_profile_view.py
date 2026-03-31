@@ -3,7 +3,7 @@
 from django.test import TestCase
 from django.contrib import messages
 from django.urls import reverse
-from tickets.tests.test_support import reverse_with_next
+from tickets.tests.support import reverse_with_next
 from tickets.models import User
 from tickets.forms import UserForm
 
