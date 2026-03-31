@@ -4,7 +4,10 @@ from django.shortcuts import redirect
 
 
 def login_prohibited(view_function):
-    """Redirect authenticated users to 'REDIRECT_URL_WHEN_LOGGED_IN'; otherwise call the original view."""
+    """
+    Redirect authenticated users to 'REDIRECT_URL_WHEN_LOGGED_IN'.
+    Otherwise call the original view.
+    """
 
     def modified_view_function(request):
         if request.user.is_authenticated:

@@ -1,10 +1,10 @@
-from django.conf import settings
-from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import UpdateView
+from django.contrib import messages
 from django.urls import reverse
-from tickets.forms import UserForm
 from tickets.models import User
+from tickets.forms import UserForm
+from clarify.settings import REDIRECT_URL_WHEN_LOGGED_IN
 
 
 class ProfileUpdateView(LoginRequiredMixin, UpdateView):
@@ -22,4 +22,4 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
     def get_success_url(self):
         """Flash a success message and redirect to the logged-in landing page."""
         messages.add_message(self.request, messages.SUCCESS, "Profile updated!")
-        return reverse(settings.REDIRECT_URL_WHEN_LOGGED_IN)
+        return reverse(REDIRECT_URL_WHEN_LOGGED_IN)

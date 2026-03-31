@@ -1,9 +1,9 @@
 from django import forms
-from tickets.models.issue_group import IssueGroup
+from tickets.models import IssueGroup
 
 
 class IssueGroupForm(forms.ModelForm):
-    """Form for creating an issue group"""
+    """Form for creating an issue group."""
 
     class Meta:
         model = IssueGroup

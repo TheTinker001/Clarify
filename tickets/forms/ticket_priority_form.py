@@ -3,7 +3,7 @@ from tickets.models.ticket import Ticket
 
 
 class TicketPriorityForm(forms.ModelForm):
-    """Form used by staff to update the priority of an existing ticket."""
+    """Form used by admin users to update the priority of an existing ticket."""
 
     class Meta:
         model = Ticket

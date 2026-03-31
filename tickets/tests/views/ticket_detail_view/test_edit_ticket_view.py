@@ -1,16 +1,14 @@
 """Tests for EditTicketView."""
 
+from django.test import TestCase, override_settings
+from django.utils import timezone
 from datetime import timedelta
+from unittest.mock import patch
 from django.core.files.uploadedfile import SimpleUploadedFile
 from tickets.models.attachment import TicketAttachment
-
-from django.contrib.auth import get_user_model
-from django.test import TestCase, override_settings
-from unittest.mock import patch
 from django.urls import reverse
-from django.utils import timezone
-
 from tickets.models import Ticket
+from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
@@ -18,31 +16,15 @@ User = get_user_model()
 class EditTicketViewTest(TestCase):
     """Tests for EditTicketView."""
 
+    fixtures = [
+        "tickets/tests/fixtures/default_user.json",
+        "tickets/tests/fixtures/other_users.json",
+    ]
+
     def setUp(self):
-        self.student = User.objects.create_user(
-            username="@editstudent",
-            email="edit@test.com",
-            password="Password123",
-            first_name="Edit",
-            last_name="Student",
-            user_type="student",
-        )
-        self.other_student = User.objects.create_user(
-            username="@otherstudent",
-            email="other@test.com",
-            password="Password123",
-            first_name="Other",
-            last_name="Student",
-            user_type="student",
-        )
-        self.staff = User.objects.create_user(
-            username="@editstaff",
-            email="editstaff@test.com",
-            password="Password123",
-            first_name="Staff",
-            last_name="User",
-            user_type="staff",
-        )
+        self.student = User.objects.get(username="@johndoe")
+        self.other_student = User.objects.get(username="@petrapickles")
+        self.staff = User.objects.get(username="@janedoe")
         self.ticket = Ticket.objects.create(
             student=self.student,
             faculty="kbs",
@@ -54,13 +36,13 @@ class EditTicketViewTest(TestCase):
         self.url = reverse("edit_ticket", kwargs={"url_code": self.ticket.url_code})
 
     def test_student_can_access_edit_page_within_window(self):
-        self.client.login(username="@editstudent", password="Password123")
+        self.client.login(username=self.student.username, password="Password123")
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "edit_ticket.html")
 
     def test_student_can_edit_ticket_within_window(self):
-        self.client.login(username="@editstudent", password="Password123")
+        self.client.login(username=self.student.username, password="Password123")
         response = self.client.post(
             self.url,
             {
@@ -83,17 +65,17 @@ class EditTicketViewTest(TestCase):
         Ticket.objects.filter(pk=self.ticket.pk).update(
             created_at=timezone.now() - timedelta(minutes=11)
         )
-        self.client.login(username="@editstudent", password="Password123")
+        self.client.login(username=self.student.username, password="Password123")
         response = self.client.get(self.url)
         self.assertRedirects(response, self.ticket.get_absolute_url())
 
     def test_staff_cannot_access_edit_page(self):
-        self.client.login(username="@editstaff", password="Password123")
+        self.client.login(username=self.staff.username, password="Password123")
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 404)
 
     def test_other_student_cannot_edit(self):
-        self.client.login(username="@otherstudent", password="Password123")
+        self.client.login(username=self.other_student.username, password="Password123")
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 404)
 
@@ -102,7 +84,7 @@ class EditTicketViewTest(TestCase):
         self.assertEqual(response.status_code, 302)
 
     def test_student_can_add_attachment_when_editing_ticket(self):
-        self.client.login(username="@editstudent", password="Password123")
+        self.client.login(username=self.student.username, password="Password123")
 
         file = SimpleUploadedFile(
             "extra.pdf",
@@ -129,7 +111,7 @@ class EditTicketViewTest(TestCase):
         self.assertEqual(self.ticket.attachments.count(), 1)
 
     def test_student_can_remove_attachment_when_editing_ticket(self):
-        self.client.login(username="@editstudent", password="Password123")
+        self.client.login(username=self.student.username, password="Password123")
 
         attachment = TicketAttachment.objects.create(
             ticket=self.ticket,
@@ -155,7 +137,7 @@ class EditTicketViewTest(TestCase):
         self.assertEqual(self.ticket.attachments.count(), 0)
 
     def test_student_can_remove_old_and_add_new_attachment_when_editing_ticket(self):
-        self.client.login(username="@editstudent", password="Password123")
+        self.client.login(username=self.student.username, password="Password123")
 
         old_attachment = TicketAttachment.objects.create(
             ticket=self.ticket,
@@ -184,7 +166,7 @@ class EditTicketViewTest(TestCase):
 
     @patch("tickets.views.edit_ticket_view.MAX_FILES_PER_TICKET", 1)
     def test_student_cannot_add_attachment_above_max_limit_when_editing(self):
-        self.client.login(username="@editstudent", password="Password123")
+        self.client.login(username=self.student.username, password="Password123")
 
         existing_attachment = TicketAttachment.objects.create(
             ticket=self.ticket,

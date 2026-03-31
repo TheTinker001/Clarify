@@ -1,9 +1,9 @@
-from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import UpdateView
+from django.contrib import messages
 from django.urls import reverse
-from tickets.forms import UserForm
 from tickets.models import User, Ticket
+from tickets.forms import UserForm
 
 
 class UserProfileContext:
@@ -37,7 +37,6 @@ class UserProfileContext:
         return {
             "faculty_list": faculty_codes,
             "faculty_labels": get_labels(faculty_codes, Ticket.Faculty),
-            # Subtract 1 to exclude the EMPTY sentinel entry from the choices count.
             "all_faculties_selected": len(faculty_codes)
             == len(Ticket.Faculty.choices) - 1,
             "study_level_list": study_level_codes,

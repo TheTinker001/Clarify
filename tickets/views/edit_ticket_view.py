@@ -1,14 +1,11 @@
-from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import Http404
-from django.shortcuts import get_object_or_404, redirect
-from django.views import View
 from django.views.generic.edit import UpdateView
-
-from clarify.settings import MAX_FILES_PER_TICKET
+from django.http import Http404
+from django.contrib import messages
+from django.shortcuts import get_object_or_404, redirect
+from tickets.models import User, Ticket, TicketAttachment
 from tickets.forms import TicketForm
-from tickets.models import Ticket, User
-from tickets.models.attachment import TicketAttachment
+from clarify.settings import MAX_FILES_PER_TICKET
 
 
 class EditTicketView(LoginRequiredMixin, UpdateView):

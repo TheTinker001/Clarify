@@ -265,7 +265,7 @@
             echo "  nix run .#init    - migrate DB + seed demo data"
             echo "  nix run .#run     - start Django dev server on http://localhost:8000"
             echo "  nix run .#tests   - run test suite + write HTML coverage to ./coverage_html/"
-            echo "  nix run .#seed    - seed demo data (safe to re-run)"
+            echo "  nix run .#seed    - seed demo data"
             echo "  nix run .#unseed  - flush DB (removes all data)"
             echo
           '';

@@ -3,7 +3,7 @@
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from tickets.models import User, Ticket
-from tickets.tests.helpers import LogInTester
+from tickets.tests.support import LogInTester
 
 
 @override_settings(TICKET_STAFF_VISIBILITY_DELAY_MINUTES=0)

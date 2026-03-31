@@ -1,12 +1,11 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import TemplateView
+from django.http import Http404
 from django.core.paginator import Paginator
 from django.db.models import Q
-from django.http import Http404
-from django.views.generic import TemplateView
-
-from clarify.settings import ITEMS_PER_PAGE
-from tickets.helpers import get_page_slots
+from tickets.helpers.pagination import get_page_slots
 from tickets.models import User, IssueGroup
+from clarify.settings import ITEMS_PER_PAGE
 
 
 class IssueGroupView(LoginRequiredMixin, TemplateView):
@@ -26,7 +25,7 @@ class IssueGroupView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
 
         qs = IssueGroup.objects.all()
-        qs = self.get_qs_by_search_term(context, qs)
+        qs = self.get_queryset_by_search_term(context, qs)
 
         paginator = Paginator(qs, ITEMS_PER_PAGE)
         page_number = self.request.GET.get("page")
@@ -54,7 +53,7 @@ class IssueGroupView(LoginRequiredMixin, TemplateView):
 
         return context
 
-    def get_qs_by_search_term(self, context, qs):
+    def get_queryset_by_search_term(self, context, qs):
         search_term = self.request.GET.get("searchTermForIG", "").strip()
         context["searchTermForIG"] = search_term
         if search_term:

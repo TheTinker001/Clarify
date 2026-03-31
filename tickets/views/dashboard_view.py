@@ -1,18 +1,18 @@
-from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.core.paginator import Paginator
-from django.utils import timezone
 from django.views.generic import TemplateView
-from tickets.helpers import get_page_slots
+from django.utils import timezone
+from datetime import timedelta
+from django.core.paginator import Paginator
+from tickets.helpers.preferences import split_codes
+from tickets.helpers.pagination import get_page_slots
 from django.db.models import Q, Value, Count
 from django.db.models.functions import Concat
 from tickets.models import Ticket, User
-from datetime import timedelta
-from clarify.settings import ITEMS_PER_PAGE, MAX_TICKET_CLAIMANTS
+from django.conf import settings
 
 
 class DashboardView(LoginRequiredMixin, TemplateView):
-    """Render the authenticated user's dashboard with tab-filtered, searchable, paginated tickets."""
+    """Show the user's dashboard with tickets."""
 
     template_name = "dashboard.html"
     TAB_LABELS = {
@@ -27,13 +27,13 @@ class DashboardView(LoginRequiredMixin, TemplateView):
     default_pk = "-pk"
 
     def get_tab(self):
-        """Return the active tab key from the query string, falling back to 'open_tickets'."""
+        """Return the current tab from the query string."""
         tab = self.request.GET.get("tab", "open_tickets")
         if tab not in self.TAB_LABELS:
             tab = "open_tickets"
         return tab
 
-    def get_QS_by_user_type(self, current_user):
+    def get_queryset_by_user_type(self, current_user):
         """
         Return per-tab querysets filtered by the user's role.
 
@@ -44,10 +44,6 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         'need_response_tickets' (AWAITING_STUDENT), 'closed_tickets'.
         """
         if current_user.user_type == User.USER_TYPE_STAFF:
-
-            def split_codes(s):
-                return [c.strip() for c in s.split(",") if c.strip()]
-
             faculties = split_codes(current_user.faculties)
             study_levels = split_codes(current_user.study_levels)
             categories = split_codes(current_user.categories)
@@ -74,7 +70,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 "open_tickets": tickets.annotate(
                     assigned_count=Count("assigned_to", distinct=True)
                 ).filter(
-                    assigned_count__lt=MAX_TICKET_CLAIMANTS,
+                    assigned_count__lt=settings.MAX_TICKET_CLAIMANTS,
                     status__in=[
                         Ticket.Status.AWAITING_STAFF,
                         Ticket.Status.AWAITING_STUDENT,
@@ -116,8 +112,6 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 ),
             }
         else:
-            # Guard against future user types or data corruption.
-            # Returns an empty queryset.
             tickets = Ticket.objects.none()
             groups = {"open_tickets": tickets}
 
@@ -161,7 +155,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         return tab, qs
 
     def get_queryset_for_search_term(self, qs, current_user, search_term):
-        """Filter the queryset by search term across subject, body, student username, and full name (staff only)."""
+        """Filter the queryset by search term across subject, body, student username and full name (staff only)."""
         if current_user.user_type == User.USER_TYPE_STAFF and search_term:
             order_filter = self.request.GET.get("order", "newest")
 
@@ -188,7 +182,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
 
     def get_search_term(self):
         """
-        Return the search term, persisting it in the session across tab changes.
+        Return the search term, keeping it in the session across tab changes.
 
         If 'searchTerm' is in the query string, save it.
         If only 'tab' is present, return the session-stored value.
@@ -208,16 +202,11 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         return ""
 
     def get_context_data(self, **kwargs):
-        """
-        Build the dashboard template context.
-
-        'querystring' preserves filters for pagination.
-        'carry_querystring' omits 'tab' so tab links can append their own value while keeping filters intact.
-        """
+        """Build the dashboard template context."""
         context = super().get_context_data(**kwargs)
 
         current_user = self.request.user
-        groups = self.get_QS_by_user_type(current_user)
+        groups = self.get_queryset_by_user_type(current_user)
         tab = self.get_tab()
 
         search_term = self.get_search_term()
@@ -225,7 +214,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         tab, qs = self.get_queryset_for_tab_by_filters(groups, tab, current_user)
         qs = self.get_queryset_for_search_term(qs, current_user, search_term)
 
-        paginator = Paginator(qs, ITEMS_PER_PAGE)
+        paginator = Paginator(qs, settings.ITEMS_PER_PAGE)
         page_number = self.request.GET.get("page")
         page_obj = paginator.get_page(page_number)
         cur = page_obj.number

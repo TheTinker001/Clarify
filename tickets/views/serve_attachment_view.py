@@ -1,15 +1,20 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import FileResponse, Http404
 from django.views import View
-
-from tickets.models.attachment import TicketAttachment
-from tickets.models.user import User
+from django.http import FileResponse, Http404
+from tickets.models import User, TicketAttachment
 
 
 class ServeAttachmentView(LoginRequiredMixin, View):
     """Serve a ticket attachment only to authorized users."""
 
     def get(self, request, path):
+        """
+        Staff may access any attachment.
+        Students may only access attachments attached to:
+        - their ticket
+        - a comment belonging to their ticket
+        """
+
         attachment = TicketAttachment.objects.filter(
             file=f"ticket_attachments/{path}"
         ).first()

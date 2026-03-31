@@ -1,8 +1,8 @@
 """Tests for the ticket claim view."""
 
 from django.test import TestCase, override_settings
+from tickets.tests.support import MenuTesterMixin
 from tickets.models import Ticket, User
-from tickets.tests.helpers import MenuTesterMixin
 
 
 @override_settings(TICKET_STAFF_VISIBILITY_DELAY_MINUTES=0)

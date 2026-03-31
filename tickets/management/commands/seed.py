@@ -1,14 +1,13 @@
 """Seed the database with fixture users and demo tickets. Duplicate-creation errors are swallowed."""
 
+from django.utils import timezone
 from datetime import timedelta
-from faker import Faker
 import random
+from faker import Faker
 from django.core.management.base import BaseCommand
 from tickets.models import User, Ticket, Comment, IssueGroup, IssueUpdate
-from django.utils import timezone
 from clarify.settings import TICKET_STAFF_VISIBILITY_DELAY_MINUTES
 from tickets.management.commands.user_fixtures import user_fixtures
-
 from tickets.management.commands.realistic_ticket_data import (
     generate_subject_and_body,
     generate_standalone_student_comment,

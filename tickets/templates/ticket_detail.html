@@ -156,6 +156,10 @@
                                     <p class="text-muted m-0 p-0">Unassigned</p>
                                 {% endif %}
                             </dd>
+                            <dt class="col-5">Claim count</dt>
+                            <dd class="col-7">
+                                {{ ticket.assigned_to.all|length }}
+                            </dd>
                             <dt class="col-5">Created</dt>
                             <dd class="col-7">
                                 {{ ticket.created_at|date:"M j, Y, P" }}

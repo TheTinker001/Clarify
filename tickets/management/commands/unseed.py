@@ -1,7 +1,4 @@
 from django.core.management.base import BaseCommand
-import os
-import django
-
 from django.core.management import call_command
 
 

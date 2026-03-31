@@ -1,5 +1,5 @@
-from unittest.mock import patch
 from django.test import TestCase, override_settings
+from unittest.mock import patch
 from django.urls import reverse
 
 

@@ -1,10 +1,10 @@
-from django.conf import settings
-from django.contrib.auth import login
-from django.views.generic.edit import FormView
-from django.urls import reverse
-from tickets.forms import SignUpForm
-from tickets.models import User
 from tickets.views.decorators import LoginProhibitedMixin
+from django.views.generic.edit import FormView
+from django.contrib.auth import login
+from django.urls import reverse
+from tickets.models import User
+from tickets.forms import SignUpForm
+from clarify.settings import REDIRECT_URL_WHEN_LOGGED_IN
 
 
 class SignUpView(LoginProhibitedMixin, FormView):
@@ -13,7 +13,7 @@ class SignUpView(LoginProhibitedMixin, FormView):
 
     form_class = SignUpForm
     template_name = "sign_up.html"
-    redirect_when_logged_in_url = settings.REDIRECT_URL_WHEN_LOGGED_IN
+    redirect_when_logged_in_url = REDIRECT_URL_WHEN_LOGGED_IN
 
     def form_valid(self, form):
         """Save the new user, log them in, and proceed to 'get_success_url()'."""
@@ -31,4 +31,4 @@ class SignUpView(LoginProhibitedMixin, FormView):
         """
         if self.object.user_type == User.USER_TYPE_STAFF:
             return reverse("profile_staff_edit")
-        return reverse(settings.REDIRECT_URL_WHEN_LOGGED_IN)
+        return reverse(REDIRECT_URL_WHEN_LOGGED_IN)

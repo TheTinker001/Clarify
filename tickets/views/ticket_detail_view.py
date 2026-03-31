@@ -1,13 +1,15 @@
-from django.contrib import messages
-from django.http import Http404
-from django.shortcuts import get_object_or_404, redirect
-from tickets.conditional_emails import _send_ticket_closed_email
-from tickets.helpers import _send_staff_comment_email
-from tickets.models import User, Ticket, TicketAttachment
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
-from datetime import timedelta
 from django.utils import timezone
+from datetime import timedelta
+from django.http import Http404
+from django.contrib import messages
+from django.shortcuts import get_object_or_404, redirect
+from tickets.helpers.email.email_notifications import (
+    send_staff_comment_email,
+    send_ticket_closed_email,
+)
+from tickets.models import User, Ticket, TicketAttachment
 from tickets.forms import (
     CommentForm,
     TicketPriorityForm,
@@ -51,7 +53,6 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
 
         return super().dispatch(request, *args, **kwargs)
 
-    # GET helpers
     def get_priority_form(self):
         """Return a pre-populated priority form for admin (superuser) staff, or None."""
         if self.is_staff_user and self.request.user.is_superuser:
@@ -81,7 +82,6 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
             return TicketFieldsForm(instance=self.ticket)
         return None
 
-    # POST dispatcher
     def post(self, request, *args, **kwargs):
         """Dispatch to the correct action handler.
         Raises Http404 for unrecognised action values."""
@@ -107,7 +107,6 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
 
         raise Http404
 
-    # Action handlers
     def post_action_set_priority(self, request, *args, **kwargs):
         """Update the ticket's priority. Only admin (superuser) staff can do this.
         Raises Http404 on closed tickets or non-admin users."""
@@ -167,15 +166,17 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
 
         if self.is_staff_user:
             try:
-                _send_staff_comment_email(self.ticket, comment)
+                send_staff_comment_email(self.ticket, comment)
             except Exception:
                 pass
 
         now = timezone.now()
 
         if self.ticket.status == Ticket.Status.CLOSED:
-            # Only a student comment can reopen a closed ticket.
-            # Staff cannot comment on closed tickets (guarded by the 'assigned_to' check above).
+            """
+            Student comments can reopen closed tickets.
+            Staff and admins cannot comment on closed tickets.
+            """
             self.ticket.status = Ticket.Status.AWAITING_STAFF
             self.ticket.closed_reason = None
             self.ticket.closed_at = None
@@ -241,7 +242,7 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         )
 
         try:
-            _send_ticket_closed_email(self.ticket, "answered")
+            send_ticket_closed_email(self.ticket, "answered")
         except Exception:
             pass
 
@@ -320,7 +321,6 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
 
         return redirect("ticket_detail", url_code=kwargs.get("url_code"))
 
-    # Context builder
     def get_context_data(self, **kwargs):
         """
         Build the template context.
@@ -341,7 +341,6 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         limit = timedelta(minutes=EDIT_TIME_LIMIT_MINUTES)
         comments = list(self.ticket.comments.select_related("author").all())
         for c in comments:
-            # Annotate each comment with an edit-eligibility flag checked in the template.
             c.can_edit = (c.author_id == self.request.user.id) and (
                 (now - c.created_at) <= limit
             )

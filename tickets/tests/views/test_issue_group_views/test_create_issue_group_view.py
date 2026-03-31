@@ -1,14 +1,12 @@
 from django.test import TestCase
 from django.urls import reverse
-from tickets.models import User, IssueGroup
 from django.contrib.messages import get_messages
-from tickets.tests.helpers import _reverse_with_next
+from tickets.tests.support import reverse_with_next
+from tickets.models import User, IssueGroup
 
 
 class IssueGroupCreateViewTestCase(TestCase):
     """Tests for IssueGroupCreateView."""
-
-    fixtures = ["tickets/tests/fixtures/default_user.json"]
 
     fixtures = [
         "tickets/tests/fixtures/default_user.json",
@@ -28,7 +26,7 @@ class IssueGroupCreateViewTestCase(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(
             response,
-            _reverse_with_next("log_in", self.url),
+            reverse_with_next("log_in", self.url),
             fetch_redirect_response=False,
         )
 
@@ -41,7 +39,7 @@ class IssueGroupCreateViewTestCase(TestCase):
     def test_non_staff_redirected_from_create_page(self):
         self.client.login(username=self.student.username, password="Password123")
         response = self.client.get(self.url)
-        self.assertRedirects(response, reverse("dashboard"))
+        self.assertEqual(response.status_code, 404)
 
     def test_create_valid_issue_group(self):
         self.client.login(username=self.staff.username, password="Password123")

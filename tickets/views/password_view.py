@@ -1,7 +1,7 @@
-from django.contrib import messages
-from django.contrib.auth import login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import FormView
+from django.contrib import messages
+from django.contrib.auth import login
 from django.urls import reverse
 from tickets.forms import PasswordForm
 

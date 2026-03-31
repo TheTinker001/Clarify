@@ -1,10 +1,10 @@
 """Unit tests of the sign up form."""
 
-from django.contrib.auth.hashers import check_password
-from django import forms
 from django.test import TestCase
-from tickets.forms import SignUpForm
+from django import forms
+from django.contrib.auth.hashers import check_password
 from tickets.models import Ticket, User
+from tickets.forms import SignUpForm
 
 
 class SignUpFormTestCase(TestCase):

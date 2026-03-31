@@ -31,7 +31,7 @@ class Migration(migrations.Migration):
                             "png",
                         ]
                     ),
-                    tickets.models.ticket._validate_file_size,
+                    tickets.models.ticket.validate_file_size,
                 ],
             ),
         ),

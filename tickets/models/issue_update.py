@@ -1,18 +1,17 @@
 from django.db import models
-from tickets.models import IssueGroup
-from clarify.settings import BODY_LENGTH_MAX
 from django.core.validators import MaxLengthValidator
 from django.core.exceptions import ValidationError
-
+from tickets.models import IssueGroup
+from clarify.settings import BODY_LENGTH_MAX
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
 
 class IssueUpdate(models.Model):
-    """Model representing an issue update."""
+    """Model representing an update for an issue group."""
 
-    issue = models.ForeignKey(
+    issue_group = models.ForeignKey(
         IssueGroup, on_delete=models.CASCADE, related_name="issue_updates"
     )
     message = models.TextField(validators=[MaxLengthValidator(BODY_LENGTH_MAX)])
