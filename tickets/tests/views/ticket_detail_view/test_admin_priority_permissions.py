@@ -9,32 +9,15 @@ User = get_user_model()
 class AdminPriorityPermissionsTest(TestCase):
     """Tests for admin (is_superuser) permissions on ticket priority."""
 
+    fixtures = [
+        "tickets/tests/fixtures/default_user.json",
+        "tickets/tests/fixtures/other_users.json",
+    ]
+
     def setUp(self):
-        self.student = User.objects.create_user(
-            username="@admstudent",
-            email="admstudent@test.com",
-            password="Password123",
-            user_type="student",
-        )
-        self.staff = User.objects.create_user(
-            username="@admstaff",
-            email="admstaff@test.com",
-            password="Password123",
-            user_type="staff",
-            faculties="kbs",
-            study_levels="undergraduate",
-            categories="other",
-        )
-        self.admin = User.objects.create_user(
-            username="@admadmin",
-            email="admadmin@test.com",
-            password="Password123",
-            user_type="staff",
-            is_superuser=True,
-            faculties="kbs",
-            study_levels="undergraduate",
-            categories="other",
-        )
+        self.student = User.objects.get(username="@johndoe")
+        self.staff = User.objects.get(username="@janedoe")
+        self.admin = User.objects.get(username="@admin")
         self.ticket = Ticket.objects.create(
             student=self.student,
             faculty="kbs",
@@ -47,7 +30,7 @@ class AdminPriorityPermissionsTest(TestCase):
         self.url = self.ticket.get_absolute_url()
 
     def test_admin_can_set_priority(self):
-        self.client.login(username="@admadmin", password="Password123")
+        self.client.login(username=self.admin.username, password="Password123")
         response = self.client.post(
             self.url,
             {
@@ -61,7 +44,7 @@ class AdminPriorityPermissionsTest(TestCase):
 
     def test_normal_staff_cannot_set_priority(self):
         self.ticket.assigned_to.set([self.staff])
-        self.client.login(username="@admstaff", password="Password123")
+        self.client.login(username=self.staff.username, password="Password123")
         response = self.client.post(
             self.url,
             {
@@ -72,7 +55,7 @@ class AdminPriorityPermissionsTest(TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_student_cannot_set_priority(self):
-        self.client.login(username="@admstudent", password="Password123")
+        self.client.login(username=self.student.username, password="Password123")
         response = self.client.post(
             self.url,
             {
@@ -83,14 +66,14 @@ class AdminPriorityPermissionsTest(TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_admin_sees_priority_form(self):
-        self.client.login(username="@admadmin", password="Password123")
+        self.client.login(username=self.admin.username, password="Password123")
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertIsNotNone(response.context["ticket_priority_form"])
 
     def test_normal_staff_does_not_see_priority_form(self):
         self.ticket.assigned_to.set([self.staff])
-        self.client.login(username="@admstaff", password="Password123")
+        self.client.login(username=self.staff.username, password="Password123")
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertIsNone(response.context["ticket_priority_form"])

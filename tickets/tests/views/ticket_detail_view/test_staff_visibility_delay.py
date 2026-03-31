@@ -21,9 +21,6 @@ class StaffVisibilityDelayTest(TestCase):
     def setUp(self):
         self.student = User.objects.get(username="@johndoe")
         self.staff = User.objects.get(username="@janedoe")
-        self.staff.faculties = "kbs"
-        self.staff.study_levels = "undergraduate"
-        self.staff.categories = "other"
         self.staff.save(update_fields=["faculties", "study_levels", "categories"])
 
         self.ticket = Ticket.objects.create(
