@@ -9,6 +9,8 @@ from tickets.helpers.task_auth import authorized
 
 @method_decorator(csrf_exempt, name="dispatch")
 class CheckInboxTaskView(View):
+    """View that activates the 'check_inbox' command."""
+
     http_method_names = ["get", "post"]
 
     def dispatch(self, request, *args, **kwargs):

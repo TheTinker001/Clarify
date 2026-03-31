@@ -8,6 +8,13 @@ class ServeAttachmentView(LoginRequiredMixin, View):
     """Serve a ticket attachment only to authorized users."""
 
     def get(self, request, path):
+        """
+        Staff may access any attachment.
+        Students may only access attachments attached to:
+        - their ticket
+        - a comment belonging to their ticket
+        """
+
         attachment = TicketAttachment.objects.filter(
             file=f"ticket_attachments/{path}"
         ).first()

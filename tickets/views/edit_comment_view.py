@@ -80,7 +80,6 @@ class EditCommentView(LoginRequiredMixin, View):
             if delete_ids:
                 comment.attachments.filter(pk__in=delete_ids).delete()
 
-            # Add new attachments
             new_files = request.FILES.getlist("attachments")
             for f in new_files:
                 TicketAttachment.objects.create(comment=comment, file=f)

@@ -53,7 +53,6 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
 
         return super().dispatch(request, *args, **kwargs)
 
-    # GET helpers
     def get_priority_form(self):
         """Return a pre-populated priority form for admin (superuser) staff, or None."""
         if self.is_staff_user and self.request.user.is_superuser:
@@ -83,7 +82,6 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
             return TicketFieldsForm(instance=self.ticket)
         return None
 
-    # POST dispatcher
     def post(self, request, *args, **kwargs):
         """Dispatch to the correct action handler.
         Raises Http404 for unrecognised action values."""
@@ -109,7 +107,6 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
 
         raise Http404
 
-    # Action handlers
     def post_action_set_priority(self, request, *args, **kwargs):
         """Update the ticket's priority. Only admin (superuser) staff can do this.
         Raises Http404 on closed tickets or non-admin users."""
@@ -322,7 +319,6 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
 
         return redirect("ticket_detail", url_code=kwargs.get("url_code"))
 
-    # Context builder
     def get_context_data(self, **kwargs):
         """
         Build the template context.
