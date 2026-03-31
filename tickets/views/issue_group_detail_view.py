@@ -25,7 +25,7 @@ class IssueGroupDetailView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["issue_group"] = self.issue_group
-        qs = self.get_qs(context)
+        qs = self.get_queryset(context)
 
         paginator = Paginator(qs, ITEMS_PER_PAGE)
         page_number = self.request.GET.get("page")
@@ -36,8 +36,11 @@ class IssueGroupDetailView(LoginRequiredMixin, TemplateView):
         context["paginator"] = paginator
         return context
 
-    def get_qs(self, context, **kwargs):
-        (open_qs, closed_qs) = self.get_query_set()
+    def get_queryset(self, context):
+        qs = self.issue_group.tickets.all()
+        open_qs = qs.exclude(status=Ticket.Status.CLOSED)
+        closed_qs = qs.filter(status=Ticket.Status.CLOSED)
+
         status = self.request.GET.get("status", "")
         if status == "open":
             return_qs = open_qs
@@ -50,19 +53,13 @@ class IssueGroupDetailView(LoginRequiredMixin, TemplateView):
             context["status"] = ""
         return return_qs.order_by("subject")
 
-    def get_query_set(self, **kwargs):
-        qs = self.issue_group.tickets.all()
-        open_qs = qs.exclude(status=Ticket.Status.CLOSED)
-        closed_qs = qs.filter(status=Ticket.Status.CLOSED)
-        return (open_qs, closed_qs)
-
     def post(self, request, *args, **kwargs):
         message = request.POST.get("message", "").strip()
 
         if message:
             if self.issue_group.tickets.exists():
                 IssueUpdate.objects.create(
-                    issue=self.issue_group,
+                    issue_group=self.issue_group,
                     message=message,
                     created_by=request.user,
                 )

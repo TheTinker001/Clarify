@@ -9,9 +9,9 @@ User = get_user_model()
 
 
 class IssueUpdate(models.Model):
-    """Model representing an issue update."""
+    """Model representing an update for an issue group."""
 
-    issue = models.ForeignKey(
+    issue_group = models.ForeignKey(
         IssueGroup, on_delete=models.CASCADE, related_name="issue_updates"
     )
     message = models.TextField(validators=[MaxLengthValidator(BODY_LENGTH_MAX)])

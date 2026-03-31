@@ -33,7 +33,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             tab = "open_tickets"
         return tab
 
-    def get_QS_by_user_type(self, current_user):
+    def get_queryset_by_user_type(self, current_user):
         """
         Return per-tab querysets filtered by the user's role.
 
@@ -112,8 +112,6 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 ),
             }
         else:
-            # Guard against future user types or data corruption.
-            # Returns an empty queryset.
             tickets = Ticket.objects.none()
             groups = {"open_tickets": tickets}
 
@@ -213,7 +211,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
 
         current_user = self.request.user
-        groups = self.get_QS_by_user_type(current_user)
+        groups = self.get_queryset_by_user_type(current_user)
         tab = self.get_tab()
 
         search_term = self.get_search_term()

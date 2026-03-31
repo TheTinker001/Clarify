@@ -23,24 +23,24 @@ class IssueUpdateModelTestCase(TestCase):
 
     def test_can_create_issue_update(self):
         update = IssueUpdate.objects.create(
-            issue=self.issue_group,
+            issue_group=self.issue_group,
             message="We are investigating the issue.",
             created_by=self.staff_user,
         )
 
-        self.assertEqual(update.issue, self.issue_group)
+        self.assertEqual(update.issue_group, self.issue_group)
         self.assertEqual(update.message, "We are investigating the issue.")
         self.assertEqual(update.created_by, self.staff_user)
         self.assertIsNotNone(update.created_at)
 
     def test_issue_update_ordering(self):
         older = IssueUpdate.objects.create(
-            issue=self.issue_group,
+            issue_group=self.issue_group,
             message="Older update",
             created_by=self.staff_user,
         )
         newer = IssueUpdate.objects.create(
-            issue=self.issue_group,
+            issue_group=self.issue_group,
             message="Newer update",
             created_by=self.staff_user,
         )
@@ -53,7 +53,7 @@ class IssueUpdateModelTestCase(TestCase):
     def test_comment_body_too_long(self):
         long_body = "a" * (BODY_LENGTH_MAX + 1)
         update = IssueUpdate.objects.create(
-            issue=self.issue_group,
+            issue_group=self.issue_group,
             message=long_body,
             created_by=self.staff_user,
         )
@@ -63,7 +63,7 @@ class IssueUpdateModelTestCase(TestCase):
     def test_comment_body_at_max_length(self):
         body = "a" * BODY_LENGTH_MAX
         update = IssueUpdate.objects.create(
-            issue=self.issue_group,
+            issue_group=self.issue_group,
             message=body,
             created_by=self.staff_user,
         )
@@ -72,7 +72,7 @@ class IssueUpdateModelTestCase(TestCase):
     def test_clean_rejects_student_as_creator(self):
         student_user = User.objects.get(username="@johndoe")
         update = IssueUpdate.objects.create(
-            issue=self.issue_group,
+            issue_group=self.issue_group,
             message="test",
             created_by=student_user,
         )
@@ -87,7 +87,7 @@ class IssueUpdateModelTestCase(TestCase):
             email="test@gmail.com",
         )
         update = IssueUpdate.objects.create(
-            issue=self.issue_group,
+            issue_group=self.issue_group,
             message="test",
             created_by=staff_user,
         )

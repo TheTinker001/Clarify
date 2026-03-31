@@ -37,7 +37,6 @@ class UserProfileContext:
         return {
             "faculty_list": faculty_codes,
             "faculty_labels": get_labels(faculty_codes, Ticket.Faculty),
-            # Subtract 1 to exclude the EMPTY sentinel entry from the choices count.
             "all_faculties_selected": len(faculty_codes)
             == len(Ticket.Faculty.choices) - 1,
             "study_level_list": study_level_codes,

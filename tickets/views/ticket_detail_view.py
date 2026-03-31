@@ -173,8 +173,10 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         now = timezone.now()
 
         if self.ticket.status == Ticket.Status.CLOSED:
-            # Only a student comment can reopen a closed ticket.
-            # Staff cannot comment on closed tickets (guarded by the 'assigned_to' check above).
+            """
+            Student comments can reopen closed tickets.
+            Staff and admins cannot comment on closed tickets.
+            """
             self.ticket.status = Ticket.Status.AWAITING_STAFF
             self.ticket.closed_reason = None
             self.ticket.closed_at = None
@@ -339,7 +341,6 @@ class TicketDetailView(LoginRequiredMixin, TemplateView):
         limit = timedelta(minutes=EDIT_TIME_LIMIT_MINUTES)
         comments = list(self.ticket.comments.select_related("author").all())
         for c in comments:
-            # Annotate each comment with an edit-eligibility flag checked in the template.
             c.can_edit = (c.author_id == self.request.user.id) and (
                 (now - c.created_at) <= limit
             )
