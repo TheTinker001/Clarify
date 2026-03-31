@@ -11,16 +11,15 @@ from clarify.settings import ITEMS_PER_PAGE
 class IssueGroupViewTestCase(TestCase):
     """Tests for IssueGroupView."""
 
-    fixtures = ["tickets/tests/fixtures/default_user.json"]
+    fixtures = [
+        "tickets/tests/fixtures/default_user.json",
+        "tickets/tests/fixtures/other_users.json",
+    ]
 
     def setUp(self):
         self.url = reverse("issue_group")
         self.student = User.objects.get(username="@johndoe")
-        self.staff = User.objects.create_user(
-            username="@staffuser",
-            password="Password123",
-            user_type=User.USER_TYPE_STAFF,
-        )
+        self.staff = User.objects.get(username="@janedoe")
 
     def test_unauthenticated_user_is_redirected(self):
         response = self.client.get(self.url)

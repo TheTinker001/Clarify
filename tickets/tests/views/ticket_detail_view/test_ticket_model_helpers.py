@@ -12,13 +12,13 @@ User = get_user_model()
 class TicketModelHelpersTest(TestCase):
     """Tests ticket model helper functions."""
 
+    fixtures = [
+        "tickets/tests/fixtures/default_user.json",
+        "tickets/tests/fixtures/other_users.json",
+    ]
+
     def setUp(self):
-        self.student = User.objects.create_user(
-            username="@modelstudent",
-            email="model@test.com",
-            password="Password123",
-            user_type="student",
-        )
+        self.student = User.objects.get(username="@johndoe")
 
     @override_settings(TICKET_EDIT_WINDOW_MINUTES=10)
     def test_is_editable_by_student_within_window(self):

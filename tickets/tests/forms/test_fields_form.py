@@ -6,12 +6,13 @@ from tickets.forms import TicketFieldsForm
 class TicketFieldsFormTest(TestCase):
     """Tests for the ticket fields form."""
 
+    fixtures = [
+        "tickets/tests/fixtures/default_user.json",
+        "tickets/tests/fixtures/other_users.json",
+    ]
+
     def setUp(self):
-        self.student = User.objects.create_user(
-            username="@student",
-            password="Password123",
-            user_type=User.USER_TYPE_STUDENT,
-        )
+        self.student = User.objects.get(username="@johndoe")
         self.ticket = Ticket.objects.create(
             student=self.student,
             faculty=Ticket.Faculty.NMES,

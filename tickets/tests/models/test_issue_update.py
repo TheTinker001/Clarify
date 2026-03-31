@@ -19,11 +19,7 @@ class IssueUpdateModelTestCase(TestCase):
             name="Wi-Fi outage",
             slug="wi-fi-outage",
         )
-        self.staff_user = User.objects.create_user(
-            username="staff",
-            password="testpass123",
-            user_type=User.USER_TYPE_STAFF,
-        )
+        self.staff_user = User.objects.get(username="@janedoe")
 
     def test_can_create_issue_update(self):
         update = IssueUpdate.objects.create(
@@ -74,12 +70,7 @@ class IssueUpdateModelTestCase(TestCase):
         update.full_clean()
 
     def test_clean_rejects_student_as_creator(self):
-        student_user = User.objects.create_user(
-            username="student",
-            password="testpass123",
-            user_type=User.USER_TYPE_STUDENT,
-            email="test@gmail.com",
-        )
+        student_user = User.objects.get(username="@johndoe")
         update = IssueUpdate.objects.create(
             issue=self.issue_group,
             message="test",

@@ -8,15 +8,14 @@ from tickets.models import User, IssueGroup, Ticket, IssueUpdate
 class IssueGroupDetailViewTestCase(TestCase):
     """Tests for IssueGroupDetailView."""
 
-    fixtures = ["tickets/tests/fixtures/default_user.json"]
+    fixtures = [
+        "tickets/tests/fixtures/default_user.json",
+        "tickets/tests/fixtures/other_users.json",
+    ]
 
     def setUp(self):
         self.student = User.objects.get(username="@johndoe")
-        self.staff = User.objects.create_user(
-            username="@staffuser",
-            password="Password123",
-            user_type=User.USER_TYPE_STAFF,
-        )
+        self.staff = User.objects.get(username="@janedoe")
         self.issue_group = IssueGroup.objects.create(name="Test Issue Group")
         self.url = reverse(
             "issue_group_detail",

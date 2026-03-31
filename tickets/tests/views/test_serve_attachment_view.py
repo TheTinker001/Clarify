@@ -16,25 +16,15 @@ TEMP_MEDIA_ROOT = tempfile.mkdtemp()
 class ServeAttachmentViewTest(TestCase):
     """Tests for ServeAttachmentView, covering all access-control branches."""
 
+    fixtures = [
+        "tickets/tests/fixtures/default_user.json",
+        "tickets/tests/fixtures/other_users.json",
+    ]
+
     def setUp(self):
-        self.student = User.objects.create_user(
-            username="student1",
-            email="student1@test.com",
-            password="Password123",
-            user_type="student",
-        )
-        self.other_student = User.objects.create_user(
-            username="student2",
-            email="student2@test.com",
-            password="Password123",
-            user_type="student",
-        )
-        self.staff = User.objects.create_user(
-            username="staff1",
-            email="staff1@test.com",
-            password="Password123",
-            user_type="staff",
-        )
+        self.student = User.objects.get(username="@johndoe")
+        self.other_student = User.objects.get(username="@petrapickles")
+        self.staff = User.objects.get(username="@janedoe")
         self.ticket = Ticket.objects.create(
             student=self.student,
             faculty="nmes",
@@ -64,28 +54,28 @@ class ServeAttachmentViewTest(TestCase):
     # Case 2: staff
 
     def test_staff_can_access_any_attachment(self):
-        self.client.login(username="staff1", password="Password123")
+        self.client.login(username=self.staff.username, password="Password123")
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
 
     # Case 3: student who owns the ticket
 
     def test_ticket_owner_student_can_access_attachment(self):
-        self.client.login(username="student1", password="Password123")
+        self.client.login(username=self.student.username, password="Password123")
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
 
     # Case 4: different student (not the owner)
 
     def test_non_owner_student_gets_404(self):
-        self.client.login(username="student2", password="Password123")
+        self.client.login(username=self.other_student.username, password="Password123")
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 404)
 
     # Case 5: attachment not found in DB
 
     def test_nonexistent_path_returns_404(self):
-        self.client.login(username="staff1", password="Password123")
+        self.client.login(username=self.student.username, password="Password123")
         url = reverse("serve_attachment", kwargs={"path": "2000/01/01/ghost.pdf"})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 404)
@@ -93,7 +83,7 @@ class ServeAttachmentViewTest(TestCase):
     # Case 6: file missing from disk
 
     def test_missing_file_on_disk_raises(self):
-        self.client.login(username="staff1", password="Password123")
+        self.client.login(username=self.staff.username, password="Password123")
         os.remove(self.attachment.file.path)
         with self.assertRaises(FileNotFoundError):
             self.client.get(self.url)
@@ -112,7 +102,7 @@ class ServeAttachmentViewTest(TestCase):
         comment_attachment = TicketAttachment.objects.create(comment=comment, file=file)
         path = comment_attachment.file.name.removeprefix("ticket_attachments/")
         url = reverse("serve_attachment", kwargs={"path": path})
-        self.client.login(username="student1", password="Password123")
+        self.client.login(username=self.student.username, password="Password123")
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 
@@ -128,7 +118,7 @@ class ServeAttachmentViewTest(TestCase):
         comment_attachment = TicketAttachment.objects.create(comment=comment, file=file)
         path = comment_attachment.file.name.removeprefix("ticket_attachments/")
         url = reverse("serve_attachment", kwargs={"path": path})
-        self.client.login(username="student2", password="Password123")
+        self.client.login(username=self.other_student.username, password="Password123")
         response = self.client.get(url)
         self.assertEqual(response.status_code, 404)
 
@@ -141,7 +131,7 @@ class ServeAttachmentViewTest(TestCase):
         orphan = TicketAttachment.objects.create(file=file)
         path = orphan.file.name.removeprefix("ticket_attachments/")
         url = reverse("serve_attachment", kwargs={"path": path})
-        self.client.login(username="student1", password="Password123")
+        self.client.login(username=self.student.username, password="Password123")
         response = self.client.get(url)
         self.assertEqual(response.status_code, 404)
 

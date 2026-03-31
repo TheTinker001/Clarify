@@ -15,14 +15,7 @@ class StaffPreferencesViewTestCase(TestCase):
     ]
 
     def setUp(self):
-        self.staff = User.objects.create_user(
-            username="@staff",
-            first_name="Staff",
-            last_name="User",
-            email="staff@example.org",
-            password="Password123",
-            user_type=User.USER_TYPE_STAFF,
-        )
+        self.staff = User.objects.get(username="@jonrain")
         self.student = User.objects.get(username="@johndoe")
         self.url = reverse("profile_staff_edit")
         self.form_input = {

@@ -8,8 +8,6 @@ from tickets.models import User, IssueGroup
 class IssueGroupCreateViewTestCase(TestCase):
     """Tests for IssueGroupCreateView."""
 
-    fixtures = ["tickets/tests/fixtures/default_user.json"]
-
     fixtures = [
         "tickets/tests/fixtures/default_user.json",
         "tickets/tests/fixtures/other_users.json",
