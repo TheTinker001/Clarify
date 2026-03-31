@@ -1,7 +1,7 @@
 """Tests for the ticket detail view."""
 
 from django.test import TestCase, override_settings
-from tickets.tests.helpers import MenuTesterMixin
+from tickets.tests.test_support import MenuTesterMixin
 from tickets.models import Ticket, User
 from tickets.views import TicketDetailView
 from tickets.forms import TicketFieldsForm

@@ -4,10 +4,10 @@ from django.test import TestCase, override_settings
 from django.utils import timezone
 from datetime import timedelta
 from unittest.mock import patch
-from tickets.tests.helpers import (
+from tickets.tests.test_support import (
     MenuTesterMixin,
-    _reverse_with_next,
-    _valid_comment_post_data,
+    reverse_with_next,
+    valid_comment_post_data,
 )
 from tickets.models import Ticket, User
 from tickets.forms import TicketPriorityForm
@@ -49,7 +49,7 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
         self.assertEqual(self.url, f"/ticket/{self.ticket.url_code}/")
 
     def test_get_ticket_detail_redirects_when_not_logged_in(self):
-        redirect_url = _reverse_with_next("log_in", self.url)
+        redirect_url = reverse_with_next("log_in", self.url)
         response = self.client.get(self.url)
         self.assertRedirects(
             response, redirect_url, status_code=302, target_status_code=200
@@ -205,7 +205,7 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
 
         before = timezone.now()
         response = self.client.post(
-            self.url, data=_valid_comment_post_data("Staff reply")
+            self.url, data=valid_comment_post_data("Staff reply")
         )
         after = timezone.now()
 
@@ -224,7 +224,7 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
 
         self.client.login(username=self.student.username, password="Password123")
         response = self.client.post(
-            self.url, data=_valid_comment_post_data("Student reply")
+            self.url, data=valid_comment_post_data("Student reply")
         )
         self.assertEqual(response.status_code, 302)
 
@@ -241,7 +241,7 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
 
         self.client.login(username=self.staff.username, password="Password123")
         response = self.client.post(
-            self.url, data=_valid_comment_post_data("Staff comment")
+            self.url, data=valid_comment_post_data("Staff comment")
         )
         self.assertEqual(response.status_code, 404)
 
@@ -327,7 +327,7 @@ class TicketDetailViewTestCase(TestCase, MenuTesterMixin):
         self.client.login(username=self.student.username, password="Password123")
         response = self.client.post(
             self.url,
-            data=_valid_comment_post_data("Student follow-up on closed ticket"),
+            data=valid_comment_post_data("Student follow-up on closed ticket"),
         )
         self.assertEqual(response.status_code, 302)
 

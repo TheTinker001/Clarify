@@ -2,7 +2,7 @@
 
 from django.test import TestCase
 from django.urls import reverse
-from tickets.tests.helpers import LogInTester
+from tickets.tests.test_support import LogInTester
 from tickets.models import User
 
 
@@ -20,14 +20,14 @@ class LogOutViewTestCase(TestCase, LogInTester):
 
     def test_get_log_out(self):
         self.client.login(username="@johndoe", password="Password123")
-        self.assertTrue(self._is_logged_in())
+        self.assertTrue(self.is_logged_in())
         response = self.client.get(self.url, follow=True)
         response_url = reverse("home")
         self.assertRedirects(
             response, response_url, status_code=302, target_status_code=200
         )
         self.assertTemplateUsed(response, "home.html")
-        self.assertFalse(self._is_logged_in())
+        self.assertFalse(self.is_logged_in())
 
     def test_get_log_out_without_being_logged_in(self):
         response = self.client.get(self.url, follow=True)
@@ -36,4 +36,4 @@ class LogOutViewTestCase(TestCase, LogInTester):
             response, response_url, status_code=302, target_status_code=200
         )
         self.assertTemplateUsed(response, "home.html")
-        self.assertFalse(self._is_logged_in())
+        self.assertFalse(self.is_logged_in())

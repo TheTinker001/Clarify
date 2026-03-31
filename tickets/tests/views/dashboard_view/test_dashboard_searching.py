@@ -4,7 +4,7 @@ from django.test import TestCase, override_settings
 from django.utils import timezone
 from datetime import timedelta
 from django.urls import reverse
-from tickets.tests.helpers import LogInTester
+from tickets.tests.test_support import LogInTester
 from tickets.models import User, Ticket
 
 

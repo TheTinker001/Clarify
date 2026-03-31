@@ -3,7 +3,7 @@ import os
 import tempfile
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
-from tickets.tests.helpers import _reverse_with_next
+from tickets.tests.test_support import reverse_with_next
 from tickets.models import Ticket, TicketAttachment, Comment
 from django.contrib.auth import get_user_model
 
@@ -47,7 +47,7 @@ class ServeAttachmentViewTest(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(
             response,
-            _reverse_with_next("log_in", self.url),
+            reverse_with_next("log_in", self.url),
             fetch_redirect_response=False,
         )
 

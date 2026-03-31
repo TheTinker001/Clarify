@@ -3,7 +3,7 @@
 from django.test import TestCase
 from django.contrib.auth.hashers import check_password
 from django.urls import reverse
-from tickets.tests.helpers import _reverse_with_next
+from tickets.tests.test_support import reverse_with_next
 from tickets.models import User
 from tickets.forms import PasswordForm
 
@@ -34,7 +34,7 @@ class PasswordViewTest(TestCase):
         self.assertTrue(isinstance(form, PasswordForm))
 
     def test_get_password_redirects_when_not_logged_in(self):
-        redirect_url = _reverse_with_next("log_in", self.url)
+        redirect_url = reverse_with_next("log_in", self.url)
         response = self.client.get(self.url)
         self.assertRedirects(
             response, redirect_url, status_code=302, target_status_code=200
@@ -77,7 +77,7 @@ class PasswordViewTest(TestCase):
         self.assertTrue(is_password_correct)
 
     def test_post_profile_redirects_when_not_logged_in(self):
-        redirect_url = _reverse_with_next("log_in", self.url)
+        redirect_url = reverse_with_next("log_in", self.url)
         response = self.client.post(self.url, self.form_input)
         self.assertRedirects(
             response, redirect_url, status_code=302, target_status_code=200

@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
 from django.contrib.messages import get_messages
-from tickets.tests.helpers import _reverse_with_next
+from tickets.tests.test_support import reverse_with_next
 from tickets.models import User, IssueGroup
 
 
@@ -26,7 +26,7 @@ class IssueGroupCreateViewTestCase(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(
             response,
-            _reverse_with_next("log_in", self.url),
+            reverse_with_next("log_in", self.url),
             fetch_redirect_response=False,
         )
 

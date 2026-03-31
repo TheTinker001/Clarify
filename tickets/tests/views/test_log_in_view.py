@@ -3,7 +3,7 @@
 from django.test import TestCase
 from django.contrib import messages
 from django.urls import reverse
-from tickets.tests.helpers import LogInTester, MenuTesterMixin, _reverse_with_next
+from tickets.tests.test_support import LogInTester, MenuTesterMixin, reverse_with_next
 from tickets.models import User
 from tickets.forms import LogInForm
 
@@ -35,7 +35,7 @@ class LogInViewTestCase(TestCase, LogInTester, MenuTesterMixin):
 
     def test_get_log_in_with_redirect(self):
         destination_url = reverse("profile")
-        self.url = _reverse_with_next("log_in", destination_url)
+        self.url = reverse_with_next("log_in", destination_url)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "log_in.html")
@@ -64,7 +64,7 @@ class LogInViewTestCase(TestCase, LogInTester, MenuTesterMixin):
         form = response.context["form"]
         self.assertTrue(isinstance(form, LogInForm))
         self.assertFalse(form.is_bound)
-        self.assertFalse(self._is_logged_in())
+        self.assertFalse(self.is_logged_in())
         messages_list = list(response.context["messages"])
         self.assertEqual(len(messages_list), 1)
         self.assertEqual(messages_list[0].level, messages.ERROR)
@@ -77,7 +77,7 @@ class LogInViewTestCase(TestCase, LogInTester, MenuTesterMixin):
         form = response.context["form"]
         self.assertTrue(isinstance(form, LogInForm))
         self.assertFalse(form.is_bound)
-        self.assertFalse(self._is_logged_in())
+        self.assertFalse(self.is_logged_in())
         messages_list = list(response.context["messages"])
         self.assertEqual(len(messages_list), 1)
         self.assertEqual(messages_list[0].level, messages.ERROR)
@@ -90,7 +90,7 @@ class LogInViewTestCase(TestCase, LogInTester, MenuTesterMixin):
         form = response.context["form"]
         self.assertTrue(isinstance(form, LogInForm))
         self.assertFalse(form.is_bound)
-        self.assertFalse(self._is_logged_in())
+        self.assertFalse(self.is_logged_in())
         messages_list = list(response.context["messages"])
         self.assertEqual(len(messages_list), 1)
         self.assertEqual(messages_list[0].level, messages.ERROR)
@@ -98,7 +98,7 @@ class LogInViewTestCase(TestCase, LogInTester, MenuTesterMixin):
     def test_succesful_log_in(self):
         form_input = {"username": "@johndoe", "password": "Password123"}
         response = self.client.post(self.url, form_input, follow=True)
-        self.assertTrue(self._is_logged_in())
+        self.assertTrue(self.is_logged_in())
         response_url = reverse("dashboard")
         self.assertRedirects(
             response, response_url, status_code=302, target_status_code=200
@@ -116,7 +116,7 @@ class LogInViewTestCase(TestCase, LogInTester, MenuTesterMixin):
             "next": redirect_url,
         }
         response = self.client.post(self.url, form_input, follow=True)
-        self.assertTrue(self._is_logged_in())
+        self.assertTrue(self.is_logged_in())
         self.assertRedirects(
             response, redirect_url, status_code=302, target_status_code=200
         )
@@ -155,7 +155,7 @@ class LogInViewTestCase(TestCase, LogInTester, MenuTesterMixin):
         form = response.context["form"]
         self.assertTrue(isinstance(form, LogInForm))
         self.assertFalse(form.is_bound)
-        self.assertFalse(self._is_logged_in())
+        self.assertFalse(self.is_logged_in())
         messages_list = list(response.context["messages"])
         self.assertEqual(len(messages_list), 1)
         self.assertEqual(messages_list[0].level, messages.ERROR)
