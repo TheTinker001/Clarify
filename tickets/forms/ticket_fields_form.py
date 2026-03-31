@@ -3,7 +3,7 @@ from tickets.models import Ticket
 
 
 class TicketFieldsForm(forms.ModelForm):
-    """Forn used by admin users to edit a ticket's 3 main fields."""
+    """Form used by admin users to edit a ticket's 3 main fields."""
 
     class Meta:
         model = Ticket

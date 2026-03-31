@@ -11,12 +11,7 @@ from clarify.settings import MAX_TICKET_CLAIMANTS
 
 @method_decorator([login_required, require_POST], name="dispatch")
 class TicketClaimView(View):
-    """
-    Let staff assign themselves to an unassigned ticket.
-
-    Uses a filtered '.update(assigned_to__isnull=True)' to avoid race conditions.
-    If zero rows are updated, the DB is re-read to determine who claimed it first.
-    """
+    """Let staff and admins users assign themselves to an unassigned ticket."""
 
     def post(self, request, url_code):
         """Process the claim request and redirect back to the ticket detail page."""

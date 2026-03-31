@@ -12,7 +12,7 @@ from django.conf import settings
 
 
 class DashboardView(LoginRequiredMixin, TemplateView):
-    """Render the authenticated user's dashboard with tab-filtered, searchable, paginated tickets."""
+    """Show the user's dashboard with tickets."""
 
     template_name = "dashboard.html"
     TAB_LABELS = {
@@ -27,7 +27,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
     default_pk = "-pk"
 
     def get_tab(self):
-        """Return the active tab key from the query string, falling back to 'open_tickets'."""
+        """Return the current tab from the query string."""
         tab = self.request.GET.get("tab", "open_tickets")
         if tab not in self.TAB_LABELS:
             tab = "open_tickets"
@@ -155,7 +155,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         return tab, qs
 
     def get_queryset_for_search_term(self, qs, current_user, search_term):
-        """Filter the queryset by search term across subject, body, student username, and full name (staff only)."""
+        """Filter the queryset by search term across subject, body, student username and full name (staff only)."""
         if current_user.user_type == User.USER_TYPE_STAFF and search_term:
             order_filter = self.request.GET.get("order", "newest")
 
@@ -182,7 +182,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
 
     def get_search_term(self):
         """
-        Return the search term, persisting it in the session across tab changes.
+        Return the search term, keeping it in the session across tab changes.
 
         If 'searchTerm' is in the query string, save it.
         If only 'tab' is present, return the session-stored value.
@@ -202,12 +202,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         return ""
 
     def get_context_data(self, **kwargs):
-        """
-        Build the dashboard template context.
-
-        'querystring' preserves filters for pagination.
-        'carry_querystring' omits 'tab' so tab links can append their own value while keeping filters intact.
-        """
+        """Build the dashboard template context."""
         context = super().get_context_data(**kwargs)
 
         current_user = self.request.user

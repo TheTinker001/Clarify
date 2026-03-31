@@ -9,7 +9,7 @@ from tickets.models import Ticket, User
 
 @method_decorator([login_required, require_POST], name="dispatch")
 class TicketUnclaimView(View):
-    """Let staff remove their assignment. A filtered update ensures they can't unclaim another staff member's ticket."""
+    """Let staff remove their assignment to a ticket."""
 
     def post(self, request, url_code):
         """Process the unclaim request and redirect back to the ticket detail page."""
