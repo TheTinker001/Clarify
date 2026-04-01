@@ -522,7 +522,7 @@ class Command(BaseCommand):
                 continue
             random_staff = random.choice(staff_users)
             IssueUpdate.objects.create(
-                issue=random_ig,
+                issue_group=random_ig,
                 message=generate_issue_group_update(),
                 created_by=random_staff,
             )
