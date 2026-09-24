@@ -48,13 +48,13 @@ class Command(BaseCommand):
                 action, detail = process_email(msg)
 
                 if action == "created":
-                    self.stdout.write(f"  Ticket created: {detail}")
+                    self.stdout.write("  Ticket created.")
                 elif action == "missing_fields":
-                    self.stdout.write(f"  Missing fields {detail} - reply sent.")
+                    self.stdout.write("  Email missing required classification fields.")
                 elif action == "ignored_not_student":
-                    self.stdout.write(f"  Ignored (not a student): {detail}")
+                    self.stdout.write("  Ignored email from unrecognised sender.")
                 elif action == "ignored_no_subject":
-                    self.stdout.write(f"  Ignored (no subject): {detail}")
+                    self.stdout.write("  Ignored email with no subject.")
 
         finally:
             mail.logout()

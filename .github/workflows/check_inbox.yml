@@ -15,4 +15,5 @@ jobs:
             -H "X-CRON-TOKEN: ${{ secrets.CRON_TOKEN }}" \
             https://clarify.pythonanywhere.com/tasks/check-inbox/)
 
-          echo "$resp" | jq -r '.output'
+          echo "$resp" | jq -e '.ok == true' >/dev/null
+          echo "Inbox check completed successfully."

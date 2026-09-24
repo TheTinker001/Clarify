@@ -101,7 +101,7 @@ class CheckInboxCommandTest(TestCase):
 
         out = StringIO()
         call_command("check_inbox", stdout=out)
-        self.assertIn("Missing fields", out.getvalue())
+        self.assertIn("Email missing required classification fields.", out.getvalue())
         self.assertEqual(Ticket.objects.count(), 0)
 
     @patch("tickets.management.commands.check_inbox.imaplib.IMAP4_SSL")
@@ -145,7 +145,7 @@ class CheckInboxCommandTest(TestCase):
         call_command("check_inbox", stdout=out)
         output = out.getvalue()
         self.assertIn("Ticket created", output)
-        self.assertIn("not a student", output)
+        self.assertIn("Ignored email from unrecognised sender.", output)
         self.assertIn("Done", output)
         self.assertEqual(Ticket.objects.count(), 1)
 
@@ -162,5 +162,5 @@ class CheckInboxCommandTest(TestCase):
 
         out = StringIO()
         call_command("check_inbox", stdout=out)
-        self.assertIn("not a student", out.getvalue())
+        self.assertIn("Ignored email from unrecognised sender.", out.getvalue())
         self.assertEqual(Ticket.objects.count(), 0)
